@@ -2,26 +2,27 @@ import React, { useEffect, useMemo, useState } from 'react';
 import './DownloadHub.css';
 
 const DEFAULT_RELEASE_INFO = {
-  version: import.meta.env.VITE_ARIA_RELEASE_VERSION || 'v0.1.4',
+  version: import.meta.env.VITE_ARIA_RELEASE_VERSION || 'v0.1.8',
   publishedAt: import.meta.env.VITE_ARIA_RELEASE_DATE || '2026-03-07',
-  changelogUrl: import.meta.env.VITE_ARIA_CHANGELOG_URL || 'https://github.com/ailovem/Aria/releases/tag/v0.1.4',
+  changelogUrl: import.meta.env.VITE_ARIA_CHANGELOG_URL || 'https://github.com/ailovem/Aria/releases/tag/v0.1.8',
   downloads: {
     macos: {
-      files: '.dmg',
-      arch: 'Apple Silicon (M 系列)',
-      url: import.meta.env.VITE_ARIA_DOWNLOAD_MAC || 'https://github.com/ailovem/Aria/releases/download/v0.1.4/Aria_0.1.0_aarch64.dmg',
-      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || '2bd2f513e5e6fc446b9905380beb639a85f1eb5b147b2085784c5721a24387bf'
+      files: '.dmg（Apple Silicon / Intel）',
+      arch: 'Apple Silicon / Intel',
+      url: import.meta.env.VITE_ARIA_DOWNLOAD_MAC || 'https://github.com/ailovem/Aria/releases/download/v0.1.8/Aria_0.1.0_aarch64.dmg',
+      intelUrl: import.meta.env.VITE_ARIA_DOWNLOAD_MAC_INTEL || 'https://github.com/ailovem/Aria/releases/download/v0.1.8/Aria_0.1.0_x64.dmg',
+      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || 'ARM: 9e8d3b789a4e15d3a24d0d570a4ba9988cfa1232d7437ca75db574e9e5582b1d | Intel: 44b1616168653396878f39156ef05d472d318480e3176d3c122b70ef03d943ac'
     },
     windows: {
       files: '.exe / .msi',
       arch: 'x64',
-      url: import.meta.env.VITE_ARIA_DOWNLOAD_WINDOWS || 'https://github.com/ailovem/Aria/releases/download/v0.1.4/Aria_0.1.0_x64-setup.exe',
-      checksum: import.meta.env.VITE_ARIA_SHA256_WINDOWS || 'EXE: fc4f6b703d909fcf200cb9eb300d39408d02c92bc951440531fde5256ee57d24 | MSI: 28f1c6ee38116d2960f1004211bd44df63370cb1b72f95f2d0dad672d3a9b2cf'
+      url: import.meta.env.VITE_ARIA_DOWNLOAD_WINDOWS || 'https://github.com/ailovem/Aria/releases/download/v0.1.8/Aria_0.1.0_x64-setup.exe',
+      checksum: import.meta.env.VITE_ARIA_SHA256_WINDOWS || 'EXE: 6b475ff63b6f42cc6531e3ad17ff1125bf5a51d0d76b08fcfad162b2c1b69f33 | MSI: 8819c4e1f251f597d5941f7efc6727b54a023d31fe328f35c35248e1957eaa30'
     },
     linux: {
       files: '暂未提供',
       arch: 'x64',
-      url: import.meta.env.VITE_ARIA_DOWNLOAD_LINUX || 'https://github.com/ailovem/Aria/releases/tag/v0.1.4',
+      url: import.meta.env.VITE_ARIA_DOWNLOAD_LINUX || 'https://github.com/ailovem/Aria/releases/tag/v0.1.8',
       checksum: import.meta.env.VITE_ARIA_SHA256_LINUX || '-'
     }
   }
@@ -59,10 +60,13 @@ const DownloadHub = () => {
     {
       key: 'macos',
       platform: 'macOS',
-      files: releaseInfo.downloads?.macos?.files || '.dmg',
-      arch: releaseInfo.downloads?.macos?.arch || 'Apple Silicon (M 系列)',
+      files: releaseInfo.downloads?.macos?.files || '.dmg（Apple Silicon / Intel）',
+      arch: releaseInfo.downloads?.macos?.arch || 'Apple Silicon / Intel',
       href: releaseInfo.downloads?.macos?.url || '#',
-      checksum: releaseInfo.downloads?.macos?.checksum || '2bd2f513e5e6fc446b9905380beb639a85f1eb5b147b2085784c5721a24387bf'
+      secondaryHref: releaseInfo.downloads?.macos?.intelUrl || '',
+      buttonText: '下载 macOS (Apple Silicon)',
+      secondaryButtonText: '下载 macOS (Intel)',
+      checksum: releaseInfo.downloads?.macos?.checksum || 'ARM: 9e8d3b789a4e15d3a24d0d570a4ba9988cfa1232d7437ca75db574e9e5582b1d | Intel: 44b1616168653396878f39156ef05d472d318480e3176d3c122b70ef03d943ac'
     },
     {
       key: 'windows',
@@ -70,7 +74,10 @@ const DownloadHub = () => {
       files: releaseInfo.downloads?.windows?.files || '.exe / .msi',
       arch: releaseInfo.downloads?.windows?.arch || 'x64',
       href: releaseInfo.downloads?.windows?.url || '#',
-      checksum: releaseInfo.downloads?.windows?.checksum || 'EXE: fc4f6b703d909fcf200cb9eb300d39408d02c92bc951440531fde5256ee57d24 | MSI: 28f1c6ee38116d2960f1004211bd44df63370cb1b72f95f2d0dad672d3a9b2cf'
+      secondaryHref: '',
+      buttonText: '下载 Windows',
+      secondaryButtonText: '',
+      checksum: releaseInfo.downloads?.windows?.checksum || 'EXE: 6b475ff63b6f42cc6531e3ad17ff1125bf5a51d0d76b08fcfad162b2c1b69f33 | MSI: 8819c4e1f251f597d5941f7efc6727b54a023d31fe328f35c35248e1957eaa30'
     },
     {
       key: 'linux',
@@ -78,6 +85,9 @@ const DownloadHub = () => {
       files: releaseInfo.downloads?.linux?.files || '暂未提供',
       arch: releaseInfo.downloads?.linux?.arch || 'x64',
       href: releaseInfo.downloads?.linux?.url || '#',
+      secondaryHref: '',
+      buttonText: '下载 Linux',
+      secondaryButtonText: '',
       checksum: releaseInfo.downloads?.linux?.checksum || '-'
     }
   ]), [releaseInfo]);
@@ -103,8 +113,13 @@ const DownloadHub = () => {
               <p className="download-meta">安装包：{item.files}</p>
               <p className="download-meta">架构：{item.arch}</p>
               <a className="download-button" href={item.href} target="_blank" rel="noreferrer">
-                下载 {item.platform}
+                {item.buttonText}
               </a>
+              {item.secondaryHref ? (
+                <a className="download-button" href={item.secondaryHref} target="_blank" rel="noreferrer">
+                  {item.secondaryButtonText}
+                </a>
+              ) : null}
               <p className="download-checksum">SHA256：{item.checksum}</p>
             </article>
           ))}
