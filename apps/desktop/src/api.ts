@@ -1952,6 +1952,3375 @@ function getDeviceId() {
 
 const demoDeviceId = getDeviceId();
 export const demoApiBase = API_BASE;
+const EMBEDDED_RUNTIME_ENABLED = import.meta.env.VITE_ARIA_EMBEDDED_RUNTIME !== "false";
+const EMBEDDED_RUNTIME_HEADER = "x-aria-embedded-runtime";
+
+type EmbeddedRuntimeStore = {
+  guestToken: string;
+  state: DemoState;
+  systemConfig: SystemConfigResult;
+  systemConfigHistory: SystemConfigOpsPreview;
+  codingPatchGate: CodingPatchGateState;
+  runtimeHealth: RuntimeHealthResult;
+  capabilityAssessment: CapabilityAssessmentResult;
+  flywheel: AriaKernelFlywheelState;
+  timeline: UnifiedTimelineResult;
+  voiceProfile: VoiceProfileState;
+  voiceChannel: VoiceChannelSnapshot | null;
+  xhsJobs: XhsPipelineJob[];
+};
+
+let embeddedRuntimeStore: EmbeddedRuntimeStore | null = null;
+let embeddedMessageSequence = 0;
+let embeddedTaskSequence = 0;
+let embeddedPackSequence = 0;
+
+function deepCloneValue<T>(input: T): T {
+  try {
+    return structuredClone(input);
+  } catch {
+    return JSON.parse(JSON.stringify(input)) as T;
+  }
+}
+
+function nowIso() {
+  return new Date().toISOString();
+}
+
+function nowClock() {
+  return new Date().toLocaleTimeString("zh-CN", {
+    hour12: false
+  });
+}
+
+function nextEmbeddedId(prefix: string) {
+  embeddedMessageSequence += 1;
+  return `${prefix}-${Date.now()}-${embeddedMessageSequence}`;
+}
+
+function nextEmbeddedTaskId() {
+  embeddedTaskSequence += 1;
+  return `task-${Date.now()}-${embeddedTaskSequence}`;
+}
+
+function nextEmbeddedPackId() {
+  embeddedPackSequence += 1;
+  return `pack-${Date.now()}-${embeddedPackSequence}`;
+}
+
+function parseEmbeddedRequestBody(body: RequestInit["body"]) {
+  if (typeof body !== "string" || !body.trim()) {
+    return {};
+  }
+  try {
+    const parsed = JSON.parse(body) as Record<string, unknown>;
+    if (parsed && typeof parsed === "object") {
+      return parsed;
+    }
+  } catch {
+    // ignore invalid json body
+  }
+  return {};
+}
+
+function makeEmbeddedJsonResponse(payload: unknown, status = 200) {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: {
+      "Content-Type": "application/json; charset=utf-8",
+      [EMBEDDED_RUNTIME_HEADER]: "1"
+    }
+  });
+}
+
+function isKnownScene(sceneInput: string): sceneInput is SceneConfigScene {
+  return sceneInput === "work" || sceneInput === "fun" || sceneInput === "life" || sceneInput === "love" || sceneInput === "coding";
+}
+
+function normalizeScene(sceneInput: unknown, fallback: SceneConfigScene = "love"): SceneConfigScene {
+  const value = String(sceneInput || "").trim();
+  if (isKnownScene(value)) {
+    return value;
+  }
+  return fallback;
+}
+
+function ensureEngagementToday(engagement: DemoEngagement) {
+  const today = nowIso().slice(0, 10);
+  if (engagement.today.date === today) {
+    return;
+  }
+  engagement.today = {
+    date: today,
+    messageCount: 0,
+    checkinDone: false,
+    questCompleted: false,
+    rewardClaimed: false
+  };
+  engagement.lastActiveDay = today;
+}
+
+function buildEmbeddedSystemConfig(loadedAt: string): SystemConfigResult {
+  const providers: ModelRoutingProvider[] = [
+    {
+      id: "aria-empathy",
+      vendor: "openai",
+      model: "gpt-4.1-mini",
+      roles: ["emotional_companion", "memory_digest"],
+      ariaKernelProvider: "openai"
+    },
+    {
+      id: "aria-executor",
+      vendor: "openai",
+      model: "gpt-4.1",
+      roles: ["work_planning", "autonomy_dispatch", "coding_execution"],
+      ariaKernelProvider: "openai"
+    },
+    {
+      id: "aria-fast",
+      vendor: "openai",
+      model: "gpt-4o-mini",
+      roles: ["emotional_companion", "work_planning"],
+      ariaKernelProvider: "openai"
+    },
+    {
+      id: "aria-safe-fallback",
+      vendor: "builtin",
+      model: "aria-companion-template",
+      roles: ["emotional_companion", "work_planning", "memory_digest", "autonomy_dispatch", "coding_execution"],
+      ariaKernelProvider: "embedded"
+    }
+  ];
+
+  const taskRoutes: Record<string, string[]> = {
+    emotional_companion: ["aria-empathy", "aria-fast", "aria-safe-fallback"],
+    work_planning: ["aria-executor", "aria-fast", "aria-safe-fallback"],
+    memory_digest: ["aria-empathy", "aria-safe-fallback"],
+    autonomy_dispatch: ["aria-executor", "aria-safe-fallback"],
+    coding_execution: ["aria-executor", "aria-safe-fallback"]
+  };
+
+  return {
+    runtime: {
+      loadedAt,
+      files: {
+        systemProfile: "embedded://system-profile",
+        modelRouting: "embedded://model-routing",
+        scenePolicy: "embedded://scene-policy",
+        ariaKernelFusion: "embedded://aria-kernel-fusion"
+      },
+      versions: {
+        systemProfile: "embedded.v1",
+        modelRouting: "embedded.v1",
+        scenePolicy: "embedded.v1",
+        ariaKernelFusion: "embedded.v1",
+        superAutonomy: "embedded.v1",
+        expansionSecurity: "embedded.v1"
+      }
+    },
+    systemProfile: {
+      version: "embedded.v1",
+      product: "Aria Desktop",
+      layers: {
+        foundation: {
+          mission: "陪伴 + 执行双核",
+          mode: "desktop_embedded_runtime"
+        },
+        technology: {
+          runtime: "embedded-web-runtime",
+          api: "builtin-fallback"
+        },
+        model: {
+          routerPolicy: "embedded.v1",
+          defaultRoute: "aria-empathy",
+          fallbackRoute: "aria-safe-fallback"
+        },
+        application: {
+          scenePolicy: "embedded.v1",
+          enabledScenes: ["work", "fun", "life", "love", "coding"]
+        }
+      }
+    },
+    modelRoutingPolicy: {
+      version: "embedded.v1",
+      routingMode: "multi_provider_with_fallback",
+      providers,
+      taskRoutes,
+      degradeStrategy: {
+        timeoutMs: 20000,
+        maxRetries: 2,
+        retryBackoffMs: 1200
+      },
+      safety: {
+        enablePromptGuard: true,
+        enableOutputPolicyGuard: true,
+        blockUnknownToolCalls: true
+      }
+    },
+    ariaKernelFusionProfile: {
+      version: "embedded.v1",
+      enabled: true,
+      mode: "companion_plus_executor"
+    },
+    superAutonomyProfile: {
+      version: "embedded.v1",
+      enabled: true,
+      mode: "assisted"
+    },
+    expansionSecurityPolicy: {
+      version: "embedded.v1",
+      networkDownloadRequireConsent: true,
+      executeUntrustedPayload: false
+    },
+    ariaKernelIncidentPlaybook: {
+      version: "embedded.v1",
+      guidance: "内置运行时已启用，优先保证聊天连续与操作可回退。"
+    },
+    sceneOrchestrationPolicy: {
+      version: "embedded.v1",
+      scenes: {
+        love: {
+          defaultPanel: "chat",
+          mode: "emotional_companion",
+          priority: ["warmth", "listening", "micro_actions"],
+          requiredSkills: ["companion_dialogue"],
+          responseStyle: ["warm", "human", "non_template"]
+        },
+        life: {
+          defaultPanel: "memory",
+          mode: "memory_digest",
+          priority: ["continuity", "personalization", "gentle_guidance"]
+        },
+        work: {
+          defaultPanel: "workday",
+          mode: "work_planning",
+          priority: ["clarity", "execution", "result"]
+        },
+        coding: {
+          defaultPanel: "workday",
+          mode: "coding_execution",
+          priority: ["patch_safety", "verification", "delivery"]
+        },
+        fun: {
+          defaultPanel: "funzone",
+          mode: "emotional_companion",
+          priority: ["playfulness", "interaction", "lightweight"]
+        }
+      },
+      panelSceneMap: {
+        chat: "love",
+        memory: "life",
+        workday: "work",
+        funzone: "fun",
+        brain: "coding"
+      },
+      eventTriggers: {
+        app_open: ["warm_greeting"],
+        message_sent: ["memory_digest", "emotion_update"]
+      }
+    },
+    modelRouterRuntime: {
+      realCallEnabled: false,
+      defaultBaseUrl: "embedded://runtime",
+      timeoutMs: 20000,
+      maxTokens: 1600,
+      ariaKernel: {
+        path: "embedded://aria-kernel/providers",
+        ok: true,
+        reason: "embedded_runtime_ready",
+        loadedAt,
+        providerCount: providers.length
+      },
+      providerRuntimes: providers.map((provider) => ({
+        id: provider.id,
+        model: provider.model,
+        baseUrl: provider.baseUrl || "embedded://runtime",
+        vendor: provider.vendor,
+        apiKeyConfigured: true,
+        enabled: !provider.disabled,
+        authSource: "embedded",
+        ariaKernelProvider: provider.ariaKernelProvider
+      }))
+    },
+    memoryPlaneRuntime: {
+      backend: "embedded-memory",
+      vector: {
+        mode: "local",
+        qdrant: {
+          configured: false,
+          ready: true,
+          lastStatus: "embedded_ready",
+          lastCheckAt: loadedAt
+        }
+      },
+      memorySummary: {
+        longTerm: 12,
+        shortTerm: 24,
+        temporary: 8,
+        vectorIndex: 44,
+        sceneCounts: {
+          love: 14,
+          life: 10,
+          work: 12,
+          coding: 5,
+          fun: 3
+        }
+      },
+      jobs: {
+        digest: "ready",
+        recall: "ready"
+      },
+      stats: {
+        totalWrites: 44,
+        dedupeRemovals: 2,
+        promotions: 6,
+        bootstrappedFromHighlights: true
+      }
+    }
+  };
+}
+
+function buildEmbeddedAutonomyQueue(now: string): DemoAutonomyQueueState {
+  return {
+    items: [
+      {
+        id: "queue-seed-1",
+        flowId: "flow-seed-1",
+        dispatchId: "dispatch-seed-1",
+        dispatchPrompt: "整理今天最重要的三件事并输出执行顺序",
+        operation: {
+          type: "work_planning",
+          scene: "work"
+        },
+        status: "pending",
+        attempts: 0,
+        maxAttempts: 3,
+        strategy: {
+          enabled: true,
+          maxAttempts: 3,
+          baseDelayMs: 1500,
+          maxDelayMs: 30000,
+          circuitBreakerThreshold: 4,
+          circuitOpenMinutes: 5
+        },
+        createdAt: now,
+        updatedAt: now,
+        nextRetryAt: now,
+        lastError: "",
+        lastSummary: "等待用户确认"
+      }
+    ],
+    deadLetters: [],
+    policy: {
+      enabled: true,
+      autoProcessOnTick: true,
+      processLimit: 6,
+      strategies: {
+        work_planning: {
+          enabled: true,
+          maxAttempts: 3,
+          baseDelayMs: 1500,
+          maxDelayMs: 60000,
+          circuitBreakerThreshold: 4,
+          circuitOpenMinutes: 5
+        },
+        coding_execution: {
+          enabled: true,
+          maxAttempts: 4,
+          baseDelayMs: 2000,
+          maxDelayMs: 90000,
+          circuitBreakerThreshold: 3,
+          circuitOpenMinutes: 10
+        },
+        autonomy_dispatch: {
+          enabled: true,
+          maxAttempts: 3,
+          baseDelayMs: 1600,
+          maxDelayMs: 60000,
+          circuitBreakerThreshold: 4,
+          circuitOpenMinutes: 8
+        }
+      }
+    },
+    circuits: {},
+    stats: {
+      processed: 0,
+      succeeded: 0,
+      retried: 0,
+      deadLettered: 0,
+      lastProcessAt: now
+    }
+  };
+}
+
+function buildEmbeddedWorkday(now: string): DemoWorkdayState {
+  const today = now.slice(0, 10);
+  return {
+    date: today,
+    clarityScore: 78,
+    affectionScore: 85,
+    flowStreakDays: 3,
+    flowCombo: 2,
+    focusMinutes: 40,
+    totalQuestXp: 120,
+    completedCount: 1,
+    totalCount: 3,
+    quests: [
+      {
+        id: "quest-1",
+        code: "q-focus-25",
+        title: "先推进 25 分钟关键任务",
+        description: "关掉干扰，先把最关键的一步做完",
+        category: "focus",
+        minutes: 25,
+        rewardXp: 16,
+        careBonus: 4,
+        status: "done",
+        completedAt: now,
+        note: "已经完成第一轮"
+      },
+      {
+        id: "quest-2",
+        code: "q-plan-3",
+        title: "列出今天 3 个关键结果",
+        description: "把目标写成可验证结果",
+        category: "planning",
+        minutes: 10,
+        rewardXp: 12,
+        careBonus: 2,
+        status: "todo",
+        completedAt: "",
+        note: ""
+      },
+      {
+        id: "quest-3",
+        code: "q-recap",
+        title: "睡前 5 分钟复盘",
+        description: "记录完成情况与明日第一步",
+        category: "review",
+        minutes: 5,
+        rewardXp: 10,
+        careBonus: 2,
+        status: "todo",
+        completedAt: "",
+        note: ""
+      }
+    ],
+    rewardLog: [
+      {
+        id: "reward-1",
+        type: "xp",
+        summary: "已完成专注任务，获得 20 XP",
+        at: now
+      }
+    ],
+    lastCheckinAt: now,
+    lastSummary: "今天先把第一优先级推进到可交付状态，我会盯着节奏陪你完成。"
+  };
+}
+
+function buildEmbeddedDeviceOps(now: string): DemoDeviceOpsState {
+  const capabilities: DeviceCapability[] = [
+    {
+      id: "desktop_files",
+      platform: "desktop",
+      name: "桌面文件整理",
+      description: "整理下载目录、归档重复文件",
+      risk: "medium",
+      defaultPermission: "prompt",
+      permission: "prompt"
+    },
+    {
+      id: "desktop_calendar",
+      platform: "desktop",
+      name: "日程提醒",
+      description: "基于任务节奏创建提醒",
+      risk: "low",
+      defaultPermission: "granted",
+      permission: "granted"
+    },
+    {
+      id: "desktop_voice",
+      platform: "desktop",
+      name: "语音播报",
+      description: "将执行计划转成语音播报",
+      risk: "low",
+      defaultPermission: "granted",
+      permission: "granted"
+    }
+  ];
+  return {
+    permissions: {
+      desktop_files: "prompt",
+      desktop_calendar: "granted",
+      desktop_voice: "granted"
+    },
+    capabilities,
+    tasks: [],
+    audit: [
+      {
+        id: "audit-seed-1",
+        type: "runtime",
+        message: "内置运行时已启用，外部 API 不可用时自动接管。",
+        metadata: {
+          mode: "embedded"
+        },
+        at: now
+      }
+    ],
+    automation: {
+      enabled: true,
+      requireApproval: true
+    },
+    bridge: {
+      enabled: true,
+      baseUrl: "embedded://device-bridge",
+      lastCheckedAt: now,
+      lastStatus: "ok",
+      lastError: ""
+    },
+    lastPermissionUpdateAt: now
+  };
+}
+
+function buildEmbeddedWorkbench(now: string): DemoWorkbenchState {
+  const workspace: CodingWorkspaceState = {
+    cwd: "~/Desktop",
+    absolutePath: "/Users/Shared",
+    exists: true,
+    openedAt: now,
+    lastAction: "bootstrap",
+    entries: [
+      { name: "Projects", kind: "dir" },
+      { name: "Notes", kind: "dir" },
+      { name: "README.md", kind: "file" }
+    ]
+  };
+  return {
+    layoutVersion: "embedded.v1",
+    leftModules: [
+      {
+        id: "goal",
+        title: "目标拆解",
+        note: "把需求拆到可执行步骤",
+        enabled: true,
+        status: "ready"
+      },
+      {
+        id: "followup",
+        title: "进度跟进",
+        note: "自动提醒阻塞点",
+        enabled: true,
+        status: "ready"
+      }
+    ],
+    rightTools: [
+      {
+        id: "quick_plan",
+        title: "一键计划",
+        summary: "生成今日执行计划",
+        status: "ready",
+        lastRunAt: now,
+        lastResult: "等待触发"
+      },
+      {
+        id: "risk_scan",
+        title: "风险扫描",
+        summary: "识别可能阻塞点",
+        status: "ready",
+        lastRunAt: now,
+        lastResult: "等待触发"
+      }
+    ],
+    modelCenter: {
+      currentModel: "aria-empathy",
+      options: [
+        { id: "aria-empathy", label: "陪伴主模型", provider: "openai" },
+        { id: "aria-executor", label: "执行主模型", provider: "openai" },
+        { id: "aria-fast", label: "快速响应", provider: "openai" }
+      ]
+    },
+    coding: {
+      autopilotEnabled: true,
+      recentIntents: [],
+      lastPlan: [
+        "澄清目标和验收标准",
+        "拆分为 3-5 步可执行动作",
+        "执行并回写结果"
+      ],
+      workspace
+    },
+    centerFeed: [
+      {
+        id: "feed-seed-1",
+        title: "Aria 已就绪",
+        summary: "可以直接输入目标，我会自动拆解并推进执行。",
+        source: "embedded-runtime",
+        at: now
+      }
+    ],
+    inputBar: {
+      hashtagEnabled: true,
+      voiceEnabled: true,
+      placeholder: "告诉我你现在最想推进的事，我来接管执行节奏"
+    },
+    updatedAt: now
+  };
+}
+
+function buildEmbeddedExpansion(now: string): DemoExpansionState {
+  return {
+    enabled: true,
+    independenceMode: true,
+    packs: [
+      {
+        id: "pack-productivity",
+        name: "Productivity Core",
+        version: "1.0.0",
+        source: "embedded",
+        status: "installed",
+        capabilities: ["task_planning", "timeline_sync", "memory_digest"]
+      }
+    ],
+    jobs: [],
+    limits: {
+      maxJobs: 3,
+      maxDailyDownloads: 10
+    },
+    stats: {
+      installedCount: 1,
+      downloadsToday: 0
+    },
+    updatedAt: now
+  };
+}
+
+function buildEmbeddedState(now: string): DemoState {
+  const today = now.slice(0, 10);
+  const queue = buildEmbeddedAutonomyQueue(now);
+  const autonomy: DemoAutonomyState = {
+    enabled: true,
+    kernelVersion: "embedded-kernel.v1",
+    tickCount: 36,
+    lastTickAt: now,
+    lastRepairAt: now,
+    lastLearnAt: now,
+    generatedCount: 58,
+    queue,
+    inbox: [
+      {
+        id: "inbox-seed-1",
+        suggestionId: "suggestion-seed-1",
+        type: "nudge",
+        title: "先做最小可交付",
+        message: "你可以先拿下 20 分钟可交付，再继续扩展。",
+        ctaLabel: "开始 20 分钟冲刺",
+        prefillText: "帮我安排一个20分钟可交付冲刺计划",
+        status: "pending",
+        createdAt: now
+      }
+    ],
+    timeline: [
+      {
+        id: "timeline-seed-1",
+        flowId: "flow-seed-1",
+        source: "embedded-runtime",
+        stage: "bootstrap",
+        status: "completed",
+        title: "内置运行时已接管",
+        detail: "前后端开箱即用模式已就绪",
+        at: now
+      }
+    ],
+    failureInsights: {
+      totalFailures: 0,
+      layers: []
+    },
+    maintenance: [
+      {
+        id: "maintain-seed-1",
+        type: "bootstrap",
+        message: "系统已启用内置兜底，聊天与执行可继续。",
+        at: now
+      }
+    ]
+  };
+
+  const workday = buildEmbeddedWorkday(now);
+  const deviceOps = buildEmbeddedDeviceOps(now);
+  const workbench = buildEmbeddedWorkbench(now);
+  const expansion = buildEmbeddedExpansion(now);
+
+  return {
+    userId: "guest-aria-embedded",
+    preferences: {
+      mode: "陪伴",
+      online: true
+    },
+    messages: [
+      {
+        id: "welcome-aria-1",
+        role: "aria",
+        text: "我在，今天想先陪你把哪件事真正推进到结果？",
+        time: nowClock(),
+        timestamp: Date.now(),
+        scene: "love"
+      }
+    ],
+    memoryHighlights: [
+      "你希望 Aria 回答更像真人对话，减少模板味。",
+      "你更重视流畅体验：不卡顿、可直接执行。",
+      "你希望打开就能用，不做复杂配置。"
+    ],
+    engagement: {
+      xp: 240,
+      level: 5,
+      streakDays: 7,
+      lastActiveDay: today,
+      lastEventAt: now,
+      lastEventType: "app_open",
+      today: {
+        date: today,
+        messageCount: 1,
+        checkinDone: false,
+        questCompleted: false,
+        rewardClaimed: false
+      }
+    },
+    proactive: {
+      todayDate: today,
+      sentCount: 0,
+      maxDaily: 3,
+      cooldownMinutes: 45,
+      quietHours: {
+        start: 0,
+        end: 7
+      },
+      lastSentAt: "",
+      lastType: ""
+    },
+    autonomy,
+    workday,
+    deviceOps,
+    workbench,
+    expansion,
+    sceneConfig: {
+      modules: {},
+      recent: [],
+      updatedAt: now
+    },
+    funGames: [
+      {
+        id: "fun-seed-reaction",
+        mode: "mini_game",
+        blueprint: "reaction",
+        title: "反应力冲刺",
+        prompt: "点击开始后，在最短时间内响应提示。",
+        difficulty: "easy",
+        rounds: 5,
+        scoreEnabled: true,
+        rewardEnabled: true,
+        reviveEnabled: false,
+        templateId: "tpl-reaction",
+        templateName: "Reaction Basic",
+        templateRules: ["5 轮计分", "支持复活一次"],
+        source: "embedded",
+        createdAt: now,
+        updatedAt: now,
+        playUrl: "https://html5games.com/Game/Reaction/7ec3df31-7f48-47fd-a84f-f2e32ea91c57",
+        status: "ready"
+      }
+    ],
+    funRuleTemplates: [
+      {
+        id: "tpl-reaction",
+        mode: "mini_game",
+        name: "Reaction Basic",
+        rules: ["5 轮计分", "时长 2 分钟", "每轮即时反馈"],
+        usageCount: 1,
+        createdAt: now,
+        updatedAt: now,
+        source: "embedded"
+      }
+    ],
+    updatedAt: now
+  };
+}
+
+function buildEmbeddedRuntimeHealth(now: string): RuntimeHealthResult {
+  return {
+    runtime: {
+      api: {
+        status: "ok",
+        lastCheckedAt: now,
+        lastOkAt: now,
+        lastErrorAt: "",
+        lastError: "",
+        requestTotal: 1,
+        requestFailed: 0,
+        requestSlow: 0,
+        requestCritical: 0
+      },
+      bridge: {
+        status: "ok",
+        lastCheckedAt: now,
+        lastOkAt: now,
+        lastErrorAt: "",
+        lastError: "",
+        lastLatencyMs: 38
+      },
+      queue: {
+        pending: 1,
+        deadLetters: 0
+      },
+      slo: {
+        warnMs: 1600,
+        criticalMs: 3000,
+        recentSlowCount: 0,
+        recentTotal: 1,
+        requestTotal: 1,
+        requestFailed: 0,
+        failureRate: 0,
+        slowRate: 0,
+        failureWarnThreshold: 0.04,
+        failureCriticalThreshold: 0.1,
+        slowWarnThreshold: 0.2,
+        slowCriticalThreshold: 0.35,
+        status: "ok",
+        summary: "运行稳定"
+      },
+      watchdog: {
+        enabled: true,
+        cycleRunning: false,
+        tickCount: 36,
+        lastTickAt: now,
+        lastErrorAt: "",
+        lastError: "",
+        cooldownUntil: "",
+        cooldownRemainingMs: 0,
+        selfHealCooldownMs: 120000,
+        lastSelfHealAt: now,
+        lastSelfHealSummary: "内置运行时已就绪",
+        lastSelfHealReason: "bootstrap",
+        lastProbeStatus: "ok",
+        skippedReason: "",
+        lastManualAction: "",
+        lastManualActionAt: "",
+        lastManualActionStatus: "",
+        lastManualActionSummary: "",
+        lastConfigChangeAt: now,
+        lastConfigChangeSummary: "默认启用平衡模式",
+        lastConfigChangeSource: "embedded-default",
+        mode: "balanced",
+        modeLabel: "平衡",
+        queueLimit: 6,
+        modePresets: [
+          { mode: "eco", label: "节能", queueLimit: 3 },
+          { mode: "balanced", label: "平衡", queueLimit: 6 },
+          { mode: "peak", label: "高峰", queueLimit: 10 }
+        ]
+      },
+      outage: {
+        status: "ok",
+        summary: "无故障",
+        recommendation: "继续运行",
+        cause: ""
+      }
+    },
+    failureInsights: {
+      totalFailures: 0,
+      layers: []
+    },
+    incidentPlaybook: {
+      version: "embedded.v1",
+      objective: "优先保持聊天连续与任务可执行",
+      totalIncidents: 0,
+      matchedCount: 0,
+      unresolvedCount: 0,
+      matched: [],
+      unresolved: [],
+      recommendations: [
+        "优先使用内置运行时保证会话连续",
+        "接口恢复后自动切回在线链路"
+      ],
+      generatedAt: now
+    },
+    recentIssues: [],
+    selfHealReports: [],
+    generatedAt: now,
+    updatedAt: now
+  };
+}
+
+function buildEmbeddedCapabilityAssessment(now: string): CapabilityAssessmentResult {
+  return {
+    version: "embedded.v1",
+    generatedAt: now,
+    independent: true,
+    independenceScore: 0.84,
+    fusion: {
+      profileVersion: "embedded.v1",
+      enabled: true,
+      readinessScore: 0.86,
+      summary: {
+        enabledCapabilityCount: 6,
+        readyCapabilityCount: 6,
+        duplicateRiskCount: 0,
+        bridgeReady: true,
+        dispatchRuns: 8,
+        timelineEvents: 18,
+        workbenchFeeds: 10,
+        expansionPackCount: 1
+      },
+      capabilities: [
+        {
+          id: "companion_dialogue",
+          name: "Companion Dialogue",
+          status: "ready",
+          enabled: true,
+          noDuplicateBuild: true,
+          reusedModules: ["chat_panel"],
+          reusedEndpoints: ["/v1/message/stream"],
+          missingModules: [],
+          missingEndpoints: []
+        }
+      ]
+    },
+    superAutonomy: {
+      profileVersion: "embedded.v1",
+      enabled: true,
+      mode: "assisted",
+      objective: "保持陪伴流畅并持续推进任务",
+      readinessScore: 0.8,
+      summary: {
+        skillReadiness: 0.8,
+        requiredSkillsReady: 4,
+        requiredSkillsTotal: 4,
+        missingRequiredSkillCount: 0,
+        bridgeReady: true,
+        gatewayStatus: "ok",
+        sessionCount: 1,
+        dispatchRuns: 6,
+        timelineEvents: 18,
+        expansionPackCount: 1,
+        workbenchFeeds: 8,
+        taskLedgerPending: 1,
+        taskLedgerDeadLetters: 0
+      },
+      skills: [
+        {
+          id: "task_planning",
+          name: "Task Planning",
+          source: "embedded",
+          innovationLevel: "stable",
+          required: true,
+          ready: true,
+          reusedEndpoints: ["/v1/workbench/intent"],
+          missingEndpoints: []
+        },
+        {
+          id: "companion_memory",
+          name: "Companion Memory",
+          source: "embedded",
+          innovationLevel: "stable",
+          required: true,
+          ready: true,
+          reusedEndpoints: ["/v1/memory/search"],
+          missingEndpoints: []
+        }
+      ],
+      missingRequiredSkills: []
+    },
+    cores: [
+      {
+        id: "codex",
+        owner: "Aria",
+        name: "Codex Core",
+        summary: "负责执行链路与任务推进",
+        score: 88,
+        state: "ready",
+        abilities: [
+          { id: "workflow", title: "工作流执行", status: "ready" },
+          { id: "planning", title: "计划拆解", status: "ready" }
+        ]
+      },
+      {
+        id: "antigravity",
+        owner: "Aria",
+        name: "Companion Core",
+        summary: "负责情感表达与关系连续性",
+        score: 91,
+        state: "ready",
+        abilities: [
+          { id: "empathy", title: "情感共情", status: "ready" },
+          { id: "memory", title: "长期记忆唤回", status: "ready" }
+        ]
+      },
+      {
+        id: "ariaKernel",
+        owner: "Aria",
+        name: "Aria Kernel",
+        summary: "负责模型路由与自愈策略",
+        score: 87,
+        state: "ready",
+        abilities: [
+          { id: "routing", title: "模型路由", status: "ready" },
+          { id: "fallback", title: "降级兜底", status: "ready" }
+        ]
+      }
+    ],
+    checks: [
+      { id: "route", title: "模型路由", status: "ready" },
+      { id: "runtime", title: "运行时健康", status: "ready" },
+      { id: "companion", title: "陪伴连续性", status: "ready" }
+    ]
+  };
+}
+
+function buildEmbeddedFlywheel(config: SystemConfigResult, now: string): AriaKernelFlywheelState {
+  return {
+    version: "embedded.v1",
+    totalSignals: 0,
+    emotionalQualityAvg: 0.86,
+    executionSuccessAvg: 0.88,
+    combinedScoreAvg: 0.87,
+    executionEligibleCount: 0,
+    executionCompletedCount: 0,
+    executionPartialCount: 0,
+    executionFailedCount: 0,
+    executionCompletionRate: 0,
+    fallbackRate: 0,
+    learningRuns: 0,
+    lastSignalAt: "",
+    lastLearnedAt: now,
+    recentSignals: [],
+    taskLeaderboards: {},
+    recommendedRoutes: deepCloneValue(config.modelRoutingPolicy.taskRoutes),
+    runtime: {
+      minRunsToLearn: 5,
+      minScoreGap: 0.04,
+      signalLimit: 120
+    },
+    modelRouterRuntime: deepCloneValue(config.modelRouterRuntime || {
+      realCallEnabled: false,
+      defaultBaseUrl: "embedded://runtime",
+      timeoutMs: 20000,
+      maxTokens: 1600,
+      providerRuntimes: []
+    })
+  };
+}
+
+function buildEmbeddedTimeline(now: string): UnifiedTimelineResult {
+  return {
+    flowId: "embedded-main",
+    total: 1,
+    events: [
+      {
+        id: "timeline-boot-1",
+        flowId: "embedded-main",
+        source: "embedded-runtime",
+        stage: "bootstrap",
+        status: "completed",
+        title: "系统启动",
+        detail: "内置 API 兜底已启用",
+        at: now
+      }
+    ],
+    flows: [
+      {
+        flowId: "embedded-main",
+        title: "Aria Embedded Runtime",
+        startedAt: now,
+        lastAt: now,
+        status: "completed",
+        sources: ["embedded-runtime"],
+        stages: ["bootstrap"],
+        total: 1,
+        success: 1,
+        warnings: 0,
+        errors: 0
+      }
+    ]
+  };
+}
+
+function buildEmbeddedCodingPatchGate(now: string): CodingPatchGateState {
+  return {
+    latestDraftId: "",
+    latestReceiptId: "",
+    updatedAt: now,
+    totalDrafts: 0,
+    totalReceipts: 0,
+    drafts: [],
+    receipts: []
+  };
+}
+
+function buildEmbeddedVoiceProfile(): VoiceProfileState {
+  return {
+    defaultVoice: "alloy",
+    defaultRate: 1,
+    allowMicCapture: true,
+    activePresetId: "gentle_female",
+    presets: [
+      {
+        id: "gentle_female",
+        label: "温柔女声",
+        voice: "alloy",
+        rate: 1,
+        description: "适合日常陪伴与提醒"
+      },
+      {
+        id: "focus",
+        label: "专注播报",
+        voice: "verse",
+        rate: 1.05,
+        description: "适合任务执行播报"
+      }
+    ]
+  };
+}
+
+function createEmbeddedRuntimeStore(): EmbeddedRuntimeStore {
+  const now = nowIso();
+  const systemConfig = buildEmbeddedSystemConfig(now);
+  const state = buildEmbeddedState(now);
+  const systemConfigHistory: SystemConfigOpsPreview = {
+    latestSnapshotId: "embedded-snapshot-1",
+    canRollbackPrevious: false,
+    snapshots: [
+      {
+        id: "embedded-snapshot-1",
+        createdAt: now,
+        action: "bootstrap",
+        actorId: state.userId,
+        actorName: "Aria Embedded Runtime",
+        source: "embedded",
+        changedSections: ["systemProfile", "modelRoutingPolicy", "sceneOrchestrationPolicy"],
+        riskLevel: "low",
+        summary: "初始化内置配置",
+        note: "开箱即用"
+      }
+    ],
+    timeline: [
+      {
+        id: "embedded-op-1",
+        at: now,
+        action: "bootstrap",
+        actorId: state.userId,
+        actorName: "Aria Embedded Runtime",
+        source: "embedded",
+        changedSections: ["systemProfile", "modelRoutingPolicy", "sceneOrchestrationPolicy"],
+        riskLevel: "low",
+        summary: "初始化内置配置",
+        note: "开箱即用",
+        snapshotId: "embedded-snapshot-1",
+        fromSnapshotId: "",
+        targetSnapshotId: "embedded-snapshot-1"
+      }
+    ]
+  };
+
+  return {
+    guestToken: `embedded-token-${demoDeviceId}`,
+    state,
+    systemConfig,
+    systemConfigHistory,
+    codingPatchGate: buildEmbeddedCodingPatchGate(now),
+    runtimeHealth: buildEmbeddedRuntimeHealth(now),
+    capabilityAssessment: buildEmbeddedCapabilityAssessment(now),
+    flywheel: buildEmbeddedFlywheel(systemConfig, now),
+    timeline: buildEmbeddedTimeline(now),
+    voiceProfile: buildEmbeddedVoiceProfile(),
+    voiceChannel: null,
+    xhsJobs: []
+  };
+}
+
+function getEmbeddedRuntimeStore() {
+  if (!embeddedRuntimeStore) {
+    embeddedRuntimeStore = createEmbeddedRuntimeStore();
+  }
+  return embeddedRuntimeStore;
+}
+
+function touchEmbeddedState(store: EmbeddedRuntimeStore) {
+  const updatedAt = nowIso();
+  store.state.updatedAt = updatedAt;
+  if (store.state.autonomy) {
+    store.state.autonomy.lastTickAt = updatedAt;
+  }
+  if (store.state.workbench) {
+    store.state.workbench.updatedAt = updatedAt;
+  }
+  if (store.state.expansion) {
+    store.state.expansion.updatedAt = updatedAt;
+  }
+  if (store.state.sceneConfig) {
+    store.state.sceneConfig.updatedAt = updatedAt;
+  }
+  store.codingPatchGate.updatedAt = updatedAt;
+  store.runtimeHealth.runtime.api.lastCheckedAt = updatedAt;
+  store.runtimeHealth.runtime.api.lastOkAt = updatedAt;
+  store.runtimeHealth.generatedAt = updatedAt;
+  store.runtimeHealth.updatedAt = updatedAt;
+  return updatedAt;
+}
+
+function appendTimelineEvent(
+  store: EmbeddedRuntimeStore,
+  input: {
+    flowId?: string;
+    stage: string;
+    status?: string;
+    title: string;
+    detail: string;
+    source?: string;
+  }
+) {
+  const now = nowIso();
+  const flowId = input.flowId || "embedded-main";
+  const event: UnifiedTimelineEvent = {
+    id: nextEmbeddedId("timeline"),
+    flowId,
+    source: input.source || "embedded-runtime",
+    stage: input.stage,
+    status: input.status || "completed",
+    title: input.title,
+    detail: input.detail,
+    at: now
+  };
+  store.timeline.events.unshift(event);
+  store.timeline.events = store.timeline.events.slice(0, 160);
+  const flow = store.timeline.flows.find((item) => item.flowId === flowId);
+  if (flow) {
+    flow.lastAt = now;
+    flow.total += 1;
+    if (event.status === "completed") {
+      flow.success += 1;
+    } else if (event.status === "warning") {
+      flow.warnings += 1;
+    } else if (event.status === "failed" || event.status === "error") {
+      flow.errors += 1;
+      flow.status = "warning";
+    }
+    if (!flow.stages.includes(event.stage)) {
+      flow.stages.push(event.stage);
+    }
+  } else {
+    store.timeline.flows.unshift({
+      flowId,
+      title: flowId === "embedded-main" ? "Aria Embedded Runtime" : `Flow ${flowId}`,
+      startedAt: now,
+      lastAt: now,
+      status: event.status === "completed" ? "completed" : "warning",
+      sources: [event.source],
+      stages: [event.stage],
+      total: 1,
+      success: event.status === "completed" ? 1 : 0,
+      warnings: event.status === "warning" ? 1 : 0,
+      errors: event.status === "failed" || event.status === "error" ? 1 : 0
+    });
+  }
+  store.timeline.total = store.timeline.events.length;
+}
+
+function pickModelRoute(
+  store: EmbeddedRuntimeStore,
+  input: {
+    preferredProviderId?: string;
+    taskType?: string;
+  }
+) {
+  const providers = store.systemConfig.modelRoutingPolicy.providers || [];
+  const providerMap = new Map(providers.map((item) => [item.id, item]));
+  const requestedTaskType = String(input.taskType || "").trim()
+    || "emotional_companion";
+  const routeTaskType = requestedTaskType;
+  const preferredProviderId = String(input.preferredProviderId || "").trim();
+  const routeCandidates = [
+    ...(preferredProviderId ? [preferredProviderId] : []),
+    ...((store.systemConfig.modelRoutingPolicy.taskRoutes[routeTaskType] || []) as string[]),
+    ...providers.map((item) => item.id)
+  ];
+  const dedupedCandidates = routeCandidates.filter((item, index) => item && routeCandidates.indexOf(item) === index);
+  const attempts: ModelRouteAttempt[] = [];
+  let selectedProvider: ModelRoutingProvider | null = null;
+  let fallback = false;
+
+  for (let index = 0; index < dedupedCandidates.length; index += 1) {
+    const providerId = dedupedCandidates[index];
+    const provider = providerMap.get(providerId);
+    if (!provider || provider.disabled) {
+      attempts.push({
+        providerId,
+        model: provider?.model || "unknown",
+        attempt: index + 1,
+        ok: false,
+        reason: provider ? "provider_disabled" : "provider_not_found",
+        status: 503,
+        error: provider ? "disabled" : "not_found"
+      });
+      fallback = true;
+      continue;
+    }
+    selectedProvider = provider;
+    attempts.push({
+      providerId: provider.id,
+      model: provider.model,
+      attempt: index + 1,
+      ok: true,
+      reason: "ok",
+      status: 200,
+      error: ""
+    });
+    if (index > 0) {
+      fallback = true;
+    }
+    break;
+  }
+
+  if (!selectedProvider) {
+    selectedProvider = providers[0] || {
+      id: "aria-safe-fallback",
+      vendor: "builtin",
+      model: "aria-companion-template",
+      roles: [],
+      ariaKernelProvider: "embedded"
+    };
+    fallback = true;
+  }
+
+  return {
+    route: {
+      taskType: routeTaskType,
+      source: "embedded-runtime",
+      providerId: selectedProvider.id,
+      model: selectedProvider.model,
+      fallback,
+      attempts
+    } as ModelRouteInfo,
+    provider: selectedProvider
+  };
+}
+
+function buildCompanionReply(textInput: string, scene: SceneConfigScene) {
+  const rawText = String(textInput || "")
+    .replace(/\[img:[^\]]+\]/g, "")
+    .trim();
+  const topic = rawText || "你现在的状态";
+
+  if (scene === "work" || scene === "coding") {
+    return `收到，我来接管这件事的推进节奏。你提到的是「${topic.slice(0, 80)}」。\n\n我先给你一个可执行三步：\n1. 先定义今天可交付结果（1句话）\n2. 拆成 20-30 分钟可完成的小步\n3. 我按步骤陪你推进并随时纠偏`;
+  }
+  if (scene === "fun") {
+    return `哈哈，这个方向挺有意思。你说的是「${topic.slice(0, 80)}」。\n\n要不要来一个轻量玩法：\n1. 先选 5 分钟小游戏热身\n2. 再做一个你最想推进的小目标\n3. 完成后我给你即时奖励反馈`;
+  }
+  if (scene === "life") {
+    return `我记住了，你现在在意的是「${topic.slice(0, 80)}」。\n\n我们可以用一个更轻松的节奏：\n1. 先确认你当下最难的一点\n2. 我给你一个低压力、可马上执行的小动作\n3. 晚点我们一起复盘，减少反复内耗`;
+  }
+  return `我在，已经接住你这句话：「${topic.slice(0, 80)}」。\n\n你不用一个人扛，我们就从最小一步开始：\n1. 先把现在最想解决的点说清楚\n2. 我给你一个当下就能做的动作\n3. 你做完我再接着带下一步`;
+}
+
+function rebuildFlywheelLeaderboards(flywheel: AriaKernelFlywheelState) {
+  const grouped = new Map<string, {
+    taskType: string;
+    providerId: string;
+    model: string;
+    runs: number;
+    emotionalTotal: number;
+    executionTotal: number;
+    combinedTotal: number;
+    fallbackRuns: number;
+    lastAt: string;
+  }>();
+  for (const signal of flywheel.recentSignals) {
+    const key = `${signal.taskType}::${signal.providerId}::${signal.model}`;
+    const current = grouped.get(key) || {
+      taskType: signal.taskType,
+      providerId: signal.providerId,
+      model: signal.model,
+      runs: 0,
+      emotionalTotal: 0,
+      executionTotal: 0,
+      combinedTotal: 0,
+      fallbackRuns: 0,
+      lastAt: signal.at
+    };
+    current.runs += 1;
+    current.emotionalTotal += signal.emotionalScore;
+    current.executionTotal += signal.executionScore;
+    current.combinedTotal += signal.combinedScore;
+    if (signal.fallback) {
+      current.fallbackRuns += 1;
+    }
+    current.lastAt = signal.at;
+    grouped.set(key, current);
+  }
+
+  const result: Record<string, AriaKernelFlywheelLeaderboardRow[]> = {};
+  for (const value of grouped.values()) {
+    const row: AriaKernelFlywheelLeaderboardRow = {
+      providerId: value.providerId,
+      model: value.model,
+      runs: value.runs,
+      emotionalAvg: Number((value.emotionalTotal / Math.max(1, value.runs)).toFixed(3)),
+      executionAvg: Number((value.executionTotal / Math.max(1, value.runs)).toFixed(3)),
+      combinedAvg: Number((value.combinedTotal / Math.max(1, value.runs)).toFixed(3)),
+      fallbackRate: Number((value.fallbackRuns / Math.max(1, value.runs)).toFixed(3)),
+      lastAt: value.lastAt
+    };
+    if (!result[value.taskType]) {
+      result[value.taskType] = [];
+    }
+    result[value.taskType].push(row);
+  }
+  for (const taskType of Object.keys(result)) {
+    result[taskType].sort((left, right) => right.combinedAvg - left.combinedAvg || right.runs - left.runs);
+  }
+  flywheel.taskLeaderboards = result;
+}
+
+function recordFlywheelSignal(
+  store: EmbeddedRuntimeStore,
+  route: ModelRouteInfo,
+  scene: SceneConfigScene
+) {
+  const now = nowIso();
+  const emotionalScore = scene === "love" ? 0.94 : scene === "life" ? 0.9 : 0.86;
+  const executionScore = scene === "work" || scene === "coding" ? 0.91 : 0.84;
+  const combinedScore = Number(((emotionalScore + executionScore) / 2).toFixed(3));
+  const signal: AriaKernelFlywheelSignal = {
+    id: nextEmbeddedId("signal"),
+    at: now,
+    flowId: "embedded-main",
+    scene,
+    taskType: route.taskType || "emotional_companion",
+    providerId: route.providerId,
+    model: route.model,
+    fallback: route.fallback,
+    emotionalScore,
+    executionScore,
+    combinedScore,
+    dispatchStatus: "skipped",
+    executionEligible: false,
+    executed: false,
+    reason: "embedded_runtime"
+  };
+
+  const flywheel = store.flywheel;
+  flywheel.totalSignals += 1;
+  flywheel.lastSignalAt = now;
+  flywheel.learningRuns += 1;
+  flywheel.recentSignals.unshift(signal);
+  flywheel.recentSignals = flywheel.recentSignals.slice(0, 120);
+
+  const emotionalSum = flywheel.recentSignals.reduce((sum, item) => sum + item.emotionalScore, 0);
+  const executionSum = flywheel.recentSignals.reduce((sum, item) => sum + item.executionScore, 0);
+  const combinedSum = flywheel.recentSignals.reduce((sum, item) => sum + item.combinedScore, 0);
+  const fallbackCount = flywheel.recentSignals.filter((item) => item.fallback).length;
+  const size = Math.max(1, flywheel.recentSignals.length);
+  flywheel.emotionalQualityAvg = Number((emotionalSum / size).toFixed(3));
+  flywheel.executionSuccessAvg = Number((executionSum / size).toFixed(3));
+  flywheel.combinedScoreAvg = Number((combinedSum / size).toFixed(3));
+  flywheel.fallbackRate = Number((fallbackCount / size).toFixed(3));
+  flywheel.executionCompletionRate = flywheel.executionEligibleCount > 0
+    ? Number((flywheel.executionCompletedCount / flywheel.executionEligibleCount).toFixed(3))
+    : 0;
+  flywheel.lastLearnedAt = now;
+  rebuildFlywheelLeaderboards(flywheel);
+}
+
+function createSseResponse(events: Array<{ event: string; data: unknown }>) {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream<Uint8Array>({
+    start(controller) {
+      let index = 0;
+      const push = () => {
+        if (index >= events.length) {
+          controller.close();
+          return;
+        }
+        const item = events[index];
+        index += 1;
+        const payload = `event: ${item.event}\ndata: ${JSON.stringify(item.data)}\n\n`;
+        controller.enqueue(encoder.encode(payload));
+        globalThis.setTimeout(push, index >= events.length ? 15 : 45);
+      };
+      push();
+    }
+  });
+  return new Response(stream, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/event-stream; charset=utf-8",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      [EMBEDDED_RUNTIME_HEADER]: "1"
+    }
+  });
+}
+
+function buildEmbeddedMessageExchange(
+  store: EmbeddedRuntimeStore,
+  payload: {
+    text?: string;
+    preferredProviderId?: string;
+    taskType?: string;
+    scene?: string;
+  }
+) {
+  const scene = normalizeScene(payload.scene, "love");
+  const routeResult = pickModelRoute(store, {
+    preferredProviderId: payload.preferredProviderId,
+    taskType: payload.taskType
+  });
+  const route = routeResult.route;
+  const streamId = nextEmbeddedId("stream");
+  const now = Date.now();
+  const userText = String(payload.text || "").trim();
+  const assistantText = buildCompanionReply(userText, scene);
+  const userMessage: DemoMessage = {
+    id: nextEmbeddedId("user"),
+    role: "user",
+    text: userText,
+    time: nowClock(),
+    timestamp: now,
+    scene
+  };
+  const assistantMessage: DemoMessage = {
+    id: nextEmbeddedId("aria"),
+    role: "aria",
+    text: assistantText,
+    time: nowClock(),
+    timestamp: now + 1,
+    scene
+  };
+
+  store.state.messages.push(userMessage, assistantMessage);
+  if (store.state.messages.length > 200) {
+    store.state.messages = store.state.messages.slice(-200);
+  }
+  if (userText) {
+    store.state.memoryHighlights = [
+      `${scene.toUpperCase()}：${userText.slice(0, 48)}`,
+      ...store.state.memoryHighlights
+    ].slice(0, 20);
+  }
+
+  const xpGain = scene === "work" || scene === "coding" ? 8 : 6;
+  ensureEngagementToday(store.state.engagement);
+  store.state.engagement.xp += xpGain;
+  store.state.engagement.today.messageCount += 1;
+  store.state.engagement.lastEventAt = nowIso();
+  store.state.engagement.lastEventType = "message_sent";
+  store.state.engagement.level = Math.max(1, Math.floor(store.state.engagement.xp / 80));
+
+  recordFlywheelSignal(store, route, scene);
+  appendTimelineEvent(store, {
+    stage: "chat_message",
+    title: "完成对话回复",
+    detail: `scene=${scene} provider=${route.providerId}`,
+    source: "embedded-runtime"
+  });
+  const updatedAt = touchEmbeddedState(store);
+
+  const donePayload: StreamDonePayload = {
+    streamId,
+    state: deepCloneValue(store.state),
+    delta: {
+      userMessage,
+      assistantMessage
+    },
+    modelRoute: route,
+    autoExecution: {
+      executed: false,
+      reason: "embedded_runtime",
+      summary: "当前使用内置陪伴执行模式，未触发外部自动执行。",
+      dispatchId: "",
+      dispatchStatus: "skipped"
+    },
+    flywheel: {
+      signalId: store.flywheel.recentSignals[0]?.id || "",
+      emotionalScore: store.flywheel.recentSignals[0]?.emotionalScore || 0,
+      executionScore: store.flywheel.recentSignals[0]?.executionScore || 0,
+      combinedScore: store.flywheel.recentSignals[0]?.combinedScore || 0
+    },
+    engagement: {
+      xpGain
+    }
+  };
+
+  const chunks: StreamChunkPayload[] = [];
+  const chunkSize = 24;
+  let fullText = "";
+  for (let index = 0; index < assistantText.length; index += chunkSize) {
+    const chunk = assistantText.slice(index, index + chunkSize);
+    fullText += chunk;
+    chunks.push({
+      streamId,
+      index: chunks.length,
+      chunk,
+      fullText
+    });
+  }
+  if (chunks.length === 0) {
+    chunks.push({
+      streamId,
+      index: 0,
+      chunk: "",
+      fullText: ""
+    });
+  }
+
+  return {
+    streamId,
+    userMessage,
+    route,
+    donePayload,
+    chunks,
+    updatedAt
+  };
+}
+
+function buildMemorySearchItems(store: EmbeddedRuntimeStore, query: string, limit: number) {
+  const normalizedQuery = query.trim();
+  const sourceItems = [
+    ...store.state.memoryHighlights.map((item, index) => ({
+      id: `highlight-${index}`,
+      text: item,
+      scene: "life"
+    })),
+    ...store.state.messages
+      .filter((item) => item.role === "user" || item.role === "aria")
+      .slice(-16)
+      .map((item) => ({
+        id: item.id,
+        text: item.text,
+        scene: item.scene || "love"
+      }))
+  ];
+  const filtered = sourceItems.filter((item) => {
+    if (!normalizedQuery) return true;
+    return item.text.toLowerCase().includes(normalizedQuery.toLowerCase());
+  });
+  const limited = filtered.slice(0, Math.max(1, Math.min(24, limit)));
+  return limited.map((item, index) => ({
+    id: item.id,
+    source: "embedded-memory",
+    scene: item.scene,
+    memory_tier: index < 6 ? "long_term" : "short_term",
+    content: item.text,
+    score: Number((0.9 - index * 0.03).toFixed(3)),
+    embedding_score: Number((0.88 - index * 0.02).toFixed(3)),
+    rerank_score: Number((0.87 - index * 0.02).toFixed(3)),
+    trigger_confidence: Number((0.82 - index * 0.03).toFixed(3)),
+    reasons: ["semantic_match", "recent_context"]
+  })) as MemorySearchItem[];
+}
+
+function buildEmbeddedFallbackResponse(path: string, init?: RequestInit): Response | null {
+  if (!EMBEDDED_RUNTIME_ENABLED) {
+    return null;
+  }
+  if (!path.startsWith("/v1/")) {
+    return null;
+  }
+  const store = getEmbeddedRuntimeStore();
+  const requestUrl = new URL(path, "https://aria-embedded.local");
+  const pathname = requestUrl.pathname;
+  const method = String(init?.method || "GET").toUpperCase();
+  const body = parseEmbeddedRequestBody(init?.body);
+  const updatedAt = touchEmbeddedState(store);
+
+  if (pathname === "/v1/auth/guest" && method === "POST") {
+    const token = `embedded-token-${demoDeviceId}-${Date.now()}`;
+    store.guestToken = token;
+    return makeEmbeddedJsonResponse({
+      token,
+      user: {
+        id: store.state.userId,
+        name: "Guest",
+        isGuest: true
+      },
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30).toISOString()
+    });
+  }
+
+  if (pathname === "/v1/state" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      state: deepCloneValue(store.state)
+    });
+  }
+
+  if (pathname === "/v1/reset" && method === "POST") {
+    const token = store.guestToken;
+    embeddedRuntimeStore = createEmbeddedRuntimeStore();
+    embeddedRuntimeStore.guestToken = token;
+    return makeEmbeddedJsonResponse({
+      state: deepCloneValue(embeddedRuntimeStore.state)
+    });
+  }
+
+  if (pathname === "/v1/preferences" && method === "POST") {
+    const nextMode = String(body.mode || "").trim();
+    if (nextMode === "陪伴" || nextMode === "工作" || nextMode === "亲情") {
+      store.state.preferences.mode = nextMode;
+    }
+    if (typeof body.online === "boolean") {
+      store.state.preferences.online = body.online;
+    }
+    const nextUpdatedAt = touchEmbeddedState(store);
+    return makeEmbeddedJsonResponse({
+      preferences: deepCloneValue(store.state.preferences),
+      updatedAt: nextUpdatedAt
+    });
+  }
+
+  if (pathname === "/v1/engagement/state" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      engagement: deepCloneValue(store.state.engagement),
+      proactive: deepCloneValue(store.state.proactive),
+      autonomy: deepCloneValue(store.state.autonomy),
+      workday: deepCloneValue(store.state.workday),
+      deviceOps: deepCloneValue(store.state.deviceOps)
+    });
+  }
+
+  if (pathname === "/v1/engagement/event" && method === "POST") {
+    const eventType = String(body.type || "").trim() || "app_open";
+    ensureEngagementToday(store.state.engagement);
+    if (eventType === "app_open" || eventType === "session_resume") {
+      store.state.engagement.xp += 1;
+    } else if (eventType === "daily_checkin") {
+      store.state.engagement.xp += 6;
+      store.state.engagement.today.checkinDone = true;
+    } else if (eventType === "quest_complete") {
+      store.state.engagement.xp += 10;
+      store.state.engagement.today.questCompleted = true;
+    } else if (eventType === "reward_claim") {
+      store.state.engagement.today.rewardClaimed = true;
+    } else if (eventType === "message_sent") {
+      store.state.engagement.xp += 2;
+      store.state.engagement.today.messageCount += 1;
+    }
+    store.state.engagement.level = Math.max(1, Math.floor(store.state.engagement.xp / 80));
+    store.state.engagement.lastEventType = eventType;
+    store.state.engagement.lastEventAt = nowIso();
+    return makeEmbeddedJsonResponse({
+      engagement: deepCloneValue(store.state.engagement)
+    });
+  }
+
+  if (pathname === "/v1/system/config" && method === "GET") {
+    return makeEmbeddedJsonResponse(deepCloneValue(store.systemConfig));
+  }
+
+  if (pathname === "/v1/system/config" && method === "POST") {
+    const patch = body;
+    if (patch.modelRoutingPolicy && typeof patch.modelRoutingPolicy === "object") {
+      store.systemConfig.modelRoutingPolicy = {
+        ...store.systemConfig.modelRoutingPolicy,
+        ...(patch.modelRoutingPolicy as ModelRoutingPolicy)
+      };
+    }
+    if (patch.systemProfile && typeof patch.systemProfile === "object") {
+      store.systemConfig.systemProfile = {
+        ...store.systemConfig.systemProfile,
+        ...(patch.systemProfile as SystemProfile)
+      };
+    }
+    if (patch.sceneOrchestrationPolicy && typeof patch.sceneOrchestrationPolicy === "object") {
+      store.systemConfig.sceneOrchestrationPolicy = {
+        ...store.systemConfig.sceneOrchestrationPolicy,
+        ...(patch.sceneOrchestrationPolicy as SceneOrchestrationPolicy)
+      };
+    }
+    const nextUpdatedAt = touchEmbeddedState(store);
+    return makeEmbeddedJsonResponse({
+      ...deepCloneValue(store.systemConfig),
+      ok: true,
+      changed: true,
+      changedSections: ["systemConfig"],
+      persisted: false,
+      updatedAt: nextUpdatedAt
+    });
+  }
+
+  if (pathname === "/v1/system/config/reload" && method === "POST") {
+    return makeEmbeddedJsonResponse({
+      ...deepCloneValue(store.systemConfig),
+      ok: true,
+      message: "embedded_config_reloaded"
+    });
+  }
+
+  if (pathname === "/v1/system/config/sync-aria-kernel" && method === "POST") {
+    const nextUpdatedAt = touchEmbeddedState(store);
+    const providers = store.systemConfig.modelRoutingPolicy.providers || [];
+    return makeEmbeddedJsonResponse({
+      ...deepCloneValue(store.systemConfig),
+      ok: true,
+      reason: "embedded_synced",
+      message: "已同步到内置 Aria Kernel Provider",
+      changed: false,
+      changedSections: [],
+      persisted: false,
+      mode: "merge",
+      includeLocal: true,
+      syncedProviders: providers.map((provider) => ({
+        id: provider.id,
+        model: provider.model,
+        ariaKernelProvider: provider.ariaKernelProvider || "embedded",
+        baseUrl: provider.baseUrl || "embedded://runtime",
+        local: provider.vendor === "builtin"
+      })),
+      updatedAt: nextUpdatedAt
+    });
+  }
+
+  if (pathname === "/v1/system/config/history" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      history: deepCloneValue(store.systemConfigHistory),
+      runtime: deepCloneValue(store.systemConfig.runtime),
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/system/config/rollback" && method === "POST") {
+    const nextUpdatedAt = touchEmbeddedState(store);
+    return makeEmbeddedJsonResponse({
+      ...deepCloneValue(store.systemConfig),
+      ok: true,
+      changed: false,
+      changedSections: [],
+      persisted: false,
+      targetSnapshotId: store.systemConfigHistory.latestSnapshotId,
+      reason: "embedded_noop",
+      message: "内置配置已为稳定版本",
+      configOps: deepCloneValue(store.systemConfigHistory),
+      updatedAt: nextUpdatedAt
+    });
+  }
+
+  if (pathname === "/v1/runtime/health" && method === "GET") {
+    store.runtimeHealth.runtime.queue.pending = store.state.autonomy?.queue?.items.length || 0;
+    store.runtimeHealth.runtime.queue.deadLetters = store.state.autonomy?.queue?.deadLetters.length || 0;
+    return makeEmbeddedJsonResponse(deepCloneValue(store.runtimeHealth));
+  }
+
+  if (pathname === "/v1/runtime/guardian/heal" && method === "POST") {
+    const now = nowIso();
+    const pendingBefore = store.state.autonomy?.queue?.items.length || 0;
+    const deadBefore = store.state.autonomy?.queue?.deadLetters.length || 0;
+    if (store.state.autonomy?.queue) {
+      const queue = store.state.autonomy.queue;
+      const processCount = Math.min(queue.items.length, 2);
+      const processedItems = queue.items.splice(0, processCount);
+      queue.stats.processed += processedItems.length;
+      queue.stats.succeeded += processedItems.length;
+      queue.stats.lastProcessAt = now;
+    }
+    const pendingAfter = store.state.autonomy?.queue?.items.length || 0;
+    const deadAfter = store.state.autonomy?.queue?.deadLetters.length || 0;
+    store.runtimeHealth.runtime.watchdog.lastSelfHealAt = now;
+    store.runtimeHealth.runtime.watchdog.lastSelfHealSummary = "已执行内置自愈与队列回放";
+    store.runtimeHealth.updatedAt = now;
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      executed: true,
+      result: {
+        ok: true,
+        source: "embedded_runtime",
+        force: true,
+        mode: store.runtimeHealth.runtime.watchdog.mode,
+        queueLimit: store.runtimeHealth.runtime.watchdog.queueLimit,
+        executeRepair: true,
+        executeQueue: true,
+        executed: true,
+        skippedReason: "",
+        reason: "embedded_guardian_ok",
+        summary: "内置运行时已完成自愈与队列处理",
+        outageStatus: "ok",
+        queue: {
+          pendingBefore,
+          deadLettersBefore: deadBefore,
+          pendingAfter,
+          deadLettersAfter: deadAfter
+        },
+        touchedUsers: 1,
+        changedUsers: pendingBefore > pendingAfter ? 1 : 0,
+        queueProcessed: pendingBefore - pendingAfter,
+        queueSucceeded: pendingBefore - pendingAfter,
+        queueDeadLettered: 0,
+        reportId: nextEmbeddedId("heal-report")
+      },
+      runtimeHealth: deepCloneValue(store.runtimeHealth),
+      updatedAt: now
+    });
+  }
+
+  if (pathname === "/v1/runtime/guardian/config" && method === "POST") {
+    if (typeof body.enabled === "boolean") {
+      store.runtimeHealth.runtime.watchdog.enabled = body.enabled;
+    }
+    const mode = String(body.mode || "").trim();
+    if (mode === "eco" || mode === "balanced" || mode === "peak") {
+      store.runtimeHealth.runtime.watchdog.mode = mode;
+      store.runtimeHealth.runtime.watchdog.modeLabel = mode === "eco" ? "节能" : mode === "peak" ? "高峰" : "平衡";
+    }
+    if (typeof body.queueLimit === "number" && Number.isFinite(body.queueLimit)) {
+      store.runtimeHealth.runtime.watchdog.queueLimit = Math.max(1, Math.min(30, Math.floor(body.queueLimit)));
+    }
+    const now = nowIso();
+    store.runtimeHealth.runtime.watchdog.lastConfigChangeAt = now;
+    store.runtimeHealth.runtime.watchdog.lastConfigChangeSummary = "已更新守护配置";
+    store.runtimeHealth.updatedAt = now;
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      config: {
+        enabled: store.runtimeHealth.runtime.watchdog.enabled,
+        mode: store.runtimeHealth.runtime.watchdog.mode,
+        modeLabel: store.runtimeHealth.runtime.watchdog.modeLabel,
+        queueLimit: store.runtimeHealth.runtime.watchdog.queueLimit,
+        changed: true,
+        lastConfigChangeAt: now,
+        lastConfigChangeSummary: "已更新守护配置"
+      },
+      runtimeHealth: deepCloneValue(store.runtimeHealth),
+      updatedAt: now
+    });
+  }
+
+  if (pathname === "/v1/capability/assessment" && method === "GET") {
+    store.capabilityAssessment.generatedAt = updatedAt;
+    return makeEmbeddedJsonResponse({
+      assessment: deepCloneValue(store.capabilityAssessment),
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/capability/super-autonomy" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      profile: deepCloneValue(store.systemConfig.superAutonomyProfile || {}),
+      runtime: deepCloneValue(store.capabilityAssessment.superAutonomy || {
+        profileVersion: "embedded.v1",
+        enabled: true,
+        mode: "assisted",
+        objective: "保持陪伴与执行连续",
+        readinessScore: 0.8,
+        summary: {
+          skillReadiness: 0.8,
+          requiredSkillsReady: 0,
+          requiredSkillsTotal: 0,
+          missingRequiredSkillCount: 0,
+          bridgeReady: true,
+          dispatchRuns: 0,
+          timelineEvents: 0,
+          expansionPackCount: 0,
+          workbenchFeeds: 0
+        },
+        skills: [],
+        missingRequiredSkills: []
+      }),
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/aria-kernel/gateway/status" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      gateway: {
+        enabled: true,
+        mode: "embedded",
+        status: "ok"
+      },
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/aria-kernel/incidents/playbook" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      userId: store.state.userId,
+      playbook: deepCloneValue(store.runtimeHealth.incidentPlaybook || {
+        version: "embedded.v1",
+        objective: "stability",
+        totalIncidents: 0,
+        matchedCount: 0,
+        unresolvedCount: 0,
+        matched: [],
+        unresolved: [],
+        recommendations: [],
+        generatedAt: updatedAt
+      }),
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/aria-kernel/incidents/remember" && method === "POST") {
+    const note = String(body.issueMessage || "").trim()
+      || "已记录：优先保证聊天流畅与执行可回滚";
+    store.state.memoryHighlights = [note, ...store.state.memoryHighlights].slice(0, 20);
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      remembered: 1,
+      incidentIds: [String(body.incidentId || "embedded-incident")],
+      memoryHighlights: deepCloneValue(store.state.memoryHighlights),
+      autonomy: deepCloneValue(store.state.autonomy),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/autonomy/status" && method === "GET") {
+    const autonomy = deepCloneValue(store.state.autonomy || {
+      enabled: true,
+      tickCount: 0,
+      lastTickAt: updatedAt,
+      lastRepairAt: updatedAt,
+      lastLearnAt: updatedAt,
+      generatedCount: 0,
+      inbox: [],
+      maintenance: []
+    });
+    return makeEmbeddedJsonResponse({
+      autonomy,
+      runtime: {
+        running: true,
+        cycleRunning: false,
+        tickMs: 1200,
+        policyVersion: "embedded.v1",
+        policyLoadedAt: updatedAt,
+        tickCount: autonomy.tickCount || 0,
+        lastTickAt: autonomy.lastTickAt || updatedAt,
+        lastErrorAt: "",
+        lastError: "",
+        lastQueueProcessAt: autonomy.queue?.stats?.lastProcessAt || updatedAt,
+        lastQueueProcessed: autonomy.queue?.stats?.processed || 0
+      },
+      policy: {
+        version: "embedded.v1",
+        autonomy: {
+          enabled: autonomy.enabled !== false,
+          idleMinutesBeforeNudge: 25,
+          maxPendingInbox: 8,
+          selfLearningEnabled: true,
+          selfRepairEnabled: true
+        }
+      },
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/autonomy/inbox" && method === "GET") {
+    const items = (store.state.autonomy?.inbox || []).filter((item) => item.status !== "dismissed");
+    return makeEmbeddedJsonResponse({
+      items: deepCloneValue(items),
+      total: items.length
+    });
+  }
+
+  if (pathname === "/v1/autonomy/inbox/ack" && method === "POST") {
+    const id = String(body.id || "").trim();
+    const target = store.state.autonomy?.inbox?.find((item) => item.id === id)
+      || store.state.autonomy?.inbox?.[0];
+    if (target) {
+      target.status = "acked";
+      target.ackedAt = nowIso();
+    }
+    return makeEmbeddedJsonResponse({
+      acked: deepCloneValue(target || {
+        id: "",
+        suggestionId: "",
+        type: "nudge",
+        title: "",
+        message: "",
+        ctaLabel: "",
+        prefillText: "",
+        status: "acked",
+        createdAt: nowIso(),
+        ackedAt: nowIso()
+      })
+    });
+  }
+
+  if (pathname === "/v1/autonomy/queue" && method === "GET") {
+    const queue = deepCloneValue(store.state.autonomy?.queue || buildEmbeddedAutonomyQueue(updatedAt));
+    return makeEmbeddedJsonResponse({
+      queue,
+      pending: queue.items.length,
+      deadLetters: queue.deadLetters.length,
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/autonomy/queue/process" && method === "POST") {
+    const queue = store.state.autonomy?.queue;
+    const result: AutonomyQueueProcessResult = {
+      changed: false,
+      processed: 0,
+      succeeded: 0,
+      retried: 0,
+      deadLettered: 0
+    };
+    if (queue) {
+      const processLimit = Math.max(1, Math.min(10, Number(body.limit || queue.policy.processLimit || 3)));
+      const processing = queue.items.splice(0, processLimit);
+      if (processing.length > 0) {
+        result.changed = true;
+        result.processed = processing.length;
+        result.succeeded = processing.length;
+        queue.stats.processed += processing.length;
+        queue.stats.succeeded += processing.length;
+        queue.stats.lastProcessAt = nowIso();
+      }
+    }
+    return makeEmbeddedJsonResponse({
+      result,
+      queue: deepCloneValue(store.state.autonomy?.queue || buildEmbeddedAutonomyQueue(updatedAt)),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/autonomy/queue/policy" && method === "POST") {
+    const queue = store.state.autonomy?.queue;
+    if (queue) {
+      if (typeof body.enabled === "boolean") {
+        queue.policy.enabled = body.enabled;
+      }
+      if (typeof body.autoProcessOnTick === "boolean") {
+        queue.policy.autoProcessOnTick = body.autoProcessOnTick;
+      }
+      if (typeof body.processLimit === "number" && Number.isFinite(body.processLimit)) {
+        queue.policy.processLimit = Math.max(1, Math.min(20, Math.floor(body.processLimit)));
+      }
+      const strategies = body.strategies && typeof body.strategies === "object"
+        ? body.strategies as Record<string, Partial<DemoAutonomyQueueStrategy>>
+        : null;
+      if (strategies) {
+        for (const [operationType, patch] of Object.entries(strategies)) {
+          const current = queue.policy.strategies[operationType];
+          if (!current) {
+            continue;
+          }
+          queue.policy.strategies[operationType] = {
+            ...current,
+            ...patch
+          };
+        }
+      }
+    }
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      policy: deepCloneValue(store.state.autonomy?.queue?.policy || buildEmbeddedAutonomyQueue(updatedAt).policy),
+      queue: deepCloneValue(store.state.autonomy?.queue || buildEmbeddedAutonomyQueue(updatedAt)),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/autonomy/queue/dead-letter/retry" && method === "POST") {
+    const id = String(body.id || "").trim();
+    const queue = store.state.autonomy?.queue;
+    let item: DemoAutonomyQueueItem | null = null;
+    if (queue) {
+      const index = queue.deadLetters.findIndex((entry) => entry.id === id);
+      if (index >= 0) {
+        item = queue.deadLetters.splice(index, 1)[0];
+        item.status = "retrying";
+        item.nextRetryAt = nowIso();
+        queue.items.unshift(item);
+      }
+    }
+    const processResult: AutonomyQueueProcessResult = {
+      changed: Boolean(item),
+      processed: 0,
+      succeeded: 0,
+      retried: item ? 1 : 0,
+      deadLettered: 0
+    };
+    return makeEmbeddedJsonResponse({
+      ok: Boolean(item),
+      reason: item ? "retried" : "not_found",
+      item: deepCloneValue(item || {
+        id: "",
+        dispatchId: "",
+        dispatchPrompt: "",
+        operation: { type: "unknown" },
+        status: "pending",
+        attempts: 0,
+        maxAttempts: 0,
+        createdAt: updatedAt,
+        updatedAt,
+        nextRetryAt: updatedAt,
+        lastError: "",
+        lastSummary: ""
+      }),
+      processResult,
+      queue: deepCloneValue(store.state.autonomy?.queue || buildEmbeddedAutonomyQueue(updatedAt)),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/autonomy/repair" && method === "POST") {
+    if (store.state.autonomy) {
+      store.state.autonomy.lastRepairAt = nowIso();
+      store.state.autonomy.maintenance.unshift({
+        id: nextEmbeddedId("maintenance"),
+        type: "manual_repair",
+        message: "已执行内置修复流程",
+        at: nowIso()
+      });
+      store.state.autonomy.maintenance = store.state.autonomy.maintenance.slice(0, 40);
+    }
+    return makeEmbeddedJsonResponse({
+      repaired: true,
+      autonomy: deepCloneValue(store.state.autonomy || buildEmbeddedState(updatedAt).autonomy!)
+    });
+  }
+
+  if (pathname === "/v1/autonomy/tick" && method === "POST") {
+    if (store.state.autonomy) {
+      store.state.autonomy.tickCount += 1;
+      store.state.autonomy.lastTickAt = nowIso();
+    }
+    return makeEmbeddedJsonResponse({
+      changed: true,
+      queueResult: {
+        changed: false,
+        processed: 0,
+        succeeded: 0,
+        retried: 0,
+        deadLettered: 0
+      },
+      autonomy: deepCloneValue(store.state.autonomy || buildEmbeddedState(updatedAt).autonomy!)
+    });
+  }
+
+  if (pathname === "/v1/autonomy/dispatch" && method === "POST") {
+    const dispatchId = nextEmbeddedId("dispatch");
+    const flowId = nextEmbeddedId("flow");
+    appendTimelineEvent(store, {
+      flowId,
+      stage: "dispatch",
+      title: "接收自动化调度",
+      detail: String(body.text || "").slice(0, 120),
+      source: "embedded-dispatch"
+    });
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      dispatch: {
+        id: dispatchId,
+        flowId,
+        kernel: "embedded-kernel",
+        status: "completed",
+        steps: [
+          {
+            id: nextEmbeddedId("step"),
+            index: 1,
+            type: "analyze",
+            title: "解析任务",
+            status: "completed",
+            reason: "ok"
+          }
+        ]
+      },
+      autonomy: deepCloneValue(store.state.autonomy),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/aria-kernel/flywheel/status" && method === "GET") {
+    const taskType = String(requestUrl.searchParams.get("taskType") || "").trim();
+    const limit = Math.max(1, Math.min(120, Number(requestUrl.searchParams.get("limit") || 40)));
+    const flywheel = deepCloneValue(store.flywheel);
+    if (taskType) {
+      flywheel.recentSignals = flywheel.recentSignals.filter((item) => item.taskType === taskType).slice(0, limit);
+      flywheel.taskLeaderboards = {
+        [taskType]: deepCloneValue(store.flywheel.taskLeaderboards[taskType] || [])
+      };
+    } else {
+      flywheel.recentSignals = flywheel.recentSignals.slice(0, limit);
+    }
+    return makeEmbeddedJsonResponse({
+      userId: store.state.userId,
+      flywheel,
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/aria-kernel/flywheel/replay" && method === "POST") {
+    const taskType = String(body.taskType || "").trim();
+    const replayed = taskType
+      ? store.flywheel.recentSignals.filter((item) => item.taskType === taskType).length
+      : store.flywheel.recentSignals.length;
+    return makeEmbeddedJsonResponse({
+      userId: store.state.userId,
+      ok: true,
+      reason: "embedded_replay",
+      replayed,
+      taskType,
+      flywheel: deepCloneValue(store.flywheel),
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/code/patch/gate" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      gate: deepCloneValue(store.codingPatchGate),
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/timeline/unified" && method === "GET") {
+    const flowId = String(requestUrl.searchParams.get("flowId") || "").trim();
+    const limit = Math.max(1, Math.min(300, Number(requestUrl.searchParams.get("limit") || 120)));
+    const timeline = deepCloneValue(store.timeline);
+    if (flowId) {
+      timeline.events = timeline.events.filter((item) => item.flowId === flowId).slice(0, limit);
+      timeline.flows = timeline.flows.filter((item) => item.flowId === flowId);
+      timeline.flowId = flowId;
+      timeline.total = timeline.events.length;
+    } else {
+      timeline.events = timeline.events.slice(0, limit);
+      timeline.total = timeline.events.length;
+    }
+    return makeEmbeddedJsonResponse({
+      timeline,
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/workday/state" && method === "GET") {
+    const workday = deepCloneValue(store.state.workday || buildEmbeddedWorkday(updatedAt));
+    const nextQuest = workday.quests.find((item) => item.status !== "done") || null;
+    return makeEmbeddedJsonResponse({
+      workday,
+      nextQuest,
+      summary: workday.lastSummary
+    });
+  }
+
+  if (pathname === "/v1/workday/checkin" && method === "POST") {
+    if (store.state.workday) {
+      store.state.workday.lastCheckinAt = nowIso();
+      store.state.workday.lastSummary = "签到成功，按“先难后易”的顺序推进今天任务。";
+    }
+    ensureEngagementToday(store.state.engagement);
+    store.state.engagement.today.checkinDone = true;
+    store.state.engagement.xp += 6;
+    return makeEmbeddedJsonResponse({
+      workday: deepCloneValue(store.state.workday || buildEmbeddedWorkday(updatedAt)),
+      guidance: "先完成一个 25 分钟可交付，再切换下一个模块。",
+      energy: Number(body.energy || 3),
+      pressure: Number(body.pressure || 3)
+    });
+  }
+
+  if (pathname === "/v1/workday/quest/complete" && method === "POST") {
+    const questId = String(body.questId || "").trim();
+    let xpGain = 0;
+    if (store.state.workday) {
+      const quest = store.state.workday.quests.find((item) => item.id === questId);
+      if (quest && quest.status !== "done") {
+        quest.status = "done";
+        quest.completedAt = nowIso();
+        quest.note = String(body.note || "").trim();
+        xpGain = quest.rewardXp + quest.careBonus;
+      }
+      store.state.workday.completedCount = store.state.workday.quests.filter((item) => item.status === "done").length;
+      store.state.workday.totalQuestXp += xpGain;
+      store.state.workday.lastSummary = "任务已结算，继续保持这个推进节奏。";
+    }
+    ensureEngagementToday(store.state.engagement);
+    if (xpGain > 0) {
+      store.state.engagement.xp += xpGain;
+      store.state.engagement.today.questCompleted = true;
+      store.state.engagement.lastEventType = "quest_complete";
+      store.state.engagement.lastEventAt = nowIso();
+    }
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "completed",
+      xpGain,
+      workday: deepCloneValue(store.state.workday || buildEmbeddedWorkday(updatedAt)),
+      engagement: deepCloneValue(store.state.engagement)
+    });
+  }
+
+  if (pathname === "/v1/workbench/state" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      workbench: deepCloneValue(store.state.workbench || buildEmbeddedWorkbench(updatedAt)),
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/workbench/intent" && method === "POST") {
+    const text = String(body.text || "").trim();
+    const tags = Array.isArray(body.tags) ? body.tags.map((item) => String(item)).filter(Boolean) : [];
+    const workbench = store.state.workbench || buildEmbeddedWorkbench(updatedAt);
+    const feedItem: WorkbenchFeedItem = {
+      id: nextEmbeddedId("feed"),
+      title: "新目标已接管",
+      summary: text ? `已拆解：${text.slice(0, 60)}` : "已生成默认执行计划",
+      source: "embedded-workbench",
+      at: nowIso()
+    };
+    workbench.centerFeed.unshift(feedItem);
+    workbench.centerFeed = workbench.centerFeed.slice(0, 40);
+    workbench.coding.recentIntents.unshift({
+      id: nextEmbeddedId("intent"),
+      text: text || "未命名目标",
+      tags,
+      at: nowIso()
+    });
+    workbench.coding.recentIntents = workbench.coding.recentIntents.slice(0, 20);
+    workbench.coding.lastPlan = [
+      "明确输出标准",
+      "拆分执行步骤",
+      "执行并复盘"
+    ];
+    workbench.updatedAt = nowIso();
+    store.state.workbench = workbench;
+    if (store.state.workday) {
+      store.state.workday.lastSummary = "已接收新目标，建议先完成第一步并快速回传结果。";
+    }
+    appendTimelineEvent(store, {
+      stage: "workbench_intent",
+      title: "接收工作目标",
+      detail: text.slice(0, 120)
+    });
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "accepted",
+      tags,
+      plan: deepCloneValue(workbench.coding.lastPlan),
+      feedItem,
+      dispatch: {
+        id: nextEmbeddedId("dispatch"),
+        status: "completed",
+        steps: [
+          { id: nextEmbeddedId("step"), status: "completed" },
+          { id: nextEmbeddedId("step"), status: "completed" },
+          { id: nextEmbeddedId("step"), status: "completed" }
+        ]
+      },
+      autonomy: deepCloneValue(store.state.autonomy),
+      deviceOps: deepCloneValue(store.state.deviceOps),
+      expansion: deepCloneValue(store.state.expansion),
+      workbench: deepCloneValue(workbench),
+      workday: deepCloneValue(store.state.workday || buildEmbeddedWorkday(updatedAt)),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/workbench/tool/run" && method === "POST") {
+    const toolId = String(body.toolId || "").trim();
+    const tool = store.state.workbench?.rightTools.find((item) => item.id === toolId);
+    const at = nowIso();
+    if (tool) {
+      tool.lastRunAt = at;
+      tool.lastResult = "执行完成";
+    }
+    const feedItem: WorkbenchFeedItem = {
+      id: nextEmbeddedId("feed"),
+      title: tool?.title || "工具执行",
+      summary: tool ? `${tool.title} 已完成执行` : "工具执行完成",
+      source: "embedded-workbench",
+      at
+    };
+    if (store.state.workbench) {
+      store.state.workbench.centerFeed.unshift(feedItem);
+      store.state.workbench.centerFeed = store.state.workbench.centerFeed.slice(0, 40);
+    }
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "completed",
+      task: null,
+      feedItem,
+      workbench: deepCloneValue(store.state.workbench || buildEmbeddedWorkbench(updatedAt)),
+      deviceOps: deepCloneValue(store.state.deviceOps || buildEmbeddedDeviceOps(updatedAt)),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/workbench/model/select" && method === "POST") {
+    const modelId = String(body.modelId || "").trim();
+    const modelOption = store.state.workbench?.modelCenter.options.find((item) => item.id === modelId)
+      || store.state.workbench?.modelCenter.options[0];
+    if (modelOption && store.state.workbench) {
+      store.state.workbench.modelCenter.currentModel = modelOption.id;
+    }
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "selected",
+      selectedModel: deepCloneValue(modelOption || {
+        id: "aria-empathy",
+        label: "陪伴主模型",
+        provider: "openai"
+      }),
+      workbench: deepCloneValue(store.state.workbench || buildEmbeddedWorkbench(updatedAt)),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/workbench/coding/workspace" && method === "POST") {
+    const cwd = String(body.cwd || "").trim() || "~/Desktop";
+    const absolutePath = cwd.startsWith("/")
+      ? cwd
+      : `/Users/Shared/${cwd.replace(/^~\//, "")}`;
+    if (store.state.workbench) {
+      store.state.workbench.coding.workspace = {
+        cwd,
+        absolutePath,
+        exists: true,
+        openedAt: nowIso(),
+        lastAction: "updated",
+        entries: [
+          { name: "src", kind: "dir" },
+          { name: "README.md", kind: "file" }
+        ]
+      };
+    }
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "workspace_updated",
+      workspace: deepCloneValue(store.state.workbench?.coding.workspace || buildEmbeddedWorkbench(updatedAt).coding.workspace),
+      openResult: null,
+      workbench: deepCloneValue(store.state.workbench || buildEmbeddedWorkbench(updatedAt)),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/workbench/coding/workspace/pick" && method === "POST") {
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "picked",
+      path: "~/Desktop",
+      absolutePath: "/Users/Shared",
+      message: "内置运行时返回默认目录"
+    });
+  }
+
+  if (pathname === "/v1/workbench/coding/tree" && method === "GET") {
+    const cwd = String(requestUrl.searchParams.get("cwd") || store.state.workbench?.coding.workspace.cwd || "~/Desktop");
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "ok",
+      tree: {
+        rootCwd: cwd,
+        rootAbsolutePath: cwd.startsWith("/") ? cwd : `/Users/Shared/${cwd.replace(/^~\//, "")}`,
+        maxDepth: Number(requestUrl.searchParams.get("maxDepth") || 4),
+        maxNodes: Number(requestUrl.searchParams.get("maxNodes") || 200),
+        truncated: false,
+        generatedAt: nowIso(),
+        nodes: [
+          { id: "node-1", path: ".", name: ".", kind: "dir", depth: 0, parentPath: "" },
+          { id: "node-2", path: "src", name: "src", kind: "dir", depth: 1, parentPath: "." },
+          { id: "node-3", path: "README.md", name: "README.md", kind: "file", depth: 1, parentPath: "." }
+        ]
+      },
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/workbench/coding/file" && method === "GET") {
+    const filePath = String(requestUrl.searchParams.get("path") || "README.md");
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "ok",
+      file: {
+        path: filePath,
+        absolutePath: `/Users/Shared/${filePath.replace(/^\/+/, "")}`,
+        language: filePath.endsWith(".ts") ? "typescript" : "markdown",
+        sizeBytes: 128,
+        lineCount: 6,
+        truncated: false,
+        readonly: false,
+        content: "# Embedded Workspace\n\nThis file is generated by embedded runtime fallback.\n",
+        generatedAt: nowIso()
+      },
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/expansion/state" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      expansion: deepCloneValue(store.state.expansion || buildEmbeddedExpansion(updatedAt)),
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/expansion/packs/install" && method === "POST") {
+    const pack: ExpansionPack = {
+      id: String(body.packId || nextEmbeddedPackId()),
+      name: String(body.name || "Custom Pack"),
+      version: String(body.version || "1.0.0"),
+      source: String(body.source || "embedded"),
+      status: "installed",
+      capabilities: Array.isArray(body.capabilities)
+        ? body.capabilities.map((item) => String(item))
+        : ["custom_capability"]
+    };
+    if (!store.state.expansion) {
+      store.state.expansion = buildEmbeddedExpansion(updatedAt);
+    }
+    store.state.expansion.packs.unshift(pack);
+    store.state.expansion.packs = store.state.expansion.packs.slice(0, 20);
+    store.state.expansion.stats.installedCount = store.state.expansion.packs.length;
+    const nextUpdatedAt = touchEmbeddedState(store);
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "installed",
+      pack: deepCloneValue(pack),
+      expansion: deepCloneValue(store.state.expansion),
+      updatedAt: nextUpdatedAt
+    });
+  }
+
+  if (pathname === "/v1/expansion/fetch-download" && method === "POST") {
+    if (!store.state.expansion) {
+      store.state.expansion = buildEmbeddedExpansion(updatedAt);
+    }
+    const now = nowIso();
+    const job: ExpansionJob = {
+      id: nextEmbeddedId("job"),
+      type: "fetch_download",
+      status: "completed",
+      targetUrl: String(body.targetUrl || ""),
+      saveAs: String(body.saveAs || "download.bin"),
+      reason: String(body.reason || "user_request"),
+      createdAt: now,
+      finishedAt: now,
+      output: {
+        summary: "内置模式已模拟下载完成",
+        savedPath: `/Users/Shared/Downloads/${String(body.saveAs || "download.bin")}`
+      }
+    };
+    store.state.expansion.jobs.unshift(job);
+    store.state.expansion.jobs = store.state.expansion.jobs.slice(0, 40);
+    store.state.expansion.stats.downloadsToday += 1;
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "completed",
+      job: deepCloneValue(job),
+      download: {
+        ok: true,
+        reason: "embedded_done",
+        summary: "内置运行时模拟下载完成",
+        savedPath: job.output.savedPath,
+        relativePath: `Downloads/${job.saveAs}`,
+        bytes: 1024,
+        sha256: "embedded",
+        contentType: "application/octet-stream",
+        error: ""
+      },
+      expansion: deepCloneValue(store.state.expansion),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/device/capabilities" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      deviceOps: deepCloneValue(store.state.deviceOps || buildEmbeddedDeviceOps(updatedAt))
+    });
+  }
+
+  if (pathname === "/v1/device/permissions" && method === "POST") {
+    const capabilityId = String(body.capabilityId || "").trim();
+    const status = String(body.status || "").trim();
+    if (store.state.deviceOps) {
+      if (status === "granted" || status === "blocked" || status === "prompt") {
+        store.state.deviceOps.permissions[capabilityId] = status;
+        const capability = store.state.deviceOps.capabilities.find((item) => item.id === capabilityId);
+        if (capability) {
+          capability.permission = status;
+        }
+      }
+      store.state.deviceOps.lastPermissionUpdateAt = nowIso();
+    }
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "updated",
+      deviceOps: deepCloneValue(store.state.deviceOps || buildEmbeddedDeviceOps(updatedAt))
+    });
+  }
+
+  if (pathname === "/v1/device/tasks" && method === "GET") {
+    const status = String(requestUrl.searchParams.get("status") || "").trim();
+    const limit = Math.max(1, Math.min(60, Number(requestUrl.searchParams.get("limit") || 20)));
+    const allTasks = store.state.deviceOps?.tasks || [];
+    const filtered = status ? allTasks.filter((item) => item.status === status) : allTasks;
+    return makeEmbeddedJsonResponse({
+      tasks: deepCloneValue(filtered.slice(0, limit)),
+      total: filtered.length
+    });
+  }
+
+  if (pathname === "/v1/device/tasks/plan" && method === "POST") {
+    const taskType = String(body.taskType || "desktop_focus_cleanup");
+    const capabilityId = taskType.startsWith("mobile") ? "desktop_files" : "desktop_files";
+    const permission = store.state.deviceOps?.permissions[capabilityId] || "prompt";
+    const now = nowIso();
+    const task: DeviceTask = {
+      id: nextEmbeddedTaskId(),
+      type: taskType,
+      capabilityId,
+      title: "设备任务",
+      summary: `已规划任务：${taskType}`,
+      target: String((body.payload as Record<string, unknown> | undefined)?.target || "local_device"),
+      status: permission === "granted" ? "planned" : "needs_permission",
+      reason: permission === "granted" ? "ready" : "permission_required",
+      requestedAt: now,
+      startedAt: "",
+      finishedAt: "",
+      output: null
+    };
+    if (store.state.deviceOps) {
+      store.state.deviceOps.tasks.unshift(task);
+      store.state.deviceOps.tasks = store.state.deviceOps.tasks.slice(0, 80);
+      store.state.deviceOps.audit.unshift({
+        id: nextEmbeddedId("audit"),
+        type: "task_plan",
+        message: `已规划任务 ${taskType}`,
+        metadata: {
+          taskId: task.id
+        },
+        at: now
+      });
+      store.state.deviceOps.audit = store.state.deviceOps.audit.slice(0, 100);
+    }
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "planned",
+      task: deepCloneValue(task),
+      deviceOps: deepCloneValue(store.state.deviceOps || buildEmbeddedDeviceOps(updatedAt))
+    });
+  }
+
+  if (pathname === "/v1/device/tasks/execute" && method === "POST") {
+    const taskId = String(body.taskId || "").trim();
+    let task: DeviceTask | null = null;
+    if (store.state.deviceOps) {
+      task = store.state.deviceOps.tasks.find((item) => item.id === taskId) || null;
+      if (task) {
+        task.status = "completed";
+        task.startedAt = nowIso();
+        task.finishedAt = nowIso();
+        task.reason = "ok";
+        task.output = {
+          summary: "内置模式执行完成",
+          metrics: {
+            filesProcessed: 12
+          }
+        };
+      }
+    }
+    return makeEmbeddedJsonResponse({
+      ok: Boolean(task),
+      reason: task ? "completed" : "task_not_found",
+      task: deepCloneValue(task),
+      deviceOps: deepCloneValue(store.state.deviceOps || buildEmbeddedDeviceOps(updatedAt))
+    });
+  }
+
+  if (pathname === "/v1/device/audit" && method === "GET") {
+    const limit = Math.max(1, Math.min(200, Number(requestUrl.searchParams.get("limit") || 40)));
+    const audit = store.state.deviceOps?.audit || [];
+    return makeEmbeddedJsonResponse({
+      audit: deepCloneValue(audit.slice(0, limit)),
+      total: audit.length
+    });
+  }
+
+  if (pathname === "/v1/hardware/status" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "ok",
+      snapshot: {
+        platform: "embedded",
+        release: "1.0",
+        arch: "universal",
+        hostname: "aria-embedded",
+        cpu: {
+          cores: 8,
+          model: "embedded-cpu"
+        },
+        memory: {
+          totalGb: 16,
+          freeGb: 8,
+          usedGb: 8
+        },
+        battery: {
+          level: 1,
+          charging: true
+        }
+      },
+      bridge: deepCloneValue(store.state.deviceOps?.bridge || buildEmbeddedDeviceOps(updatedAt).bridge),
+      error: ""
+    });
+  }
+
+  if (pathname === "/v1/memory/search" && method === "GET") {
+    const query = String(requestUrl.searchParams.get("q") || "");
+    const limit = Math.max(1, Math.min(24, Number(requestUrl.searchParams.get("limit") || 8)));
+    return makeEmbeddedJsonResponse({
+      items: buildMemorySearchItems(store, query, limit),
+      query
+    });
+  }
+
+  if (pathname === "/v1/memory/backend/check" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      check: {
+        checkedAt: nowIso(),
+        mode: "local",
+        overallStatus: "healthy",
+        checks: [
+          { id: "storage", label: "存储层", status: "ok", detail: "内置存储正常" },
+          { id: "index", label: "索引层", status: "ok", detail: "索引可用" }
+        ],
+        suggestions: [
+          {
+            id: "upgrade-online-api",
+            title: "可选：接入在线 API",
+            level: "safe",
+            detail: "当前已可离线运行，如需更强模型可后续接入在线 API。"
+          }
+        ],
+        environment: {
+          platform: "embedded",
+          node: "n/a",
+          dockerAvailable: false,
+          brewAvailable: false
+        },
+        runtime: deepCloneValue(store.systemConfig.memoryPlaneRuntime)
+      }
+    });
+  }
+
+  if (pathname === "/v1/memory" && method === "POST") {
+    const content = String(body.content || "").trim();
+    if (content) {
+      store.state.memoryHighlights = [content, ...store.state.memoryHighlights].slice(0, 20);
+    }
+    return makeEmbeddedJsonResponse({
+      item: {
+        id: nextEmbeddedId("memory"),
+        source: "manual",
+        scene: String(body.scene || "life"),
+        tier: String(body.tier || "short_term"),
+        content
+      },
+      memoryHighlights: deepCloneValue(store.state.memoryHighlights)
+    });
+  }
+
+  if (pathname.startsWith("/v1/memory/") && method === "DELETE") {
+    const id = decodeURIComponent(pathname.slice("/v1/memory/".length));
+    const target = store.state.memoryHighlights.find((item) => item.includes(id)) || store.state.memoryHighlights[0] || "";
+    store.state.memoryHighlights = store.state.memoryHighlights.filter((item) => item !== target);
+    return makeEmbeddedJsonResponse({
+      removed: {
+        id,
+        content: target
+      },
+      memoryHighlights: deepCloneValue(store.state.memoryHighlights)
+    });
+  }
+
+  if (pathname === "/v1/proactive/next" && method === "POST") {
+    const suggestion: ProactiveSuggestion = {
+      id: nextEmbeddedId("suggestion"),
+      type: "nudge",
+      title: "先完成一个最小目标",
+      message: "你可以先拿下 20 分钟可交付任务，我会继续带你推进。",
+      ctaLabel: "开始 20 分钟冲刺",
+      prefillText: "帮我制定一个20分钟冲刺计划",
+      rewardHint: "+8 XP",
+      triggerConfidence: 0.82,
+      scene: String(body.scene || "desktop-chat"),
+      generatedAt: nowIso()
+    };
+    if (store.state.proactive) {
+      store.state.proactive.sentCount += 1;
+      store.state.proactive.lastSentAt = nowIso();
+      store.state.proactive.lastType = suggestion.type;
+    }
+    return makeEmbeddedJsonResponse({
+      delivered: true,
+      decision: "send",
+      reason: "embedded_ready",
+      trigger_confidence: suggestion.triggerConfidence,
+      nextEligibleAt: new Date(Date.now() + 1000 * 60 * 30).toISOString(),
+      proactive: deepCloneValue(store.state.proactive),
+      suggestion,
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/proactive/feedback" && method === "POST") {
+    if (store.state.proactive) {
+      store.state.proactive.lastType = String(body.feedback || "");
+      store.state.proactive.lastSentAt = nowIso();
+    }
+    return makeEmbeddedJsonResponse({
+      applied: true,
+      reason: "feedback_recorded",
+      autonomy: deepCloneValue(store.state.autonomy),
+      proactive: deepCloneValue(store.state.proactive),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/scene/config" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      sceneConfig: deepCloneValue(store.state.sceneConfig || {
+        modules: {},
+        recent: [],
+        updatedAt
+      }),
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/scene/config/apply" && method === "POST") {
+    const scene = normalizeScene(body.scene, "love");
+    const moduleId = String(body.moduleId || "default_module");
+    const moduleKey = `${scene}:${moduleId}`;
+    const now = nowIso();
+    const module: DemoSceneConfigModule = {
+      moduleKey,
+      scene,
+      moduleId,
+      title: String(body.title || `${scene} 场景模块`),
+      goal: String(body.goal || "提升陪伴与执行流畅度"),
+      configText: String(body.configText || ""),
+      prompt: String(body.prompt || ""),
+      status: "configured",
+      executionCount: 1,
+      appliedAt: now,
+      lastExecutedAt: now,
+      lastResult: {
+        status: "completed",
+        summary: "内置配置已生效",
+        taskIds: [],
+        dispatchId: "",
+        reason: "embedded_runtime"
+      }
+    };
+    if (!store.state.sceneConfig) {
+      store.state.sceneConfig = {
+        modules: {},
+        recent: [],
+        updatedAt: now
+      };
+    }
+    store.state.sceneConfig.modules[moduleKey] = module;
+    store.state.sceneConfig.recent.unshift({
+      id: nextEmbeddedId("scene-config"),
+      moduleKey,
+      scene,
+      moduleId,
+      title: module.title,
+      status: module.status,
+      summary: module.lastResult.summary,
+      at: now
+    });
+    store.state.sceneConfig.recent = store.state.sceneConfig.recent.slice(0, 40);
+    store.state.sceneConfig.updatedAt = now;
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "configured",
+      module: deepCloneValue(module),
+      execution: deepCloneValue(module.lastResult),
+      generatedPrompt: module.prompt,
+      sceneConfig: deepCloneValue(store.state.sceneConfig),
+      autonomy: deepCloneValue(store.state.autonomy),
+      proactive: deepCloneValue(store.state.proactive),
+      workday: deepCloneValue(store.state.workday),
+      workbench: deepCloneValue(store.state.workbench),
+      deviceOps: deepCloneValue(store.state.deviceOps),
+      expansion: deepCloneValue(store.state.expansion),
+      funGames: deepCloneValue(store.state.funGames),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/fun/games" && method === "GET") {
+    const limit = Math.max(1, Math.min(80, Number(requestUrl.searchParams.get("limit") || 40)));
+    const games = store.state.funGames || [];
+    return makeEmbeddedJsonResponse({
+      games: deepCloneValue(games.slice(0, limit)),
+      total: games.length,
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/fun/games/create" && method === "POST") {
+    if (!store.state.funGames) {
+      store.state.funGames = [];
+    }
+    const now = nowIso();
+    const game: DemoFunGame = {
+      id: nextEmbeddedId("game"),
+      mode: body.mode === "handmade_game" ? "handmade_game" : "mini_game",
+      blueprint: "reaction",
+      title: String(body.title || "新小游戏"),
+      prompt: String(body.prompt || "点击开始即可游玩"),
+      difficulty: body.funGameConfig && typeof body.funGameConfig === "object"
+        ? (["easy", "normal", "hard"].includes(String((body.funGameConfig as Record<string, unknown>).difficulty))
+          ? String((body.funGameConfig as Record<string, unknown>).difficulty)
+          : "normal") as "easy" | "normal" | "hard"
+        : "normal",
+      rounds: Number((body.funGameConfig as Record<string, unknown> | undefined)?.rounds || 5),
+      scoreEnabled: (body.funGameConfig as Record<string, unknown> | undefined)?.scoreEnabled !== false,
+      rewardEnabled: (body.funGameConfig as Record<string, unknown> | undefined)?.rewardEnabled !== false,
+      reviveEnabled: Boolean((body.funGameConfig as Record<string, unknown> | undefined)?.reviveEnabled),
+      templateId: String(body.templateId || "tpl-reaction"),
+      templateName: String(body.templateName || "Reaction Basic"),
+      templateRules: ["5 轮计分", "支持复活"],
+      source: "embedded",
+      createdAt: now,
+      updatedAt: now,
+      playUrl: "https://html5games.com/Game/Reaction/7ec3df31-7f48-47fd-a84f-f2e32ea91c57",
+      status: "ready"
+    };
+    store.state.funGames.unshift(game);
+    store.state.funGames = store.state.funGames.slice(0, 60);
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "created",
+      game: deepCloneValue(game),
+      skillBootstrap: {
+        ok: true,
+        reason: "embedded",
+        moduleId: game.mode === "handmade_game" ? "handmade_game" : "mini_game",
+        query: game.title,
+        summary: "内置小游戏已创建",
+        installed: [],
+        alreadyInstalled: [],
+        failed: [],
+        candidates: []
+      },
+      games: deepCloneValue(store.state.funGames),
+      templates: deepCloneValue(store.state.funRuleTemplates || []),
+      updatedAt: touchEmbeddedState(store)
+    });
+  }
+
+  if (pathname === "/v1/voice/profile" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "ok",
+      profile: deepCloneValue(store.voiceProfile),
+      bridge: deepCloneValue(store.state.deviceOps?.bridge || buildEmbeddedDeviceOps(updatedAt).bridge),
+      error: ""
+    });
+  }
+
+  if (pathname === "/v1/voice/profile" && method === "POST") {
+    const presetId = String(body.presetId || "").trim();
+    const preset = store.voiceProfile.presets.find((item) => item.id === presetId);
+    if (preset) {
+      store.voiceProfile.activePresetId = preset.id;
+      store.voiceProfile.defaultVoice = preset.voice;
+      store.voiceProfile.defaultRate = preset.rate;
+    }
+    if (typeof body.voice === "string" && body.voice.trim()) {
+      store.voiceProfile.defaultVoice = body.voice.trim();
+    }
+    if (typeof body.rate === "number" && Number.isFinite(body.rate)) {
+      store.voiceProfile.defaultRate = Math.max(0.6, Math.min(2, body.rate));
+    }
+    if (typeof body.allowMicCapture === "boolean") {
+      store.voiceProfile.allowMicCapture = body.allowMicCapture;
+    }
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "updated",
+      profile: deepCloneValue(store.voiceProfile),
+      bridge: deepCloneValue(store.state.deviceOps?.bridge || buildEmbeddedDeviceOps(updatedAt).bridge),
+      error: ""
+    });
+  }
+
+  if (pathname === "/v1/voice/tts" && method === "POST") {
+    const text = String(body.text || "").trim();
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "spoken",
+      result: {
+        summary: text
+          ? `已播报：${text.slice(0, 28)}${text.length > 28 ? "..." : ""}`
+          : "已播报",
+        metrics: {
+          chars: text.length
+        }
+      },
+      bridge: deepCloneValue(store.state.deviceOps?.bridge || buildEmbeddedDeviceOps(updatedAt).bridge),
+      error: ""
+    });
+  }
+
+  if (pathname === "/v1/voice/channel/status" && method === "GET") {
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "ok",
+      channel: deepCloneValue(store.voiceChannel),
+      bridge: deepCloneValue(store.state.deviceOps?.bridge || buildEmbeddedDeviceOps(updatedAt).bridge),
+      error: ""
+    });
+  }
+
+  if (pathname === "/v1/voice/channel/acquire" && method === "POST") {
+    const now = nowIso();
+    const leaseMs = Math.max(5000, Math.min(300000, Number(body.leaseMs || 60000)));
+    store.voiceChannel = {
+      active: true,
+      owner: String(body.owner || "desktop-user"),
+      token: nextEmbeddedId("voice-token"),
+      tokenPreview: "embedded***",
+      acquiredAt: now,
+      leaseMs,
+      expiresAt: new Date(Date.now() + leaseMs).toISOString(),
+      expiresInMs: leaseMs,
+      lastReason: "acquired",
+      lastUpdatedAt: now
+    };
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "acquired",
+      channel: deepCloneValue(store.voiceChannel),
+      bridge: deepCloneValue(store.state.deviceOps?.bridge || buildEmbeddedDeviceOps(updatedAt).bridge),
+      error: ""
+    });
+  }
+
+  if (pathname === "/v1/voice/channel/renew" && method === "POST") {
+    if (store.voiceChannel) {
+      const leaseMs = Math.max(5000, Math.min(300000, Number(body.leaseMs || store.voiceChannel.leaseMs || 60000)));
+      store.voiceChannel.leaseMs = leaseMs;
+      store.voiceChannel.expiresAt = new Date(Date.now() + leaseMs).toISOString();
+      store.voiceChannel.expiresInMs = leaseMs;
+      store.voiceChannel.lastReason = "renewed";
+      store.voiceChannel.lastUpdatedAt = nowIso();
+    }
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "renewed",
+      channel: deepCloneValue(store.voiceChannel),
+      bridge: deepCloneValue(store.state.deviceOps?.bridge || buildEmbeddedDeviceOps(updatedAt).bridge),
+      error: ""
+    });
+  }
+
+  if (pathname === "/v1/voice/channel/release" && method === "POST") {
+    if (store.voiceChannel) {
+      store.voiceChannel.active = false;
+      store.voiceChannel.lastReason = "released";
+      store.voiceChannel.lastUpdatedAt = nowIso();
+    }
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "released",
+      channel: deepCloneValue(store.voiceChannel),
+      bridge: deepCloneValue(store.state.deviceOps?.bridge || buildEmbeddedDeviceOps(updatedAt).bridge),
+      error: ""
+    });
+  }
+
+  if (pathname === "/v1/message" && method === "POST") {
+    const exchange = buildEmbeddedMessageExchange(store, {
+      text: String(body.text || ""),
+      preferredProviderId: String(body.preferredProviderId || ""),
+      taskType: String(body.taskType || ""),
+      scene: String(body.scene || "love")
+    });
+    return makeEmbeddedJsonResponse({
+      state: exchange.donePayload.state
+    });
+  }
+
+  if (pathname === "/v1/message/withdraw-last" && method === "POST") {
+    const scene = normalizeScene(body.scene, "love");
+    const removeAssistantReply = body.removeAssistantReply !== false;
+    const messages = store.state.messages;
+    let userIndex = -1;
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      const message = messages[index];
+      if (message.role !== "user") continue;
+      if (scene && message.scene && message.scene !== scene) continue;
+      userIndex = index;
+      break;
+    }
+    if (userIndex < 0) {
+      return makeEmbeddedJsonResponse({
+        ok: false,
+        reason: "scene_user_message_not_found",
+        withdrawn: {
+          scene,
+          removedCount: 0,
+          assistantRemovedCount: 0,
+          removedMessageIds: [],
+          userMessage: null
+        },
+        state: deepCloneValue(store.state),
+        updatedAt: touchEmbeddedState(store)
+      });
+    }
+    const removedMessageIds: string[] = [];
+    const userMessage = messages[userIndex];
+    removedMessageIds.push(userMessage.id);
+    messages.splice(userIndex, 1);
+    let assistantRemovedCount = 0;
+    if (removeAssistantReply && messages[userIndex] && messages[userIndex].role === "aria") {
+      removedMessageIds.push(messages[userIndex].id);
+      messages.splice(userIndex, 1);
+      assistantRemovedCount = 1;
+    } else if (removeAssistantReply && userIndex > 0 && messages[userIndex - 1]?.role === "aria") {
+      removedMessageIds.push(messages[userIndex - 1].id);
+      messages.splice(userIndex - 1, 1);
+      assistantRemovedCount = 1;
+    }
+    const nextUpdatedAt = touchEmbeddedState(store);
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      reason: "withdrawn",
+      withdrawn: {
+        scene,
+        removedCount: removedMessageIds.length,
+        assistantRemovedCount,
+        removedMessageIds,
+        userMessage
+      },
+      state: deepCloneValue(store.state),
+      updatedAt: nextUpdatedAt
+    });
+  }
+
+  if (pathname === "/v1/message/stream" && method === "POST") {
+    const exchange = buildEmbeddedMessageExchange(store, {
+      text: String(body.text || ""),
+      preferredProviderId: String(body.preferredProviderId || ""),
+      taskType: String(body.taskType || ""),
+      scene: String(body.scene || "love")
+    });
+    const events: Array<{ event: string; data: unknown }> = [
+      {
+        event: "meta",
+        data: {
+          streamId: exchange.streamId,
+          userMessage: exchange.userMessage,
+          modelRoute: exchange.route
+        } as StreamMetaPayload
+      }
+    ];
+    for (const chunkPayload of exchange.chunks) {
+      events.push({
+        event: "chunk",
+        data: chunkPayload
+      });
+    }
+    events.push({
+      event: "done",
+      data: exchange.donePayload
+    });
+    return createSseResponse(events);
+  }
+
+  if (pathname === "/v1/xhs/pipeline/status" && method === "GET") {
+    const jobId = String(requestUrl.searchParams.get("jobId") || "").trim();
+    const jobs = deepCloneValue(store.xhsJobs);
+    const target = jobId ? jobs.find((item) => item.id === jobId) || null : jobs[0] || null;
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      userId: store.state.userId,
+      job: target,
+      jobs,
+      runningCount: jobs.filter((item) => item.status === "running").length,
+      defaults: {
+        assetsDir: "/Users/Shared/Movies",
+        outputRoot: "/Users/Shared/Movies/aria-output",
+        publish: false,
+        skipUpload: true,
+        headless: true
+      },
+      workflow: ["collect_assets", "generate_script", "compose_video", "publish_optional"],
+      nextStepHint: "内置模式仅演示流程，不会真实上传。"
+    });
+  }
+
+  if (pathname === "/v1/xhs/pipeline/start" && method === "POST") {
+    const now = nowIso();
+    const job: XhsPipelineJob = {
+      id: nextEmbeddedId("xhs-job"),
+      userId: store.state.userId,
+      status: "completed",
+      reason: "embedded_demo",
+      summary: "内置模式已完成模拟执行",
+      startedAt: now,
+      updatedAt: now,
+      finishedAt: now,
+      exitCode: 0,
+      pid: 0,
+      input: {
+        theme: String(body.theme || ""),
+        assetsDir: String(body.assetsDir || ""),
+        outputRoot: String(body.outputRoot || ""),
+        publish: Boolean(body.publish),
+        headless: Boolean(body.headless),
+        skipUpload: body.skipUpload !== false,
+        model: String(body.model || "gpt-4.1-mini")
+      },
+      outputDir: "/Users/Shared/Movies/aria-output",
+      videoFile: "embedded-demo.mp4",
+      uploadStatus: "skipped",
+      runId: nextEmbeddedId("xhs-run"),
+      error: "",
+      logs: [
+        {
+          at: now,
+          channel: "info",
+          text: "embedded mode completed"
+        }
+      ],
+      result: {
+        demo: true
+      }
+    };
+    store.xhsJobs.unshift(job);
+    store.xhsJobs = store.xhsJobs.slice(0, 30);
+    return makeEmbeddedJsonResponse({
+      ok: true,
+      userId: store.state.userId,
+      job: deepCloneValue(job),
+      workflow: ["collect_assets", "generate_script", "compose_video", "publish_optional"],
+      nextStepHint: "模拟执行完成，可继续测试聊天与执行链路。"
+    });
+  }
+
+  if (pathname === "/v1/xhs/pipeline/cancel" && method === "POST") {
+    const jobId = String(body.jobId || "").trim();
+    const job = store.xhsJobs.find((item) => item.id === jobId) || null;
+    if (job) {
+      job.status = "failed";
+      job.reason = "cancelled";
+      job.summary = "任务已取消";
+      job.updatedAt = nowIso();
+      job.finishedAt = nowIso();
+    }
+    return makeEmbeddedJsonResponse({
+      ok: Boolean(job),
+      reason: job ? "cancelled" : "not_found",
+      job
+    });
+  }
+
+  return null;
+}
+
+function shouldTryEmbeddedFallbackByStatus(status: number) {
+  return status === 404 || status === 405 || status >= 500;
+}
 
 type GuestAuthPayload = {
   token: string;
@@ -2062,7 +5431,15 @@ async function request<T>(
   retriedAfterAuth = false
 ): Promise<T> {
   const response = await requestRaw(path, init, auth, retriedAfterAuth);
-  return (await response.json()) as T;
+  try {
+    return (await response.json()) as T;
+  } catch (parseError) {
+    const fallbackResponse = buildEmbeddedFallbackResponse(path, init);
+    if (fallbackResponse) {
+      return (await fallbackResponse.json()) as T;
+    }
+    throw parseError;
+  }
 }
 
 async function requestRaw(
@@ -2102,6 +5479,10 @@ async function requestRaw(
   }
 
   if (!response) {
+    const fallbackResponse = buildEmbeddedFallbackResponse(path, init);
+    if (fallbackResponse) {
+      return fallbackResponse;
+    }
     if (lastNetworkError instanceof Error && /fetch/i.test(lastNetworkError.message)) {
       const tries = baseCandidates.join(" / ");
       throw new Error(
@@ -2116,7 +5497,24 @@ async function requestRaw(
     return requestRaw(path, init, auth, true);
   }
 
+  if (
+    path.startsWith("/v1/message/stream")
+    && response.ok
+    && !(response.headers.get("content-type") || "").toLowerCase().includes("text/event-stream")
+  ) {
+    const fallbackResponse = buildEmbeddedFallbackResponse(path, init);
+    if (fallbackResponse) {
+      return fallbackResponse;
+    }
+  }
+
   if (!response.ok) {
+    if (shouldTryEmbeddedFallbackByStatus(response.status)) {
+      const fallbackResponse = buildEmbeddedFallbackResponse(path, init);
+      if (fallbackResponse) {
+        return fallbackResponse;
+      }
+    }
     const fallback = `${response.status} ${response.statusText}`;
     const detailPayload = await extractErrorDetail(response);
     const detail = detailPayload.detail;

@@ -128,7 +128,7 @@ fn wait_for_local_health(host: &str, port: u16, path: &str, retries: usize, inte
 }
 
 fn auto_boot_docker_api_runtime() {
-  let default_auto_boot = cfg!(debug_assertions);
+  let default_auto_boot = true;
   if !env_flag("ARIA_DESKTOP_AUTO_BOOT_DOCKER_API", default_auto_boot) {
     println!("[aria-desktop] docker api auto-boot disabled by ARIA_DESKTOP_AUTO_BOOT_DOCKER_API");
     return;

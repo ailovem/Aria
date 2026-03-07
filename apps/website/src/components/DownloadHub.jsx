@@ -2,27 +2,27 @@ import React, { useEffect, useMemo, useState } from 'react';
 import './DownloadHub.css';
 
 const DEFAULT_RELEASE_INFO = {
-  version: import.meta.env.VITE_ARIA_RELEASE_VERSION || 'v0.1.8',
+  version: import.meta.env.VITE_ARIA_RELEASE_VERSION || 'v0.1.9',
   publishedAt: import.meta.env.VITE_ARIA_RELEASE_DATE || '2026-03-07',
-  changelogUrl: import.meta.env.VITE_ARIA_CHANGELOG_URL || 'https://github.com/ailovem/Aria/releases/tag/v0.1.8',
+  changelogUrl: import.meta.env.VITE_ARIA_CHANGELOG_URL || 'https://github.com/ailovem/Aria/releases/tag/v0.1.9',
   downloads: {
     macos: {
       files: '.dmg（Apple Silicon / Intel）',
       arch: 'Apple Silicon / Intel',
-      url: import.meta.env.VITE_ARIA_DOWNLOAD_MAC || 'https://github.com/ailovem/Aria/releases/download/v0.1.8/Aria_0.1.0_aarch64.dmg',
-      intelUrl: import.meta.env.VITE_ARIA_DOWNLOAD_MAC_INTEL || 'https://github.com/ailovem/Aria/releases/download/v0.1.8/Aria_0.1.0_x64.dmg',
-      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || 'ARM: 9e8d3b789a4e15d3a24d0d570a4ba9988cfa1232d7437ca75db574e9e5582b1d | Intel: 44b1616168653396878f39156ef05d472d318480e3176d3c122b70ef03d943ac'
+      url: import.meta.env.VITE_ARIA_DOWNLOAD_MAC || 'https://github.com/ailovem/Aria/releases/download/v0.1.9/Aria_0.1.9_aarch64.dmg',
+      intelUrl: import.meta.env.VITE_ARIA_DOWNLOAD_MAC_INTEL || 'https://github.com/ailovem/Aria/releases/download/v0.1.9/Aria_0.1.9_x64.dmg',
+      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || 'ARM: 71087cacbbda78e51550d1a6d8b1b0e4dbacfef4d6df990c67322c9de2b72979 | Intel: 发布后自动更新'
     },
     windows: {
       files: '.exe / .msi',
       arch: 'x64',
-      url: import.meta.env.VITE_ARIA_DOWNLOAD_WINDOWS || 'https://github.com/ailovem/Aria/releases/download/v0.1.8/Aria_0.1.0_x64-setup.exe',
-      checksum: import.meta.env.VITE_ARIA_SHA256_WINDOWS || 'EXE: 6b475ff63b6f42cc6531e3ad17ff1125bf5a51d0d76b08fcfad162b2c1b69f33 | MSI: 8819c4e1f251f597d5941f7efc6727b54a023d31fe328f35c35248e1957eaa30'
+      url: import.meta.env.VITE_ARIA_DOWNLOAD_WINDOWS || 'https://github.com/ailovem/Aria/releases/download/v0.1.9/Aria_0.1.9_x64-setup.exe',
+      checksum: import.meta.env.VITE_ARIA_SHA256_WINDOWS || 'EXE: 发布后自动更新 | MSI: 发布后自动更新'
     },
     linux: {
       files: '暂未提供',
       arch: 'x64',
-      url: import.meta.env.VITE_ARIA_DOWNLOAD_LINUX || 'https://github.com/ailovem/Aria/releases/tag/v0.1.8',
+      url: import.meta.env.VITE_ARIA_DOWNLOAD_LINUX || 'https://github.com/ailovem/Aria/releases/tag/v0.1.9',
       checksum: import.meta.env.VITE_ARIA_SHA256_LINUX || '-'
     }
   }
@@ -229,7 +229,7 @@ const DownloadHub = () => {
         clientInfo.os === 'macos' && clientInfo.arch === 'x64'
           ? '下载 macOS (Apple Silicon)'
           : '下载 macOS (Intel)',
-      checksum: releaseInfo.downloads?.macos?.checksum || 'ARM: 9e8d3b789a4e15d3a24d0d570a4ba9988cfa1232d7437ca75db574e9e5582b1d | Intel: 44b1616168653396878f39156ef05d472d318480e3176d3c122b70ef03d943ac'
+      checksum: releaseInfo.downloads?.macos?.checksum || 'ARM: 71087cacbbda78e51550d1a6d8b1b0e4dbacfef4d6df990c67322c9de2b72979 | Intel: 发布后自动更新'
     },
     {
       key: 'windows',
@@ -240,7 +240,7 @@ const DownloadHub = () => {
       secondaryHref: '',
       buttonText: clientInfo.os === 'windows' ? '下载 Windows (推荐)' : '下载 Windows',
       secondaryButtonText: '',
-      checksum: releaseInfo.downloads?.windows?.checksum || 'EXE: 6b475ff63b6f42cc6531e3ad17ff1125bf5a51d0d76b08fcfad162b2c1b69f33 | MSI: 8819c4e1f251f597d5941f7efc6727b54a023d31fe328f35c35248e1957eaa30'
+      checksum: releaseInfo.downloads?.windows?.checksum || 'EXE: 发布后自动更新 | MSI: 发布后自动更新'
     },
     {
       key: 'linux',
