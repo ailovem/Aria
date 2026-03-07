@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import './QuickStart30s.css';
 
 const QUICKSTART_STEPS = [
@@ -43,7 +43,81 @@ const QUICKSTART_STEPS = [
     }
 ];
 
+const STEP_DURATION_MS = 10000;
+const PLAYER_TICK_MS = 100;
+const TOTAL_DURATION_MS = QUICKSTART_STEPS.length * STEP_DURATION_MS;
+
 const QuickStart30s = () => {
+    const [activeIndex, setActiveIndex] = useState(0);
+    const [elapsedInStep, setElapsedInStep] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(true);
+
+    const activeStep = QUICKSTART_STEPS[activeIndex];
+    const elapsedTotalMs = Math.min(TOTAL_DURATION_MS, activeIndex * STEP_DURATION_MS + elapsedInStep);
+    const totalProgress = Math.min(100, Math.round((elapsedTotalMs / TOTAL_DURATION_MS) * 100));
+    const stepProgress = Math.min(100, Math.round((elapsedInStep / STEP_DURATION_MS) * 100));
+    const remainingSeconds = Math.max(0, Math.ceil((TOTAL_DURATION_MS - elapsedTotalMs) / 1000));
+    const isAtLastStep = activeIndex >= QUICKSTART_STEPS.length - 1;
+    const isPlaybackEnded = isAtLastStep && elapsedInStep >= STEP_DURATION_MS;
+
+    useEffect(() => {
+        if (!isPlaying) return;
+        const timer = window.setInterval(() => {
+            setElapsedInStep((prev) => {
+                const next = prev + PLAYER_TICK_MS;
+                if (next < STEP_DURATION_MS) {
+                    return next;
+                }
+                if (isAtLastStep) {
+                    setIsPlaying(false);
+                    return STEP_DURATION_MS;
+                }
+                setActiveIndex((idx) => Math.min(idx + 1, QUICKSTART_STEPS.length - 1));
+                return 0;
+            });
+        }, PLAYER_TICK_MS);
+        return () => window.clearInterval(timer);
+    }, [isPlaying, isAtLastStep]);
+
+    const playbackLabel = useMemo(() => {
+        if (isPlaying) {
+            return '自动播放中';
+        }
+        if (isPlaybackEnded) {
+            return '播放完成';
+        }
+        return '已暂停';
+    }, [isPlaying, isPlaybackEnded]);
+
+    const selectStep = (index) => {
+        setActiveIndex(index);
+        setElapsedInStep(0);
+    };
+
+    const handleTogglePlayback = () => {
+        if (isPlaying) {
+            setIsPlaying(false);
+            return;
+        }
+        if (isPlaybackEnded) {
+            setActiveIndex(0);
+            setElapsedInStep(0);
+        }
+        setIsPlaying(true);
+    };
+
+    const handlePrevStep = () => {
+        if (activeIndex <= 0) return;
+        setActiveIndex((prev) => Math.max(0, prev - 1));
+        setElapsedInStep(0);
+    };
+
+    const handleNextStep = () => {
+        if (activeIndex >= QUICKSTART_STEPS.length - 1) return;
+        setActiveIndex((prev) => Math.min(QUICKSTART_STEPS.length - 1, prev + 1));
+        setElapsedInStep(0);
+    };
+
     return (
         <section id="quickstart" className="section quickstart-section">
             <div className="container">
@@ -55,16 +129,67 @@ const QuickStart30s = () => {
                     <p className="subtitle quickstart-subtitle">
                         从“先聊一句”到“真实执行”，3 步 30 秒完整体验 Aria 的陪伴力和执行力。
                     </p>
-                    <div className="quickstart-meter" aria-label="30秒上手进度">
-                        <span>10s</span>
-                        <span>20s</span>
-                        <span>30s</span>
+                    <div className="quickstart-meter" aria-label="30秒自动引导进度">
+                        <div className="quickstart-meter-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={totalProgress}>
+                            <span className="quickstart-meter-fill" style={{ width: `${totalProgress}%` }} />
+                        </div>
+                        <div className="quickstart-meter-meta">
+                            <span>{playbackLabel}</span>
+                            <span>剩余 {remainingSeconds}s</span>
+                        </div>
                     </div>
                 </div>
 
-                <div className="quickstart-grid">
+                <div className="quickstart-player reveal reveal-delay-1">
+                    <div className="quickstart-tabs" role="tablist" aria-label="30秒上手步骤">
+                        {QUICKSTART_STEPS.map((step, index) => (
+                            <button
+                                key={step.id}
+                                type="button"
+                                role="tab"
+                                aria-selected={index === activeIndex}
+                                className={`quickstart-tab ${index === activeIndex ? 'is-active' : ''}`}
+                                onClick={() => selectStep(index)}
+                            >
+                                <span className="quickstart-tab-time">{step.time}</span>
+                                <span className="quickstart-tab-title">步骤 {index + 1}</span>
+                                <span className="quickstart-tab-progress">
+                                    <i
+                                        style={{
+                                            width: `${
+                                                index < activeIndex
+                                                    ? 100
+                                                    : index === activeIndex
+                                                        ? stepProgress
+                                                        : 0
+                                            }%`
+                                        }}
+                                    />
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="quickstart-player-controls">
+                        <button type="button" className="quickstart-control-btn" onClick={handlePrevStep} disabled={activeIndex <= 0}>
+                            上一步
+                        </button>
+                        <button type="button" className="quickstart-control-btn quickstart-control-main" onClick={handleTogglePlayback}>
+                            {isPlaying ? '暂停播放' : (isPlaybackEnded ? '重新播放30秒' : '继续播放')}
+                        </button>
+                        <button type="button" className="quickstart-control-btn" onClick={handleNextStep} disabled={activeIndex >= QUICKSTART_STEPS.length - 1}>
+                            下一步
+                        </button>
+                    </div>
+                </div>
+
+                <div className="quickstart-stage reveal reveal-delay-2" aria-live="polite">
                     {QUICKSTART_STEPS.map((step, index) => (
-                        <article key={step.id} className={`quickstart-card glass-panel reveal reveal-delay-${Math.min(3, index + 1)}`}>
+                        <article
+                            key={step.id}
+                            className={`quickstart-card glass-panel ${index === activeIndex ? 'is-active' : ''}`}
+                            aria-hidden={index !== activeIndex}
+                        >
                             <div className="quickstart-visual-wrap">
                                 <img src={step.visual} alt={step.subtitle} className="quickstart-visual" loading="lazy" />
                                 <div className="quickstart-time">{step.time}</div>
@@ -82,6 +207,10 @@ const QuickStart30s = () => {
                         </article>
                     ))}
                 </div>
+
+                <p className="quickstart-active-note reveal reveal-delay-3">
+                    当前播放：{activeStep.title}
+                </p>
 
                 <div className="quickstart-cta reveal reveal-delay-3">
                     <a href="#download" className="btn-primary">立即下载客户端</a>

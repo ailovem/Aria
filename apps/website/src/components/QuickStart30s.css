@@ -28,47 +28,158 @@
 }
 
 .quickstart-meter {
-    width: min(540px, 100%);
+    width: min(560px, 100%);
     margin: 2rem auto 0;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-    position: relative;
+    gap: 0.7rem;
 }
 
-.quickstart-meter::before {
-    content: "";
-    position: absolute;
-    top: 0.85rem;
-    left: 8%;
-    right: 8%;
-    height: 2px;
+.quickstart-meter-track {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    background: rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+}
+
+.quickstart-meter-fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
     background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan), var(--accent-warm));
-    opacity: 0.5;
+    box-shadow: 0 0 18px rgba(100, 210, 255, 0.35);
+    transition: width 120ms linear;
 }
 
-.quickstart-meter span {
+.quickstart-meter-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--text-secondary);
+    font-size: 0.82rem;
+}
+
+.quickstart-player {
+    margin-top: 2.4rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.quickstart-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.8rem;
+}
+
+.quickstart-tab {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 14px;
+    padding: 0.72rem;
+    text-align: left;
+    display: grid;
+    gap: 0.36rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.quickstart-tab:hover {
+    border-color: rgba(100, 210, 255, 0.4);
+    color: var(--text-primary);
+}
+
+.quickstart-tab.is-active {
+    border-color: rgba(100, 210, 255, 0.52);
+    background: rgba(100, 210, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.quickstart-tab-time {
+    font-size: 0.75rem;
+    opacity: 0.9;
+}
+
+.quickstart-tab-title {
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.quickstart-tab-progress {
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.16);
+    overflow: hidden;
+}
+
+.quickstart-tab-progress i {
+    display: block;
+    height: 100%;
+    width: 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #8ad7ff, #7fffd5);
+    transition: width 120ms linear;
+}
+
+.quickstart-player-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
+}
+
+.quickstart-control-btn {
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 999px;
-    padding: 0.5rem 0.8rem;
-    font-size: 0.82rem;
-    color: var(--text-secondary);
-    background: rgba(255, 255, 255, 0.04);
-    z-index: 1;
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    padding: 0.5rem 1rem;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.quickstart-grid {
-    margin-top: 3rem;
-    display: grid;
-    gap: 1.25rem;
+.quickstart-control-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: rgba(100, 210, 255, 0.45);
+}
+
+.quickstart-control-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+}
+
+.quickstart-control-main {
+    background: linear-gradient(90deg, rgba(10, 132, 255, 0.24), rgba(255, 159, 10, 0.24));
+    border-color: rgba(100, 210, 255, 0.42);
+}
+
+.quickstart-stage {
+    margin-top: 1rem;
+    position: relative;
+    min-height: 360px;
 }
 
 .quickstart-card {
+    position: absolute;
+    inset: 0;
     padding: 1.25rem;
     display: grid;
     gap: 1.1rem;
     grid-template-columns: minmax(190px, 280px) minmax(0, 1fr);
     align-items: center;
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+}
+
+.quickstart-card.is-active {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
 }
 
 .quickstart-visual-wrap {
@@ -128,8 +239,15 @@
     font-size: 0.92rem;
 }
 
+.quickstart-active-note {
+    margin-top: 1.2rem;
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+}
+
 .quickstart-cta {
-    margin-top: 2.2rem;
+    margin-top: 2.1rem;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -137,20 +255,49 @@
 }
 
 @media (max-width: 900px) {
+    .quickstart-tabs {
+        grid-template-columns: 1fr;
+    }
+
+    .quickstart-player-controls {
+        justify-content: stretch;
+    }
+
+    .quickstart-control-btn {
+        flex: 1;
+        text-align: center;
+    }
+
+    .quickstart-stage {
+        min-height: 560px;
+    }
+
     .quickstart-card {
         grid-template-columns: 1fr;
+        align-content: start;
     }
 
     .quickstart-visual-wrap {
         max-width: 420px;
     }
-
-    .quickstart-meter {
-        gap: 0.7rem;
-    }
 }
 
 @media (max-width: 640px) {
+    .quickstart-meter-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .quickstart-player-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .quickstart-stage {
+        min-height: 640px;
+    }
+
     .quickstart-cta {
         flex-direction: column;
         align-items: stretch;
@@ -159,10 +306,5 @@
     .quickstart-cta a {
         width: 100%;
         justify-content: center;
-    }
-
-    .quickstart-meter span {
-        font-size: 0.76rem;
-        padding: 0.5rem;
     }
 }
