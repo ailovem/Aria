@@ -943,7 +943,8 @@ const resolveDispatchStatusFromAutonomy = (autonomyInput?: DemoAutonomyState | n
   return "";
 };
 
-const ONBOARDING_STORAGE_KEY = "aria_desktop_onboarding_v3_seen";
+const ONBOARDING_STORAGE_KEY = "aria_desktop_onboarding_v4_seen";
+const ONBOARDING_TOTAL_SECONDS = 30;
 const OUTFIT_STORAGE_PREFIX = "aria_desktop_outfit_";
 const XHS_DEFAULT_ASSETS_DIR = "/Users/bear/Desktop/xhs-assets";
 const XHS_PIPELINE_POLL_INTERVAL_MS = 3000;
@@ -998,27 +999,59 @@ const parseXhsQuickIntentFromText = (textInput: string): XhsQuickIntent | null =
 
 const onboardingFlow: Array<{
   panel: PanelKey;
+  scene: SceneKey;
   title: string;
   desc: string;
   action: string;
+  seconds: number;
+  visualTag: string;
+  visualEmoji: string;
+  bullets: string[];
 }> = [
     {
       panel: "chat",
-      title: "第 1 步：先聊你的状态",
-      desc: "像真人聊天一样说出今天的压力或目标，Aria 会先共情再给建议。",
-      action: "打开陪伴区"
+      scene: "love",
+      title: "第 1 步：先说一句现在的你",
+      desc: "用一句自然的话说出你的状态，Aria 会先接住情绪，再给可执行建议。",
+      action: "打开陪伴区",
+      seconds: 10,
+      visualTag: "情绪接住 + 真人回复",
+      visualEmoji: "💞",
+      bullets: [
+        "不用写指令，像聊天一样说就行",
+        "回复会带温度，不走固定模板",
+        "先共情，再推进下一步"
+      ]
     },
     {
       panel: "workday",
-      title: "第 2 步：把目标变成任务",
-      desc: "完成签到并选一个 Quest，立刻看到清晰进度与奖励反馈。",
-      action: "打开任务区"
+      scene: "work",
+      title: "第 2 步：把目标变成可执行任务",
+      desc: "选一个目标，Aria 会立刻拆解成步骤、节奏和回执，让你看见推进感。",
+      action: "打开任务区",
+      seconds: 10,
+      visualTag: "目标拆解 + 进度可视",
+      visualEmoji: "🎯",
+      bullets: [
+        "一键生成今日执行清单",
+        "每步有状态，完成后即刻反馈",
+        "卡住时自动给修正建议"
+      ]
     },
     {
       panel: "device",
-      title: "第 3 步：授权后直接执行",
-      desc: "在设备区授权并执行动作，所有结果都可追踪、可回看。",
-      action: "打开设备区"
+      scene: "coding",
+      title: "第 3 步：授权后直接做事",
+      desc: "允许设备能力后，Aria 可以真的执行任务，并把过程和结果完整回放给你。",
+      action: "打开执行区",
+      seconds: 10,
+      visualTag: "授权执行 + 全链路回放",
+      visualEmoji: "⚙️",
+      bullets: [
+        "支持授权后自动执行动作",
+        "每次执行都有日志和结果",
+        "异常会自动回退到安全路径"
+      ]
     }
   ];
 
@@ -6218,7 +6251,7 @@ function App() {
   }, [agiFlowCandidates, agiViewportFlowId]);
   useEffect(() => {
     if (!showOnboarding) return;
-    openPanel(onboardingFlow[0].panel);
+    openPanel(onboardingFlow[0].panel, onboardingFlow[0].scene);
   }, [showOnboarding]);
   useEffect(() => {
     if (!momentumToast) return;
@@ -6452,7 +6485,7 @@ function App() {
   const jumpToOnboardingStep = (index: number) => {
     const safeIndex = Math.min(Math.max(index, 0), onboardingFlow.length - 1);
     setOnboardingStep(safeIndex);
-    openPanel(onboardingFlow[safeIndex].panel);
+    openPanel(onboardingFlow[safeIndex].panel, onboardingFlow[safeIndex].scene);
   };
 
   const nextOnboardingStep = () => {
@@ -9721,6 +9754,18 @@ function App() {
   const personaLevelQuickActionBusy = systemConfigLoading || systemConfigSaving || personaQuickSwitching;
   const l3TakeoverActionDisabled = l3TakeoverApplying || deviceLoading || personaLevelQuickActionBusy;
   const l3TakeoverButtonLabel = l3TakeoverApplying ? "L3接管中..." : "L3全权限";
+  const currentOnboarding = onboardingFlow[Math.min(Math.max(onboardingStep, 0), onboardingFlow.length - 1)];
+  const onboardingProgress = Math.round(((onboardingStep + 1) / Math.max(1, onboardingFlow.length)) * 100);
+  const onboardingRemainingSeconds = Math.max(
+    0,
+    onboardingFlow
+      .slice(Math.max(0, onboardingStep))
+      .reduce((sum, item) => sum + Math.max(0, item.seconds), 0)
+  );
+  const onboardingVisualOutfit = persona.outfits.find((item) => item.scene === currentOnboarding.scene) || persona.outfits[0];
+  const onboardingVisualAvatar = onboardingVisualOutfit
+    ? onboardingVisualOutfit.avatar
+    : persona.avatar;
 
   // ── Main UI with Avatar + Chat ──
   return (
@@ -9826,10 +9871,32 @@ function App() {
 
         {showOnboarding && (
           <section className="onboarding-strip">
-            <div className="onboarding-copy">
-              <p className="onboarding-step">上手引导 {onboardingStep + 1}/{onboardingFlow.length}</p>
-              <h3>{onboardingFlow[onboardingStep].title}</h3>
-              <p>{onboardingFlow[onboardingStep].desc}</p>
+            <div className="onboarding-head">
+              <p className="onboarding-step">30 秒上手引导 · Step {onboardingStep + 1}/{onboardingFlow.length}</p>
+              <div className="onboarding-progress-wrap">
+                <div className="onboarding-progress-track" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={onboardingProgress}>
+                  <span className="onboarding-progress-fill" style={{ width: `${onboardingProgress}%` }} />
+                </div>
+                <span className="onboarding-progress-time">预计剩余 {onboardingRemainingSeconds}s</span>
+              </div>
+            </div>
+            <div className="onboarding-body">
+              <div className="onboarding-visual">
+                <img src={onboardingVisualAvatar} alt={`${persona.name} onboarding`} />
+                <div className="onboarding-visual-badge">
+                  <span>{currentOnboarding.visualEmoji}</span>
+                  <strong>{currentOnboarding.visualTag}</strong>
+                </div>
+              </div>
+              <div className="onboarding-copy">
+                <h3>{currentOnboarding.title}</h3>
+                <p>{currentOnboarding.desc}</p>
+                <div className="onboarding-bullets">
+                  {currentOnboarding.bullets.map((item, index) => (
+                    <span key={`onboarding-bullet-${onboardingStep}-${index}`}>{item}</span>
+                  ))}
+                </div>
+              </div>
             </div>
             <div className="onboarding-actions">
               <button type="button" className="ghost" onClick={() => finishOnboarding()}>
@@ -9837,10 +9904,17 @@ function App() {
               </button>
               <button
                 type="button"
+                className="quick"
+                onClick={() => openPanel(currentOnboarding.panel, currentOnboarding.scene)}
+              >
+                {currentOnboarding.action}
+              </button>
+              <button
+                type="button"
                 className="primary"
                 onClick={() => nextOnboardingStep()}
               >
-                {onboardingStep + 1 >= onboardingFlow.length ? "完成引导" : onboardingFlow[onboardingStep + 1].action}
+                {onboardingStep + 1 >= onboardingFlow.length ? "完成引导" : "下一步"}
               </button>
             </div>
           </section>
