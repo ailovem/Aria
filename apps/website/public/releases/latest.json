@@ -8,13 +8,13 @@
       "files": ".dmg",
       "arch": "Apple Silicon (M 系列)",
       "url": "https://github.com/ailovem/Aria/releases/download/v0.1.4/Aria_0.1.0_aarch64.dmg",
-      "checksum": "pending"
+      "checksum": "2bd2f513e5e6fc446b9905380beb639a85f1eb5b147b2085784c5721a24387bf"
     },
     "windows": {
       "files": ".exe / .msi",
       "arch": "x64",
       "url": "https://github.com/ailovem/Aria/releases/download/v0.1.4/Aria_0.1.0_x64-setup.exe",
-      "checksum": "pending"
+      "checksum": "EXE: fc4f6b703d909fcf200cb9eb300d39408d02c92bc951440531fde5256ee57d24 | MSI: 28f1c6ee38116d2960f1004211bd44df63370cb1b72f95f2d0dad672d3a9b2cf"
     },
     "linux": {
       "files": "暂未提供",

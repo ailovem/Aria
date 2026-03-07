@@ -10,13 +10,13 @@ const DEFAULT_RELEASE_INFO = {
       files: '.dmg',
       arch: 'Apple Silicon (M 系列)',
       url: import.meta.env.VITE_ARIA_DOWNLOAD_MAC || 'https://github.com/ailovem/Aria/releases/download/v0.1.4/Aria_0.1.0_aarch64.dmg',
-      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || 'pending'
+      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || '2bd2f513e5e6fc446b9905380beb639a85f1eb5b147b2085784c5721a24387bf'
     },
     windows: {
       files: '.exe / .msi',
       arch: 'x64',
       url: import.meta.env.VITE_ARIA_DOWNLOAD_WINDOWS || 'https://github.com/ailovem/Aria/releases/download/v0.1.4/Aria_0.1.0_x64-setup.exe',
-      checksum: import.meta.env.VITE_ARIA_SHA256_WINDOWS || 'pending'
+      checksum: import.meta.env.VITE_ARIA_SHA256_WINDOWS || 'EXE: fc4f6b703d909fcf200cb9eb300d39408d02c92bc951440531fde5256ee57d24 | MSI: 28f1c6ee38116d2960f1004211bd44df63370cb1b72f95f2d0dad672d3a9b2cf'
     },
     linux: {
       files: '暂未提供',
@@ -62,7 +62,7 @@ const DownloadHub = () => {
       files: releaseInfo.downloads?.macos?.files || '.dmg',
       arch: releaseInfo.downloads?.macos?.arch || 'Apple Silicon (M 系列)',
       href: releaseInfo.downloads?.macos?.url || '#',
-      checksum: releaseInfo.downloads?.macos?.checksum || 'pending'
+      checksum: releaseInfo.downloads?.macos?.checksum || '2bd2f513e5e6fc446b9905380beb639a85f1eb5b147b2085784c5721a24387bf'
     },
     {
       key: 'windows',
@@ -70,7 +70,7 @@ const DownloadHub = () => {
       files: releaseInfo.downloads?.windows?.files || '.exe / .msi',
       arch: releaseInfo.downloads?.windows?.arch || 'x64',
       href: releaseInfo.downloads?.windows?.url || '#',
-      checksum: releaseInfo.downloads?.windows?.checksum || 'pending'
+      checksum: releaseInfo.downloads?.windows?.checksum || 'EXE: fc4f6b703d909fcf200cb9eb300d39408d02c92bc951440531fde5256ee57d24 | MSI: 28f1c6ee38116d2960f1004211bd44df63370cb1b72f95f2d0dad672d3a9b2cf'
     },
     {
       key: 'linux',
