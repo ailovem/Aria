@@ -65,8 +65,8 @@ jobs:
         shell: bash
         working-directory: apps/desktop
         run: |
-          rustup target add aarch64-apple-darwin x86_64-apple-darwin
-          pnpm run build -- --target aarch64-apple-darwin
+          rustup target add x86_64-apple-darwin
+          pnpm run build
           pnpm run build -- --target x86_64-apple-darwin
 
       - name: Build Windows installers
