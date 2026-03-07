@@ -1,15 +1,15 @@
 {
-  "version": "v0.1.9",
-  "publishedAt": "2026-03-07",
+  "version": "v0.1.10",
+  "publishedAt": "2026-03-08",
   "channel": "stable",
-  "changelogUrl": "https://github.com/ailovem/Aria/releases/tag/v0.1.9",
+  "changelogUrl": "https://github.com/ailovem/Aria/releases/tag/v0.1.10",
   "downloads": {
     "macos": {
       "files": ".dmg（Apple Silicon / Intel）",
       "arch": "Apple Silicon / Intel",
-      "url": "https://github.com/ailovem/Aria/releases/download/v0.1.9/Aria_0.1.9_aarch64.dmg",
-      "intelUrl": "https://github.com/ailovem/Aria/releases/download/v0.1.9/Aria_0.1.9_x64.dmg",
-      "checksum": "ARM: 71087cacbbda78e51550d1a6d8b1b0e4dbacfef4d6df990c67322c9de2b72979 | Intel: 541d4ff3db61b5733f064d31cdbea184781fa2361ba4e6ccd27760051b406118"
+      "url": "https://github.com/ailovem/Aria/releases/download/v0.1.10/Aria_0.1.10_aarch64.dmg",
+      "intelUrl": "https://github.com/ailovem/Aria/releases/download/v0.1.10/Aria_0.1.10_x64.dmg",
+      "checksum": "ARM: 21eab7df34a20523aac50b14e5a2308f7ebb336c5199a8d11820c86ad20a9fd4 | Intel: 4ab5f88e95a082dbae975add4994b3dc9f716cfd7e2e8aff9c6748d170f42ec0"
     },
     "windows": {
       "files": ".exe / .msi",
@@ -20,7 +20,7 @@
     "linux": {
       "files": "暂未提供",
       "arch": "x64",
-      "url": "https://github.com/ailovem/Aria/releases/tag/v0.1.9",
+      "url": "https://github.com/ailovem/Aria/releases/tag/v0.1.10",
       "checksum": "-"
     }
   }

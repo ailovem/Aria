@@ -2,16 +2,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 import './DownloadHub.css';
 
 const DEFAULT_RELEASE_INFO = {
-  version: import.meta.env.VITE_ARIA_RELEASE_VERSION || 'v0.1.9',
-  publishedAt: import.meta.env.VITE_ARIA_RELEASE_DATE || '2026-03-07',
-  changelogUrl: import.meta.env.VITE_ARIA_CHANGELOG_URL || 'https://github.com/ailovem/Aria/releases/tag/v0.1.9',
+  version: import.meta.env.VITE_ARIA_RELEASE_VERSION || 'v0.1.10',
+  publishedAt: import.meta.env.VITE_ARIA_RELEASE_DATE || '2026-03-08',
+  changelogUrl: import.meta.env.VITE_ARIA_CHANGELOG_URL || 'https://github.com/ailovem/Aria/releases/tag/v0.1.10',
   downloads: {
     macos: {
       files: '.dmg（Apple Silicon / Intel）',
       arch: 'Apple Silicon / Intel',
-      url: import.meta.env.VITE_ARIA_DOWNLOAD_MAC || 'https://github.com/ailovem/Aria/releases/download/v0.1.9/Aria_0.1.9_aarch64.dmg',
-      intelUrl: import.meta.env.VITE_ARIA_DOWNLOAD_MAC_INTEL || 'https://github.com/ailovem/Aria/releases/download/v0.1.9/Aria_0.1.9_x64.dmg',
-      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || 'ARM: 71087cacbbda78e51550d1a6d8b1b0e4dbacfef4d6df990c67322c9de2b72979 | Intel: 541d4ff3db61b5733f064d31cdbea184781fa2361ba4e6ccd27760051b406118'
+      url: import.meta.env.VITE_ARIA_DOWNLOAD_MAC || 'https://github.com/ailovem/Aria/releases/download/v0.1.10/Aria_0.1.10_aarch64.dmg',
+      intelUrl: import.meta.env.VITE_ARIA_DOWNLOAD_MAC_INTEL || 'https://github.com/ailovem/Aria/releases/download/v0.1.10/Aria_0.1.10_x64.dmg',
+      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || 'ARM: 21eab7df34a20523aac50b14e5a2308f7ebb336c5199a8d11820c86ad20a9fd4 | Intel: 4ab5f88e95a082dbae975add4994b3dc9f716cfd7e2e8aff9c6748d170f42ec0'
     },
     windows: {
       files: '.exe / .msi',
@@ -22,7 +22,7 @@ const DEFAULT_RELEASE_INFO = {
     linux: {
       files: '暂未提供',
       arch: 'x64',
-      url: import.meta.env.VITE_ARIA_DOWNLOAD_LINUX || 'https://github.com/ailovem/Aria/releases/tag/v0.1.9',
+      url: import.meta.env.VITE_ARIA_DOWNLOAD_LINUX || 'https://github.com/ailovem/Aria/releases/tag/v0.1.10',
       checksum: import.meta.env.VITE_ARIA_SHA256_LINUX || '-'
     }
   }

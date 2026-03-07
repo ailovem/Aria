@@ -1,7 +1,7 @@
 {
   "name": "aria-desktop",
   "private": true,
-  "version": "0.1.9",
+  "version": "0.1.10",
   "type": "module",
   "scripts": {
     "predev:web": "bash ../../scripts/apply-generated-outfits.sh",

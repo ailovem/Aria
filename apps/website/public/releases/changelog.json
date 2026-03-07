@@ -2,6 +2,19 @@
   "product": "Aria Desktop",
   "entries": [
     {
+      "version": "v0.1.10",
+      "date": "2026-03-08",
+      "highlights": [
+        "新增 3+1 记忆架构控制台，支持前端可视化调参（TopK/跨场景/混合检索/分层容量）",
+        "中期记忆层（mid_term）贯通写入、检索与生命周期回收策略",
+        "macOS Apple Silicon 与 Intel 双 dmg 安装包已补齐"
+      ],
+      "fixes": [
+        "优化异常场景回复自然度，减少模板化与机械感",
+        "补齐记忆架构 API 与离线 embedded runtime 对接"
+      ]
+    },
+    {
       "version": "v0.1.9",
       "date": "2026-03-07",
       "highlights": [
