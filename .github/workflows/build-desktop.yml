@@ -64,12 +64,7 @@ jobs:
         if: steps.app_check.outputs.ready == 'true'
         shell: bash
         working-directory: apps/desktop
-        run: |
-          if pnpm run | grep -qE '(^|\\s)tauri(\\s|$)'; then
-            pnpm run tauri build
-          else
-            pnpm dlx tauri build
-          fi
+        run: pnpm run build
 
       - name: Upload desktop artifacts
         if: steps.app_check.outputs.ready == 'true'
