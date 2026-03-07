@@ -1,0 +1,31 @@
+# macOS
+.DS_Store
+
+# Node.js
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+
+# App dependency folders
+apps/**/node_modules/
+
+# Build outputs
+dist/
+build/
+coverage/
+apps/**/dist/
+apps/desktop/src-tauri/target/
+
+# Runtime/cache artifacts
+.runtime/
+output/
+*.pid
+*.log
+apps/desktop/aria-generated/
+services/api/data/games/
+services/api/data/downloads/
+
+# Local env files
+.env
+.env.*
+!.env.example

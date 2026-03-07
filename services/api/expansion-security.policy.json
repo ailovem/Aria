@@ -1,0 +1,93 @@
+{
+  "version": "2026.3.4",
+  "enforceSignedPacks": false,
+  "requireSandbox": true,
+  "defaultSandboxProfile": "standard",
+  "whitelist": {
+    "hosts": [
+      "example.com",
+      "raw.githubusercontent.com",
+      "github.com",
+      "api.github.com",
+      "codeload.github.com",
+      "objects.githubusercontent.com",
+      "githubusercontent.com",
+      "files.pythonhosted.org",
+      "pypi.org"
+    ],
+    "mimePrefixes": [
+      "application/json",
+      "application/pdf",
+      "text/plain",
+      "text/markdown",
+      "text/html",
+      "application/zip",
+      "application/x-gzip",
+      "application/octet-stream",
+      "image/"
+    ],
+    "maxDownloadBytes": 15728640
+  },
+  "signature": {
+    "algorithm": "hmac-sha256",
+    "trustedSigners": [
+      {
+        "id": "local-dev",
+        "keyEnv": "ARIA_EXPANSION_SIGNER_LOCAL_DEV_KEY",
+        "enabled": true
+      },
+      {
+        "id": "github-release",
+        "keyEnv": "ARIA_EXPANSION_SIGNER_GITHUB_RELEASE_KEY",
+        "enabled": true
+      }
+    ],
+    "defaultSigner": "local-dev"
+  },
+  "sandboxProfiles": {
+    "standard": {
+      "allowPrefixes": [
+        "web.fetch",
+        "file.download",
+        "content.",
+        "skill.route",
+        "runtime.healthcheck"
+      ],
+      "maxCapabilities": 12
+    },
+    "browser-mcp": {
+      "allowPrefixes": [
+        "web.fetch",
+        "content.",
+        "summary.",
+        "skill.route",
+        "runtime.healthcheck"
+      ],
+      "maxCapabilities": 14
+    },
+    "github-discovery": {
+      "allowPrefixes": [
+        "web.fetch",
+        "file.download",
+        "skill.route",
+        "runtime.healthcheck"
+      ],
+      "maxCapabilities": 16
+    },
+    "restricted": {
+      "allowPrefixes": [
+        "content.",
+        "memory.",
+        "summary."
+      ],
+      "maxCapabilities": 6
+    },
+    "privileged": {
+      "allowPrefixes": [
+        "*"
+      ],
+      "maxCapabilities": 20,
+      "requireApproval": true
+    }
+  }
+}

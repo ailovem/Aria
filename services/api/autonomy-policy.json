@@ -1,0 +1,10 @@
+{
+  "version": "2026.3.0",
+  "autonomy": {
+    "enabled": true,
+    "idleMinutesBeforeNudge": 18,
+    "maxPendingInbox": 3,
+    "selfLearningEnabled": true,
+    "selfRepairEnabled": true
+  }
+}

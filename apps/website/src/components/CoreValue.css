@@ -1,0 +1,48 @@
+.core-value-section {
+    padding: 8rem 0;
+    background: radial-gradient(circle at 100% 0%, rgba(10, 132, 255, 0.05) 0%, transparent 50%);
+}
+
+.architecture-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-top: 5rem;
+}
+
+.arch-card {
+    padding: 3rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    transition: transform 0.3s ease;
+}
+
+.arch-card:hover {
+    transform: translateY(-8px);
+}
+
+.arch-icon {
+    font-size: 3rem;
+    font-weight: 700;
+    opacity: 0.8;
+}
+
+.arch-card h3 {
+    font-size: 1.4rem;
+    color: var(--text-primary);
+}
+
+.arch-card p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+    .architecture-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}

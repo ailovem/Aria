@@ -1,0 +1,16 @@
+{
+  "theme": "通勤时间管理",
+  "assetsDir": "/Users/bear/Desktop/xhs-assets",
+  "outputRoot": "/Users/bear/Desktop/Aria/Aria/output/xhs-pipeline",
+  "maxAssets": 8,
+  "clipDurationImageSec": 2.8,
+  "clipDurationVideoSec": 6,
+  "publish": false,
+  "headless": false,
+  "skipUpload": false,
+  "model": "gpt-4.1-mini",
+  "xhs": {
+    "publishUrl": "https://creator.xiaohongshu.com/publish/publish",
+    "userDataDir": "/Users/bear/Desktop/Aria/Aria/.runtime/xhs-playwright-profile"
+  }
+}

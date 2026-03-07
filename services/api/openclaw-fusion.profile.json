@@ -1,0 +1,164 @@
+{
+  "version": "2026.3.3",
+  "enabled": true,
+  "strategy": {
+    "mode": "reuse-first",
+    "disallowDuplicateBuild": true,
+    "requireExecutionEvidence": true,
+    "objective": "super-girlfriend-independent-runtime"
+  },
+  "architecture": {
+    "gateway": {
+      "driver": "aria-api-gateway",
+      "reuseModules": [
+        "system.config",
+        "auth.guest",
+        "autonomy.dispatch"
+      ],
+      "reuseEndpoints": [
+        "/v1/system/config",
+        "/v1/auth/guest",
+        "/v1/autonomy/dispatch",
+        "/v1/aria-kernel/gateway/status"
+      ]
+    },
+    "session": {
+      "driver": "aria-session-context",
+      "reuseModules": [
+        "state.snapshot",
+        "memory.search",
+        "autonomy.inbox",
+        "timeline.unified"
+      ],
+      "reuseEndpoints": [
+        "/v1/state",
+        "/v1/memory/search",
+        "/v1/autonomy/inbox",
+        "/v1/aria-kernel/session/status",
+        "/v1/aria-kernel/session/spawn",
+        "/v1/aria-kernel/session/send"
+      ]
+    },
+    "execution": {
+      "driver": "openclaw-kernel-adapter",
+      "reuseModules": [
+        "workbench.intent",
+        "device.task.execute",
+        "expansion.fetchDownload",
+        "autonomy.queue.process",
+        "runtime.guardian",
+        "timeline.replay"
+      ],
+      "reuseEndpoints": [
+        "/v1/workbench/intent",
+        "/v1/device/tasks/execute",
+        "/v1/expansion/fetch-download",
+        "/v1/autonomy/queue/process",
+        "/v1/aria-kernel/task-center",
+        "/v1/aria-kernel/execution-center",
+        "/v1/aria-kernel/model/fallback/status",
+        "/v1/aria-kernel/progress/protocol"
+      ]
+    }
+  },
+  "automationProtocol": {
+    "progress": {
+      "longTaskThresholdSec": 8,
+      "intervalSec": 30,
+      "blockReportSec": 30
+    },
+    "completionChecklist": [
+      "execution_performed",
+      "evidence_recorded",
+      "ledger_synced"
+    ],
+    "riskActionsRequireConfirm": [
+      "payment",
+      "destructive_delete",
+      "irreversible_external_action"
+    ]
+  },
+  "capabilities": [
+    {
+      "id": "fusion.task_closed_loop",
+      "name": "任务闭环执行融合",
+      "status": "enabled",
+      "noDuplicateBuild": true,
+      "reuseModules": [
+        "autonomy.dispatch",
+        "autonomy.queue.process",
+        "timeline.unified"
+      ],
+      "reuseEndpoints": [
+        "/v1/autonomy/dispatch",
+        "/v1/autonomy/queue/process",
+        "/v1/timeline/unified"
+      ]
+    },
+    {
+      "id": "fusion.memory_evidence",
+      "name": "记忆与证据融合",
+      "status": "enabled",
+      "noDuplicateBuild": true,
+      "reuseModules": [
+        "memory.search",
+        "memory.write",
+        "scene.config.apply"
+      ],
+      "reuseEndpoints": [
+        "/v1/memory/search",
+        "/v1/memory",
+        "/v1/scene/config/apply"
+      ]
+    },
+    {
+      "id": "fusion.safe_expansion",
+      "name": "安全扩展融合",
+      "status": "enabled",
+      "noDuplicateBuild": true,
+      "reuseModules": [
+        "expansion.install",
+        "expansion.security",
+        "runtime.guardian"
+      ],
+      "reuseEndpoints": [
+        "/v1/expansion/packs/install",
+        "/v1/expansion/security",
+        "/v1/runtime/health"
+      ]
+    },
+    {
+      "id": "fusion.model_fallback",
+      "name": "模型路由与降级融合",
+      "status": "enabled",
+      "noDuplicateBuild": true,
+      "reuseModules": [
+        "model.router",
+        "system.config"
+      ],
+      "reuseEndpoints": [
+        "/v1/system/config",
+        "/v1/message",
+        "/v1/message/stream"
+      ]
+    },
+    {
+      "id": "fusion.openclaw_runtime_protocol",
+      "name": "Aria Kernel 运行协议融合",
+      "status": "enabled",
+      "noDuplicateBuild": true,
+      "reuseModules": [
+        "state.snapshot",
+        "timeline.unified",
+        "runtime.guardian"
+      ],
+      "reuseEndpoints": [
+        "/v1/aria-kernel/gateway/status",
+        "/v1/aria-kernel/session/status",
+        "/v1/aria-kernel/task-center",
+        "/v1/aria-kernel/execution-center",
+        "/v1/aria-kernel/model/fallback/status"
+      ]
+    }
+  ]
+}

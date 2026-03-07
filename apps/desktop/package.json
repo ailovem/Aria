@@ -1,0 +1,29 @@
+{
+  "name": "aria-desktop",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "predev:web": "bash ../../scripts/apply-generated-outfits.sh",
+    "dev:web": "bash ../../scripts/dev-web-safe.sh",
+    "dev:web:raw": "vite --host 0.0.0.0 --port 1420",
+    "prebuild:web": "bash ../../scripts/apply-generated-outfits.sh",
+    "build:web": "tsc && vite build",
+    "preview": "vite preview --host 0.0.0.0 --port 4173",
+    "tauri": "tauri",
+    "dev": "tauri dev",
+    "build": "tauri build"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.1.0",
+    "@types/react": "^18.3.4",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react-swc": "^3.8.0",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.8"
+  }
+}

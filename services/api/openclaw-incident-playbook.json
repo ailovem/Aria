@@ -1,0 +1,112 @@
+{
+  "version": "2026.3.4",
+  "objective": "prevent-repeat-openclaw-runtime-failures",
+  "incidents": [
+    {
+      "id": "runtime_api_offline",
+      "title": "Aria API 未启动/端口不可达",
+      "symptomKeywords": [
+        "failed to fetch",
+        "无法连接 aria api",
+        "connection refused",
+        "econnrefused"
+      ],
+      "layer": "network",
+      "rootCause": "本地运行时未启动，或 8787 端口被占用/阻塞。",
+      "guardrail": "启动前先做健康检查，若端口冲突则清理僵尸进程后再拉起。",
+      "autoFix": [
+        "bash scripts/cleanup-dev-runtime.sh",
+        "bash scripts/dev-runtime.sh"
+      ],
+      "verifyEndpoint": "/health"
+    },
+    {
+      "id": "runtime_port_conflict",
+      "title": "开发端口冲突（常见 1420）",
+      "symptomKeywords": [
+        "port 1420 is already in use",
+        "address already in use",
+        "eaddrinuse"
+      ],
+      "layer": "execution",
+      "rootCause": "旧 Vite/Node 进程未退出，新实例被阻塞。",
+      "guardrail": "启动 Web 前先探测端口，发现占用时复用或自动清理。",
+      "autoFix": [
+        "bash scripts/cleanup-dev-runtime.sh",
+        "cd apps/desktop && npm run dev:web"
+      ],
+      "verifyEndpoint": "/health"
+    },
+    {
+      "id": "policy_allowlist_empty",
+      "title": "策略白名单为空导致消息静默丢弃",
+      "symptomKeywords": [
+        "allowlist",
+        "white list",
+        "empty allowlist",
+        "silently dropped"
+      ],
+      "layer": "policy",
+      "rootCause": "渠道/插件策略未配置白名单，合法消息被拦截。",
+      "guardrail": "发布前做策略校验：白名单为空时阻止上线并给出修复向导。",
+      "autoFix": [
+        "GET /v1/expansion/security",
+        "POST /v1/expansion/security"
+      ],
+      "verifyEndpoint": "/v1/expansion/security"
+    },
+    {
+      "id": "session_stalled_or_not_found",
+      "title": "会话卡死或 Session not found",
+      "symptomKeywords": [
+        "session not found",
+        "会话不存在",
+        "session stale",
+        "openclaw 不回话"
+      ],
+      "layer": "execution",
+      "rootCause": "会话状态漂移，session id 失效后仍被复用。",
+      "guardrail": "发送前做 session 存活检查，失效时自动重建并重放最后一条任务。",
+      "autoFix": [
+        "GET /v1/aria-kernel/session/status",
+        "POST /v1/aria-kernel/session/spawn"
+      ],
+      "verifyEndpoint": "/v1/aria-kernel/session/status"
+    },
+    {
+      "id": "model_upstream_500",
+      "title": "上游模型 500 / INTERNAL 错误",
+      "symptomKeywords": [
+        "internal error encountered",
+        "\"status\": \"internal\"",
+        "http 500",
+        "upstream 500"
+      ],
+      "layer": "network",
+      "rootCause": "上游模型临时故障，缺少降级与重试策略。",
+      "guardrail": "启用任务级路由降级、指数退避和熔断，避免单点故障。",
+      "autoFix": [
+        "POST /v1/system/config/sync-aria-kernel",
+        "POST /v1/autonomy/queue/policy"
+      ],
+      "verifyEndpoint": "/v1/system/config"
+    },
+    {
+      "id": "permission_not_granted",
+      "title": "高权限能力未授权导致自动执行失败",
+      "symptomKeywords": [
+        "permission required",
+        "global_control_permission_required",
+        "capability_permission_required"
+      ],
+      "layer": "permission",
+      "rootCause": "桌面全局控制权限未授予，自动执行被策略拒绝。",
+      "guardrail": "执行前显示权限闸门；缺权时给一步授权入口，不直接失败。",
+      "autoFix": [
+        "POST /v1/device/permissions",
+        "POST /v1/device/tasks/plan"
+      ],
+      "verifyEndpoint": "/v1/device/capabilities"
+    }
+  ]
+}

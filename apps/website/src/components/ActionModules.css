@@ -1,0 +1,65 @@
+.bento-large {
+    grid-column: span 12;
+}
+
+.bento-medium {
+    grid-column: span 8;
+    min-height: 250px;
+}
+
+.bento-small {
+    grid-column: span 4;
+    min-height: 250px;
+}
+
+.bento-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+}
+
+.bento-content h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.bento-content p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.code-snippet {
+    margin-top: 1.5rem;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 1rem;
+    border-radius: 8px;
+    font-family: monospace;
+    color: var(--accent-cyan);
+    border: 1px solid rgba(100, 210, 255, 0.2);
+}
+
+@media (min-width: 1024px) {
+    .bento-large {
+        grid-column: span 7;
+        grid-row: span 2;
+        min-height: 500px;
+    }
+
+    .bento-medium {
+        grid-column: span 5;
+        grid-row: span 1;
+    }
+
+    .bento-small {
+        grid-column: span 5;
+        grid-row: span 1;
+    }
+}
+
+@media (max-width: 1023px) {
+    .bento-grid {
+        display: flex;
+        flex-direction: column;
+    }
+}

@@ -1,0 +1,400 @@
+{
+  "version": "2026.3.4",
+  "enabled": true,
+  "mode": "full-capability-infusion",
+  "objective": "beyond-codex-openclaw-autonomous-runtime",
+  "sourceProducts": {
+    "codex": {
+      "importedCores": [
+        "planner_executor_loop",
+        "code_agent_workbench",
+        "runtime_guardian_feedback"
+      ],
+      "upgradedCores": [
+        "multi_stage_plan_validator",
+        "policy_aware_refactor_engine"
+      ]
+    },
+    "openclaw": {
+      "importedCores": [
+        "gateway_session_execution",
+        "autonomy_dispatch_queue",
+        "safe_expansion_download",
+        "task_ledger_protocol",
+        "execution_evidence_delivery",
+        "cloud_local_model_fallback"
+      ],
+      "upgradedCores": [
+        "task_graph_replay",
+        "deterministic_failure_root_cause",
+        "multi_session_orchestration",
+        "heartbeat_watchdog_with_self_heal"
+      ]
+    },
+    "antigravity": {
+      "importedCores": [
+        "novice_readable_feedback",
+        "scene_first_interaction",
+        "cross_platform_presence"
+      ],
+      "upgradedCores": [
+        "adaptive_ui_complexity_reduction",
+        "execution_result_storyline"
+      ]
+    }
+  },
+  "architecture": {
+    "controlPlane": {
+      "modules": [
+        "intent_understanding",
+        "policy_gate",
+        "goal_contract_parser",
+        "planner",
+        "orchestrator",
+        "goal_tracker"
+      ]
+    },
+    "executionPlane": {
+      "modules": [
+        "autonomy_dispatch",
+        "session_orchestrator",
+        "workbench_executor",
+        "device_executor",
+        "voice_executor",
+        "mcp_browser_executor",
+        "expansion_executor",
+        "api_command_executor",
+        "task_center_ledger"
+      ]
+    },
+    "memoryPlane": {
+      "modules": [
+        "conversation_cache",
+        "short_term_context_memory",
+        "temporary_task_memory",
+        "memory_search_write",
+        "long_term_vector_memory",
+        "cross_scene_associative_recall",
+        "memory_compression_dedup",
+        "timeline_replay",
+        "evidence_ledger",
+        "delivery_logbook"
+      ]
+    },
+    "reliabilityPlane": {
+      "modules": [
+        "runtime_guardian",
+        "queue_strategy_engine",
+        "circuit_breaker",
+        "rollback_and_replay",
+        "failure_root_cause_classifier",
+        "gateway_heartbeat",
+        "auto_recovery_watchdog"
+      ]
+    },
+    "extensionPlane": {
+      "modules": [
+        "skill_registry",
+        "extension_security",
+        "github_official_skill_discovery",
+        "capability_sandbox",
+        "self_upgrade_channel"
+      ]
+    }
+  },
+  "skillRegistry": [
+    {
+      "id": "skill.plan_and_code",
+      "name": "规划与编码执行",
+      "source": "codex",
+      "innovationLevel": "enhanced",
+      "endpoints": [
+        "/v1/workbench/intent",
+        "/v1/workbench/tool/run"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.autonomy_dispatch",
+      "name": "自治调度与任务分发",
+      "source": "openclaw",
+      "innovationLevel": "enhanced",
+      "endpoints": [
+        "/v1/autonomy/dispatch",
+        "/v1/autonomy/queue/process"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.secure_extension",
+      "name": "安全扩展安装",
+      "source": "openclaw",
+      "innovationLevel": "enhanced",
+      "endpoints": [
+        "/v1/expansion/packs/install",
+        "/v1/expansion/security"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.memory_evidence",
+      "name": "记忆与证据闭环",
+      "source": "codex",
+      "innovationLevel": "new",
+      "endpoints": [
+        "/v1/memory/search",
+        "/v1/memory",
+        "/v1/timeline/unified"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.device_orchestration",
+      "name": "设备任务编排",
+      "source": "openclaw",
+      "innovationLevel": "enhanced",
+      "endpoints": [
+        "/v1/device/tasks/plan",
+        "/v1/device/tasks/execute"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.self_heal",
+      "name": "自修复与稳定治理",
+      "source": "codex",
+      "innovationLevel": "new",
+      "endpoints": [
+        "/v1/runtime/health",
+        "/v1/runtime/guardian/heal"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.scene_companion",
+      "name": "场景陪伴执行",
+      "source": "antigravity",
+      "innovationLevel": "enhanced",
+      "endpoints": [
+        "/v1/scene/config/apply",
+        "/v1/message/stream"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.gateway_runtime",
+      "name": "网关与心跳治理",
+      "source": "openclaw",
+      "innovationLevel": "enhanced",
+      "endpoints": [
+        "/v1/aria-kernel/gateway/status",
+        "/v1/aria-kernel/heartbeat"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.session_orchestration",
+      "name": "多会话与子智能体编排",
+      "source": "openclaw",
+      "innovationLevel": "enhanced",
+      "endpoints": [
+        "/v1/aria-kernel/session/status",
+        "/v1/aria-kernel/session/spawn",
+        "/v1/aria-kernel/session/send"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.task_ledger",
+      "name": "任务账本与交付日志",
+      "source": "openclaw",
+      "innovationLevel": "new",
+      "endpoints": [
+        "/v1/aria-kernel/task-center",
+        "/v1/aria-kernel/execution-center"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.model_fallback_guard",
+      "name": "云端优先与本地回退护栏",
+      "source": "openclaw",
+      "innovationLevel": "enhanced",
+      "endpoints": [
+        "/v1/aria-kernel/model/fallback/status",
+        "/v1/system/config"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.progress_protocol",
+      "name": "长任务进度回执协议",
+      "source": "openclaw",
+      "innovationLevel": "new",
+      "endpoints": [
+        "/v1/aria-kernel/progress/protocol",
+        "/v1/autonomy/status"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.model_api_easy_setup",
+      "name": "模型 API 傻瓜配置",
+      "source": "aria",
+      "innovationLevel": "new",
+      "endpoints": [
+        "/v1/system/config",
+        "/v1/message",
+        "/v1/message/stream"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.autonomous_learning_crawler",
+      "name": "自主进化学习引擎",
+      "source": "aria",
+      "innovationLevel": "new",
+      "endpoints": [
+        "/v1/autonomy/dispatch",
+        "/v1/autonomy/queue/process",
+        "/v1/expansion/fetch-download"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.feedback_learning_writeback",
+      "name": "聊天反馈学习写回",
+      "source": "aria",
+      "innovationLevel": "new",
+      "endpoints": [
+        "/v1/message",
+        "/v1/memory",
+        "/v1/timeline/unified"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.memory_lifecycle_manager",
+      "name": "记忆生命周期管理",
+      "source": "aria",
+      "innovationLevel": "new",
+      "endpoints": [
+        "/v1/memory/search",
+        "/v1/memory",
+        "/v1/timeline/replay"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.cross_scene_memory_recall",
+      "name": "跨场景联想记忆调用",
+      "source": "aria",
+      "innovationLevel": "enhanced",
+      "endpoints": [
+        "/v1/memory/search",
+        "/v1/scene/config/apply",
+        "/v1/message/stream"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.context_recycle_classifier",
+      "name": "上下文回收分类系统",
+      "source": "aria",
+      "innovationLevel": "new",
+      "endpoints": [
+        "/v1/autonomy/dispatch",
+        "/v1/memory",
+        "/v1/timeline/unified"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.mcp_browser_runtime",
+      "name": "MCP 浏览器执行内核",
+      "source": "aria",
+      "innovationLevel": "enhanced",
+      "endpoints": [
+        "/v1/workbench/tool/run",
+        "/v1/expansion/fetch-download",
+        "/v1/autonomy/dispatch"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.github_official_skill_discovery",
+      "name": "GitHub 官方技能发现",
+      "source": "aria",
+      "innovationLevel": "new",
+      "endpoints": [
+        "/v1/expansion/fetch-download",
+        "/v1/expansion/packs/install",
+        "/v1/expansion/security"
+      ],
+      "required": true
+    },
+    {
+      "id": "skill.voice_hardware_bluetooth_orchestration",
+      "name": "语音与硬件蓝牙编排",
+      "source": "aria",
+      "innovationLevel": "enhanced",
+      "endpoints": [
+        "/v1/device/tasks/plan",
+        "/v1/device/tasks/execute",
+        "/v1/autonomy/dispatch"
+      ],
+      "required": true
+    }
+  ],
+  "stabilityPolicy": {
+    "targetSlo": {
+      "p95LatencyMs": 2500,
+      "maxFailureRate": 0.03
+    },
+    "queue": {
+      "retryBudgetPerTask": 3,
+      "backoffMs": 1200,
+      "deadLetterReplayEnabled": true
+    },
+    "circuitBreaker": {
+      "failureThreshold": 3,
+      "coolDownMs": 45000
+    }
+  },
+  "extensionFreedomPolicy": {
+    "extensibilityLevel": "high",
+    "sandboxRequired": true,
+    "signatureRequiredForPrivileged": true,
+    "pluginApiVersion": "v1",
+    "approvedExtensionChannels": [
+      "manifest",
+      "github",
+      "official-github",
+      "mcp-catalog",
+      "marketplace"
+    ]
+  },
+  "duplicationGuard": {
+    "disallowDuplicateImplementation": true,
+    "preferReuseEndpoints": [
+      "/v1/system/config",
+      "/v1/autonomy/dispatch",
+      "/v1/workbench/intent",
+      "/v1/workbench/tool/run",
+      "/v1/device/tasks/plan",
+      "/v1/device/tasks/execute",
+      "/v1/memory/search",
+      "/v1/memory",
+      "/v1/timeline/unified",
+      "/v1/timeline/replay",
+      "/v1/runtime/health",
+      "/v1/expansion/fetch-download",
+      "/v1/expansion/security",
+      "/v1/aria-kernel/gateway/status",
+      "/v1/aria-kernel/session/status",
+      "/v1/aria-kernel/task-center",
+      "/v1/aria-kernel/execution-center",
+      "/v1/aria-kernel/model/fallback/status"
+    ]
+  }
+}

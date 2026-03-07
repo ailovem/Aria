@@ -1,0 +1,238 @@
+{
+  "version": "2026.3.3",
+  "routingMode": "task-first",
+  "providers": [
+    {
+      "id": "companion-primary",
+      "vendor": "openai-compatible",
+      "model": "gpt-4.1",
+      "roles": [
+        "chat",
+        "emotion",
+        "planning"
+      ],
+      "baseUrl": "",
+      "apiKeyEnv": "",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "companion-fallback",
+      "vendor": "openai-compatible",
+      "model": "gpt-4.1-mini",
+      "roles": [
+        "chat",
+        "summary"
+      ],
+      "baseUrl": "",
+      "apiKeyEnv": "",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "code-specialist",
+      "vendor": "openai-compatible",
+      "model": "o4-mini",
+      "roles": [
+        "coding",
+        "tool-use",
+        "debug"
+      ],
+      "baseUrl": "",
+      "apiKeyEnv": "",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "nvidia-minimax-m21",
+      "vendor": "openai-compatible",
+      "model": "minimaxai/minimax-m2.1",
+      "roles": [
+        "chat",
+        "planning",
+        "emotion"
+      ],
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_NVIDIA_MINIMAX_M21_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "nvidia-kimi-k2-thinking",
+      "vendor": "openai-compatible",
+      "model": "moonshotai/kimi-k2-thinking",
+      "roles": [
+        "chat",
+        "planning",
+        "emotion",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_NVIDIA_KIMI_K2_THINKING_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "oc-nvidia-qwen",
+      "vendor": "openai-compatible",
+      "model": "nvidia-qwen/nvidia/nemotron-3-nano-30b-a3b",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "apiKeyEnv": "",
+      "openclawProvider": "nvidia-qwen",
+      "disabled": false
+    },
+    {
+      "id": "oc-nvidia-nemotron",
+      "vendor": "openai-compatible",
+      "model": "nvidia-nemotron/nvidia/nemotron-3-nano-30b-a3b",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "apiKeyEnv": "",
+      "openclawProvider": "nvidia-nemotron",
+      "disabled": false
+    },
+    {
+      "id": "oc-nvidia-deepseek",
+      "vendor": "openai-compatible",
+      "model": "nvidia-deepseek/deepseek-ai/deepseek-v3.2",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "apiKeyEnv": "",
+      "openclawProvider": "nvidia-deepseek",
+      "disabled": false
+    },
+    {
+      "id": "oc-nvidia-minimax",
+      "vendor": "openai-compatible",
+      "model": "nvidia-minimax/minimaxai/minimax-m2.5",
+      "roles": [
+        "chat",
+        "planning"
+      ],
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "apiKeyEnv": "",
+      "openclawProvider": "nvidia-minimax",
+      "disabled": false
+    },
+    {
+      "id": "oc-nvidia-glm",
+      "vendor": "openai-compatible",
+      "model": "nvidia-glm/z-ai/glm4.7",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "apiKeyEnv": "",
+      "openclawProvider": "nvidia-glm",
+      "disabled": false
+    },
+    {
+      "id": "oc-nvidia-glm5",
+      "vendor": "openai-compatible",
+      "model": "nvidia-glm5/z-ai/glm5",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://integrate.api.nvidia.com/v1",
+      "apiKeyEnv": "",
+      "openclawProvider": "nvidia-glm5",
+      "disabled": false
+    },
+    {
+      "id": "oc-moonshot",
+      "vendor": "openai-compatible",
+      "model": "kimi-k2.5",
+      "roles": [
+        "chat",
+        "planning",
+        "emotion"
+      ],
+      "baseUrl": "https://api.moonshot.cn/v1",
+      "apiKeyEnv": "",
+      "openclawProvider": "moonshot",
+      "disabled": false
+    },
+    {
+      "id": "oc-qwen3-max-iflow",
+      "vendor": "openai-compatible",
+      "model": "qwen3-max-iflow/qwen3-max",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "",
+      "openclawProvider": "qwen3-max-iflow",
+      "disabled": false
+    }
+  ],
+  "taskRoutes": {
+    "emotional_companion": [
+      "nvidia-minimax-m21",
+      "nvidia-kimi-k2-thinking",
+      "companion-primary",
+      "companion-fallback"
+    ],
+    "coding_execution": [
+      "nvidia-kimi-k2-thinking",
+      "code-specialist",
+      "nvidia-minimax-m21",
+      "companion-primary",
+      "companion-fallback"
+    ],
+    "work_planning": [
+      "nvidia-minimax-m21",
+      "nvidia-kimi-k2-thinking",
+      "code-specialist",
+      "companion-primary",
+      "companion-fallback"
+    ],
+    "autonomy_dispatch": [
+      "nvidia-minimax-m21",
+      "nvidia-kimi-k2-thinking",
+      "code-specialist",
+      "companion-fallback"
+    ],
+    "memory_digest": [
+      "nvidia-minimax-m21",
+      "nvidia-kimi-k2-thinking",
+      "companion-fallback",
+      "companion-primary"
+    ]
+  },
+  "degradeStrategy": {
+    "timeoutMs": 20000,
+    "maxRetries": 2,
+    "retryBackoffMs": 1200
+  },
+  "safety": {
+    "enablePromptGuard": true,
+    "enableOutputPolicyGuard": true,
+    "blockUnknownToolCalls": true
+  }
+}

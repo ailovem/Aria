@@ -1,0 +1,67 @@
+{
+  "version": "2026.3.3",
+  "workspace": {
+    "allowedRoots": [
+      "/Users/bear/Desktop",
+      "/Users/bear/Documents",
+      "/Users/bear/Downloads"
+    ],
+    "maxPlanItems": 300,
+    "allowedCommandPrefixes": [
+      "npm run",
+      "npm install",
+      "npm i -g",
+      "node",
+      "python3",
+      "python3 -m pip install",
+      "pip3 install",
+      "bash",
+      "brew install",
+      "git status",
+      "git diff",
+      "git log",
+      "flutter pub get",
+      "flutter analyze",
+      "flutter test",
+      "flutter run"
+    ],
+    "commandTimeoutMs": 120000
+  },
+  "voice": {
+    "defaultVoice": "Flo (中文（中国大陆）)",
+    "defaultRate": 178,
+    "allowMicCapture": true
+  },
+  "actions": {
+    "hardware.snapshot": {
+      "enabled": true
+    },
+    "voice.tts": {
+      "enabled": true
+    },
+    "voice.stt": {
+      "enabled": true
+    },
+    "workspace.organize": {
+      "enabled": true
+    },
+    "workspace.find_files": {
+      "enabled": true
+    },
+    "workspace.command": {
+      "enabled": true
+    },
+    "communications.mail_digest": {
+      "enabled": true
+    },
+    "communications.sms_digest": {
+      "enabled": true
+    },
+    "communications.send_channel": {
+      "enabled": true
+    },
+    "communications.mobile_outbox": {
+      "enabled": true
+    }
+  }
+}

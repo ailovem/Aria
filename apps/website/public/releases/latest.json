@@ -1,0 +1,26 @@
+{
+  "version": "v0.1.0",
+  "publishedAt": "2026-03-07",
+  "channel": "stable",
+  "changelogUrl": "/changelog.html",
+  "downloads": {
+    "macos": {
+      "files": ".dmg / .app",
+      "arch": "Apple Silicon / Intel",
+      "url": "https://github.com/<your-account>/<your-repo>/releases/download/v0.1.0/Aria-v0.1.0-macOS.dmg",
+      "checksum": "to-be-filled-at-release"
+    },
+    "windows": {
+      "files": ".msi / .exe",
+      "arch": "x64",
+      "url": "https://github.com/<your-account>/<your-repo>/releases/download/v0.1.0/Aria-v0.1.0-windows.msi",
+      "checksum": "to-be-filled-at-release"
+    },
+    "linux": {
+      "files": ".AppImage / .deb",
+      "arch": "x64",
+      "url": "https://github.com/<your-account>/<your-repo>/releases/download/v0.1.0/Aria-v0.1.0-linux.AppImage",
+      "checksum": "to-be-filled-at-release"
+    }
+  }
+}

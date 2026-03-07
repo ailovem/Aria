@@ -1,0 +1,67 @@
+.security-section {
+    padding: 8rem 0;
+    background: radial-gradient(circle at 0% 100%, rgba(255, 55, 95, 0.05) 0%, transparent 60%);
+}
+
+.security-features {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    max-width: 800px;
+    margin: 4rem auto 0;
+}
+
+.sec-feature {
+    display: flex;
+    gap: 1.5rem;
+    padding: 2rem;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    align-items: flex-start;
+    transition: transform 0.3s ease;
+}
+
+.sec-feature:hover {
+    transform: translateX(10px);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.sec-icon {
+    font-size: 2rem;
+    font-weight: bold;
+    background: rgba(255, 255, 255, 0.05);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.sec-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sec-text h3 {
+    font-size: 1.3rem;
+    color: var(--text-primary);
+}
+
+.sec-text p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+    .sec-feature {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+}

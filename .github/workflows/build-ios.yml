@@ -1,0 +1,56 @@
+name: Build iOS Artifact
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-ios:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check mobile app folder
+        id: app_check
+        shell: bash
+        run: |
+          if [ -f "apps/mobile/pubspec.yaml" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip if mobile app not ready
+        if: steps.app_check.outputs.ready != 'true'
+        shell: bash
+        run: |
+          echo "Mobile app not found yet. Skipping build."
+
+      - name: Setup Flutter
+        if: steps.app_check.outputs.ready == 'true'
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Install dependencies
+        if: steps.app_check.outputs.ready == 'true'
+        shell: bash
+        working-directory: apps/mobile
+        run: flutter pub get
+
+      - name: Build iOS (no codesign)
+        if: steps.app_check.outputs.ready == 'true'
+        shell: bash
+        working-directory: apps/mobile
+        run: flutter build ios --release --no-codesign
+
+      - name: Upload iOS artifact
+        if: steps.app_check.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-unsigned
+          path: apps/mobile/build/ios/iphoneos/*.app

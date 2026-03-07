@@ -1,0 +1,107 @@
+.immortality-section {
+    position: relative;
+    overflow: hidden;
+    padding: 10rem 0;
+    background: radial-gradient(circle at center, rgba(30, 15, 10, 0.5) 0%, var(--bg-color) 70%);
+}
+
+.memory-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    margin-top: 4rem;
+}
+
+.memory-card {
+    padding: 3rem;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    transition: transform 0.3s ease;
+}
+
+.card-highlight {
+    background: linear-gradient(135deg, rgba(255, 159, 10, 0.1) 0%, rgba(255, 55, 95, 0.1) 100%);
+    border: 1px solid rgba(255, 159, 10, 0.2);
+}
+
+.memory-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-icon {
+    font-size: 2.5rem;
+}
+
+.memory-card h3 {
+    font-size: 1.5rem;
+    color: var(--text-primary);
+}
+
+.memory-card p {
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+/* Equalizer / Voice Wave Animation */
+.voice-wave {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 2rem;
+    height: 40px;
+}
+
+.wave {
+    display: block;
+    width: 4px;
+    background: var(--accent-warm);
+    border-radius: 2px;
+    animation: equalize 1.2s infinite ease-in-out;
+}
+
+.wave:nth-child(1) {
+    height: 10px;
+    animation-delay: 0.1s;
+}
+
+.wave:nth-child(2) {
+    height: 20px;
+    animation-delay: 0.2s;
+}
+
+.wave:nth-child(3) {
+    height: 35px;
+    animation-delay: 0.3s;
+}
+
+.wave:nth-child(4) {
+    height: 15px;
+    animation-delay: 0.4s;
+}
+
+.wave:nth-child(5) {
+    height: 8px;
+    animation-delay: 0.5s;
+}
+
+@keyframes equalize {
+
+    0%,
+    100% {
+        transform: scaleY(1);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: scaleY(1.5);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 768px) {
+    .memory-cards {
+        grid-template-columns: 1fr;
+    }
+}

@@ -1,0 +1,59 @@
+.release-section {
+    background: linear-gradient(to bottom, rgba(10, 132, 255, 0.06), rgba(0, 0, 0, 0));
+}
+
+.release-grid {
+    margin-top: 3.2rem;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.2rem;
+}
+
+.release-card {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.release-badge {
+    width: fit-content;
+    font-size: 0.75rem;
+    color: var(--accent-cyan);
+    border: 1px solid rgba(100, 210, 255, 0.3);
+    border-radius: 999px;
+    padding: 0.2rem 0.6rem;
+}
+
+.release-card h3 {
+    font-size: 1.2rem;
+}
+
+.release-card p {
+    color: var(--text-secondary);
+    line-height: 1.65;
+}
+
+.release-command {
+    margin-top: 1.25rem;
+    padding: 1rem 1.2rem;
+}
+
+.release-command-title {
+    color: var(--text-secondary);
+    margin-bottom: 0.6rem;
+    font-size: 0.9rem;
+}
+
+.release-command pre {
+    margin: 0;
+    white-space: pre-wrap;
+    color: var(--accent-cyan);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@media (max-width: 900px) {
+    .release-grid {
+        grid-template-columns: 1fr;
+    }
+}

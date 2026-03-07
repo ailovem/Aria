@@ -1,0 +1,170 @@
+{
+  "version": "2026.3.4",
+  "scenes": {
+    "work": {
+      "defaultPanel": "workday",
+      "mode": "work",
+      "priority": [
+        "goal-contract",
+        "task-graph-planning",
+        "execution-evidence",
+        "result-review"
+      ],
+      "capabilities": [
+        "workbench",
+        "autonomy-dispatch",
+        "device-command",
+        "browser-mcp"
+      ],
+      "requiredSkills": [
+        "skill.plan_and_code",
+        "skill.autonomy_dispatch",
+        "skill.mcp_browser_runtime",
+        "skill.github_official_skill_discovery"
+      ],
+      "responseStyle": [
+        "目标先行",
+        "证据交付",
+        "明确下一步"
+      ],
+      "memoryStrategy": {
+        "longTermWeight": 0.65,
+        "shortTermWeight": 0.35,
+        "recallTopK": 6,
+        "allowCrossSceneRecall": true
+      }
+    },
+    "fun": {
+      "defaultPanel": "funzone",
+      "mode": "companion",
+      "priority": [
+        "engagement",
+        "social-energy",
+        "light-creation",
+        "instant-feedback"
+      ],
+      "capabilities": [
+        "friend-feed",
+        "mini-game",
+        "creative-chat",
+        "game-runtime"
+      ],
+      "requiredSkills": [
+        "skill.scene_companion",
+        "skill.feedback_learning_writeback",
+        "skill.context_recycle_classifier"
+      ],
+      "responseStyle": [
+        "轻快互动",
+        "短句节奏",
+        "可玩可执行"
+      ],
+      "memoryStrategy": {
+        "longTermWeight": 0.25,
+        "shortTermWeight": 0.75,
+        "recallTopK": 4,
+        "allowCrossSceneRecall": true
+      }
+    },
+    "life": {
+      "defaultPanel": "memory",
+      "mode": "family",
+      "priority": [
+        "daily-care",
+        "family-reminder",
+        "device-assist",
+        "habit-loop"
+      ],
+      "capabilities": [
+        "life-chat",
+        "calendar-reminder",
+        "home-task",
+        "file-assistant"
+      ],
+      "requiredSkills": [
+        "skill.memory_lifecycle_manager",
+        "skill.cross_scene_memory_recall",
+        "skill.voice_hardware_bluetooth_orchestration"
+      ],
+      "responseStyle": [
+        "生活化清单",
+        "温和提醒",
+        "执行后回执"
+      ],
+      "memoryStrategy": {
+        "longTermWeight": 0.7,
+        "shortTermWeight": 0.3,
+        "recallTopK": 8,
+        "allowCrossSceneRecall": true
+      }
+    },
+    "love": {
+      "defaultPanel": "chat",
+      "mode": "companion",
+      "priority": [
+        "empathy-first",
+        "relationship-memory",
+        "micro-action",
+        "affection-loop"
+      ],
+      "capabilities": [
+        "real-time-chat",
+        "memory-recall",
+        "touchpoint-nudge",
+        "voice-companion"
+      ],
+      "requiredSkills": [
+        "skill.model_api_easy_setup",
+        "skill.feedback_learning_writeback",
+        "skill.cross_scene_memory_recall",
+        "skill.voice_hardware_bluetooth_orchestration"
+      ],
+      "responseStyle": [
+        "先共情",
+        "再行动",
+        "自然亲密"
+      ],
+      "memoryStrategy": {
+        "longTermWeight": 0.75,
+        "shortTermWeight": 0.25,
+        "recallTopK": 8,
+        "allowCrossSceneRecall": true
+      }
+    }
+  },
+  "panelSceneMap": {
+    "funzone": "fun",
+    "chat": "love",
+    "memory": "life",
+    "autonomy": "work",
+    "workday": "work",
+    "device": "life",
+    "brain": "love"
+  },
+  "eventTriggers": {
+    "message_sent": [
+      "memory-write",
+      "engagement-update",
+      "feedback-learning-writeback"
+    ],
+    "scene_switched": [
+      "mode-adjust",
+      "panel-hydrate",
+      "cross-scene-memory-recall"
+    ],
+    "task_failed": [
+      "root-cause-classify",
+      "retry-policy-evaluate",
+      "runtime-guardian-check"
+    ],
+    "timeline_replayed": [
+      "evidence-verify",
+      "memory-writeback"
+    ],
+    "daily_recycle_tick": [
+      "context-classify",
+      "duplicate-compress",
+      "long-term-promote"
+    ]
+  }
+}

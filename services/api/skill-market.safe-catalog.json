@@ -1,0 +1,1887 @@
+[
+  {
+    "packId": "pack.safe.openclaw_core",
+    "name": "OpenClaw 核心自治框架",
+    "summary": "本地优先的个人 AI 助手与自治执行框架。",
+    "source": "https://github.com/openclaw/openclaw",
+    "aliases": [
+      "agent",
+      "autonomy",
+      "openclaw",
+      "openclaw/openclaw"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.n8n_workflow",
+    "name": "n8n 自动化编排",
+    "summary": "可视化工作流编排与 AI 流程自动化平台。",
+    "source": "https://github.com/n8n-io/n8n",
+    "aliases": [
+      "workflow",
+      "automation",
+      "n8n",
+      "n8n-io/n8n",
+      "n8n-io"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.autogen_framework",
+    "name": "AutoGen 多智能体框架",
+    "summary": "微软多智能体编排框架，适合任务协作与代理通信。",
+    "source": "https://github.com/microsoft/autogen",
+    "aliases": [
+      "autogen",
+      "multi-agent",
+      "microsoft",
+      "microsoft/autogen"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.crewai_framework",
+    "name": "CrewAI 角色协同框架",
+    "summary": "角色化 AI Agent 编排框架，适合复杂任务链。",
+    "source": "https://github.com/crewAIInc/crewAI",
+    "aliases": [
+      "crewai",
+      "agent",
+      "workflow",
+      "crewAIInc/crewAI",
+      "crewAIInc",
+      "crewAI"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.langchain_framework",
+    "name": "LangChain Agent 框架",
+    "summary": "LLM 应用与工具调用编排框架。",
+    "source": "https://github.com/langchain-ai/langchain",
+    "aliases": [
+      "langchain",
+      "agent",
+      "tool-use",
+      "langchain-ai/langchain",
+      "langchain-ai"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.langflow_builder",
+    "name": "Langflow 可视化构建",
+    "summary": "图形化构建 LLM Agent 与流程。",
+    "source": "https://github.com/langflow-ai/langflow",
+    "aliases": [
+      "langflow",
+      "visual",
+      "workflow",
+      "langflow-ai/langflow",
+      "langflow-ai"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.dify_platform",
+    "name": "Dify 生产级 AI 平台",
+    "summary": "面向生产环境的 AI 工作流与应用平台。",
+    "source": "https://github.com/langgenius/dify",
+    "aliases": [
+      "dify",
+      "agentic",
+      "platform",
+      "langgenius/dify",
+      "langgenius"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.flowise_builder",
+    "name": "Flowise AI 流程编排",
+    "summary": "低门槛搭建 Agent、RAG 与自动化链路。",
+    "source": "https://github.com/FlowiseAI/Flowise",
+    "aliases": [
+      "flowise",
+      "rag",
+      "automation",
+      "FlowiseAI/Flowise",
+      "FlowiseAI",
+      "Flowise"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.openhands_coding",
+    "name": "OpenHands 自治编程",
+    "summary": "AI 驱动的软件开发执行代理。",
+    "source": "https://github.com/OpenHands/OpenHands",
+    "aliases": [
+      "coding-agent",
+      "openhands",
+      "dev",
+      "OpenHands/OpenHands",
+      "OpenHands"
+    ],
+    "capabilities": [
+      "skill.route",
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.autogpt_runtime",
+    "name": "AutoGPT 自治任务引擎",
+    "summary": "自治任务执行与目标驱动的 Agent 框架。",
+    "source": "https://github.com/Significant-Gravitas/AutoGPT",
+    "aliases": [
+      "autogpt",
+      "agent",
+      "task",
+      "Significant-Gravitas/AutoGPT",
+      "Significant-Gravitas",
+      "AutoGPT"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.agno_agentic",
+    "name": "Agno Agentic Runtime",
+    "summary": "大规模运行与管理 agentic software 的框架。",
+    "source": "https://github.com/agno-agi/agno",
+    "aliases": [
+      "agno",
+      "agentic",
+      "runtime",
+      "agno-agi/agno",
+      "agno-agi"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.metagpt_multi_agent",
+    "name": "MetaGPT 多角色协同",
+    "summary": "多角色 AI 协同开发与任务执行框架。",
+    "source": "https://github.com/FoundationAgents/MetaGPT",
+    "aliases": [
+      "metagpt",
+      "multi-agent",
+      "collaboration",
+      "FoundationAgents/MetaGPT",
+      "FoundationAgents",
+      "MetaGPT"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.goose_agent",
+    "name": "Goose 可扩展代理",
+    "summary": "可安装执行测试编辑的开源 AI 代理。",
+    "source": "https://github.com/block/goose",
+    "aliases": [
+      "goose",
+      "agent",
+      "tooling",
+      "block/goose",
+      "block"
+    ],
+    "capabilities": [
+      "skill.route",
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.browser_use",
+    "name": "Browser Use 网页代理",
+    "summary": "让 AI Agent 可稳定访问和操作网站。",
+    "source": "https://github.com/browser-use/browser-use",
+    "aliases": [
+      "browser",
+      "web-agent",
+      "automation",
+      "browser-use/browser-use",
+      "browser-use"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.playwright_core",
+    "name": "Playwright 浏览器自动化",
+    "summary": "跨内核浏览器自动化与测试框架。",
+    "source": "https://github.com/microsoft/playwright",
+    "aliases": [
+      "playwright",
+      "browser",
+      "automation",
+      "microsoft/playwright",
+      "microsoft"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.puppeteer_core",
+    "name": "Puppeteer 浏览器执行",
+    "summary": "Chrome/Firefox 自动化执行 API。",
+    "source": "https://github.com/puppeteer/puppeteer",
+    "aliases": [
+      "puppeteer",
+      "browser",
+      "automation",
+      "puppeteer/puppeteer"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.selenium_core",
+    "name": "Selenium Web 自动化",
+    "summary": "成熟的浏览器自动化生态与驱动。",
+    "source": "https://github.com/SeleniumHQ/selenium",
+    "aliases": [
+      "selenium",
+      "web",
+      "testing",
+      "SeleniumHQ/selenium",
+      "SeleniumHQ"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.firecrawl_webdata",
+    "name": "Firecrawl 网页数据引擎",
+    "summary": "将整站转为 LLM 可用结构化数据。",
+    "source": "https://github.com/firecrawl/firecrawl",
+    "aliases": [
+      "firecrawl",
+      "crawl",
+      "web-data",
+      "firecrawl/firecrawl"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.crawl4ai_engine",
+    "name": "Crawl4AI 智能爬取",
+    "summary": "面向 LLM 的网页抓取与清洗引擎。",
+    "source": "https://github.com/unclecode/crawl4ai",
+    "aliases": [
+      "crawl4ai",
+      "web",
+      "scraper",
+      "unclecode/crawl4ai",
+      "unclecode"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.awesome_mcp_servers",
+    "name": "Awesome MCP Servers",
+    "summary": "MCP 服务端生态索引，适配能力发现。",
+    "source": "https://github.com/punkpeye/awesome-mcp-servers",
+    "aliases": [
+      "mcp",
+      "catalog",
+      "servers",
+      "punkpeye/awesome-mcp-servers",
+      "punkpeye",
+      "awesome-mcp-servers"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "content.summary",
+      "skill.route",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.context7_docs_mcp",
+    "name": "Context7 文档 MCP",
+    "summary": "为代码助手提供最新官方文档上下文。",
+    "source": "https://github.com/upstash/context7",
+    "aliases": [
+      "context7",
+      "docs",
+      "mcp",
+      "upstash/context7",
+      "upstash"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "content.summary",
+      "skill.route",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.mem0_memory",
+    "name": "Mem0 记忆层",
+    "summary": "Agent 通用记忆层，强化长期个性化体验。",
+    "source": "https://github.com/mem0ai/mem0",
+    "aliases": [
+      "memory",
+      "long-term",
+      "mem0",
+      "mem0ai/mem0",
+      "mem0ai"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.khoj_brain",
+    "name": "Khoj 第二大脑",
+    "summary": "个人知识与自动化调度的第二大脑。",
+    "source": "https://github.com/khoj-ai/khoj",
+    "aliases": [
+      "second-brain",
+      "memory",
+      "khoj",
+      "khoj-ai/khoj",
+      "khoj-ai"
+    ],
+    "capabilities": [
+      "skill.route",
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.anythingllm_workspace",
+    "name": "AnythingLLM 工作空间",
+    "summary": "本地优先的知识库+agent 工作空间。",
+    "source": "https://github.com/Mintplex-Labs/anything-llm",
+    "aliases": [
+      "anythingllm",
+      "workspace",
+      "rag",
+      "Mintplex-Labs/anything-llm",
+      "Mintplex-Labs",
+      "anything-llm"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.ragflow_engine",
+    "name": "RAGFlow 检索增强引擎",
+    "summary": "企业级 RAG 引擎与 Agent 融合。",
+    "source": "https://github.com/infiniflow/ragflow",
+    "aliases": [
+      "ragflow",
+      "rag",
+      "retrieval",
+      "infiniflow/ragflow",
+      "infiniflow"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.quivr_rag",
+    "name": "Quivr RAG 框架",
+    "summary": "快速构建可接入应用的 RAG 能力。",
+    "source": "https://github.com/QuivrHQ/quivr",
+    "aliases": [
+      "quivr",
+      "rag",
+      "knowledge",
+      "QuivrHQ/quivr",
+      "QuivrHQ"
+    ],
+    "capabilities": [
+      "skill.route",
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.pathway_llm_app",
+    "name": "Pathway LLM 应用模板",
+    "summary": "实时数据驱动的 RAG 与 AI pipeline 模板。",
+    "source": "https://github.com/pathwaycom/llm-app",
+    "aliases": [
+      "pathway",
+      "rag",
+      "pipeline",
+      "pathwaycom/llm-app",
+      "pathwaycom",
+      "llm-app"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.docling_docs",
+    "name": "Docling 文档处理",
+    "summary": "文档解析与结构化，适合知识注入。",
+    "source": "https://github.com/docling-project/docling",
+    "aliases": [
+      "docling",
+      "document",
+      "extract",
+      "docling-project/docling",
+      "docling-project"
+    ],
+    "capabilities": [
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.paddleocr_docs",
+    "name": "PaddleOCR 票据识别",
+    "summary": "OCR 文档识别与结构抽取。",
+    "source": "https://github.com/PaddlePaddle/PaddleOCR",
+    "aliases": [
+      "ocr",
+      "paddleocr",
+      "document",
+      "PaddlePaddle/PaddleOCR",
+      "PaddlePaddle",
+      "PaddleOCR"
+    ],
+    "capabilities": [
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.litellm_gateway",
+    "name": "LiteLLM AI Gateway",
+    "summary": "统一 100+ 模型 API 的代理与网关层。",
+    "source": "https://github.com/BerriAI/litellm",
+    "aliases": [
+      "gateway",
+      "llm",
+      "router",
+      "BerriAI/litellm",
+      "BerriAI",
+      "litellm"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.kong_ai_gateway",
+    "name": "Kong AI Gateway",
+    "summary": "企业级 API/AI 网关与策略控制。",
+    "source": "https://github.com/Kong/kong",
+    "aliases": [
+      "kong",
+      "gateway",
+      "api",
+      "Kong/kong",
+      "Kong"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.localai_runtime",
+    "name": "LocalAI 本地模型运行时",
+    "summary": "本地部署的 OpenAI 兼容模型运行层。",
+    "source": "https://github.com/mudler/LocalAI",
+    "aliases": [
+      "localai",
+      "local-model",
+      "runtime",
+      "mudler/LocalAI",
+      "mudler",
+      "LocalAI"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.exo_local_compute",
+    "name": "Exo 本地集群推理",
+    "summary": "本地设备协同运行前沿模型。",
+    "source": "https://github.com/exo-explore/exo",
+    "aliases": [
+      "exo",
+      "local",
+      "compute",
+      "exo-explore/exo",
+      "exo-explore"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.ray_compute",
+    "name": "Ray 分布式计算引擎",
+    "summary": "AI 任务并行调度与分布式执行。",
+    "source": "https://github.com/ray-project/ray",
+    "aliases": [
+      "ray",
+      "distributed",
+      "compute",
+      "ray-project/ray",
+      "ray-project"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.meilisearch_hybrid",
+    "name": "Meilisearch 混合检索",
+    "summary": "低延迟搜索引擎，适合记忆召回与索引。",
+    "source": "https://github.com/meilisearch/meilisearch",
+    "aliases": [
+      "search",
+      "meilisearch",
+      "retrieval",
+      "meilisearch/meilisearch"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.clickhouse_analytics",
+    "name": "ClickHouse 实时分析",
+    "summary": "高吞吐实时分析数据库。",
+    "source": "https://github.com/ClickHouse/ClickHouse",
+    "aliases": [
+      "analytics",
+      "clickhouse",
+      "realtime",
+      "ClickHouse/ClickHouse",
+      "ClickHouse"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.posthog_product_analytics",
+    "name": "PostHog 产品分析",
+    "summary": "行为埋点与产品分析平台。",
+    "source": "https://github.com/PostHog/posthog",
+    "aliases": [
+      "analytics",
+      "posthog",
+      "product",
+      "PostHog/posthog",
+      "PostHog"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.appwrite_backend",
+    "name": "Appwrite 后端能力",
+    "summary": "AI 应用后端基础设施（鉴权/存储/函数）。",
+    "source": "https://github.com/appwrite/appwrite",
+    "aliases": [
+      "appwrite",
+      "backend",
+      "infra",
+      "appwrite/appwrite"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.supabase_backend",
+    "name": "Supabase AI 后端",
+    "summary": "Postgres + Auth + 存储的一体化后端。",
+    "source": "https://github.com/supabase/supabase",
+    "aliases": [
+      "supabase",
+      "postgres",
+      "backend",
+      "supabase/supabase"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.appsmith_internal_tools",
+    "name": "Appsmith 内部工具平台",
+    "summary": "低代码构建企业内部工具。",
+    "source": "https://github.com/appsmithorg/appsmith",
+    "aliases": [
+      "appsmith",
+      "internal-tools",
+      "dashboard",
+      "appsmithorg/appsmith",
+      "appsmithorg"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.tooljet_internal_tools",
+    "name": "ToolJet 内部系统构建",
+    "summary": "AI Native 内部工具与业务操作台。",
+    "source": "https://github.com/ToolJet/ToolJet",
+    "aliases": [
+      "tooljet",
+      "internal-tools",
+      "ops",
+      "ToolJet/ToolJet",
+      "ToolJet"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.homeassistant_device",
+    "name": "Home Assistant 设备联动",
+    "summary": "家庭设备自动化与场景联动。",
+    "source": "https://github.com/home-assistant/core",
+    "aliases": [
+      "home-assistant",
+      "iot",
+      "device",
+      "home-assistant/core",
+      "core"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.huginn_agents",
+    "name": "Huginn 事件代理",
+    "summary": "可监控并自动执行动作的 agent 系统。",
+    "source": "https://github.com/huginn/huginn",
+    "aliases": [
+      "huginn",
+      "agents",
+      "automation",
+      "huginn/huginn"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.airflow_orchestration",
+    "name": "Apache Airflow 调度",
+    "summary": "稳定的任务调度与工作流编排。",
+    "source": "https://github.com/apache/airflow",
+    "aliases": [
+      "airflow",
+      "scheduler",
+      "orchestration",
+      "apache/airflow",
+      "apache"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.acme_cert_automation",
+    "name": "acme.sh 证书自动化",
+    "summary": "脚本化 TLS 证书申请与续签。",
+    "source": "https://github.com/acmesh-official/acme.sh",
+    "aliases": [
+      "acme",
+      "ssl",
+      "automation",
+      "acmesh-official/acme.sh",
+      "acmesh-official",
+      "acme.sh"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.fastlane_mobile_ci",
+    "name": "Fastlane 移动端自动化",
+    "summary": "iOS/Android 构建发布自动化。",
+    "source": "https://github.com/fastlane/fastlane",
+    "aliases": [
+      "mobile",
+      "ci",
+      "fastlane",
+      "fastlane/fastlane"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.openbb_finance",
+    "name": "OpenBB 金融数据",
+    "summary": "金融数据平台，适合资讯与研究自动化。",
+    "source": "https://github.com/OpenBB-finance/OpenBB",
+    "aliases": [
+      "finance",
+      "openbb",
+      "research",
+      "OpenBB-finance/OpenBB",
+      "OpenBB-finance",
+      "OpenBB"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "content.summary",
+      "skill.route",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.dbeaver_db_ops",
+    "name": "DBeaver 数据库运维",
+    "summary": "通用数据库工具与查询协作。",
+    "source": "https://github.com/dbeaver/dbeaver",
+    "aliases": [
+      "database",
+      "dbeaver",
+      "sql",
+      "dbeaver/dbeaver"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.photoprism_media_ai",
+    "name": "PhotoPrism 媒体管理",
+    "summary": "AI 辅助照片管理与检索。",
+    "source": "https://github.com/photoprism/photoprism",
+    "aliases": [
+      "photos",
+      "media",
+      "management",
+      "photoprism/photoprism",
+      "photoprism"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.nextchat_client",
+    "name": "NextChat 客户端",
+    "summary": "跨端 AI 客户端与多模型接入。",
+    "source": "https://github.com/ChatGPTNextWeb/NextChat",
+    "aliases": [
+      "nextchat",
+      "chat",
+      "client",
+      "ChatGPTNextWeb/NextChat",
+      "ChatGPTNextWeb",
+      "NextChat"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.open_webui_client",
+    "name": "Open WebUI 聊天界面",
+    "summary": "支持本地模型与云模型的统一 UI。",
+    "source": "https://github.com/open-webui/open-webui",
+    "aliases": [
+      "webui",
+      "chat",
+      "llm",
+      "open-webui/open-webui",
+      "open-webui"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.librechat_client",
+    "name": "LibreChat 多模型客户端",
+    "summary": "企业可部署的多模型聊天与 agent 平台。",
+    "source": "https://github.com/danny-avila/LibreChat",
+    "aliases": [
+      "librechat",
+      "chat",
+      "agent",
+      "danny-avila/LibreChat",
+      "danny-avila",
+      "LibreChat"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.chatbotui_client",
+    "name": "Chatbot UI",
+    "summary": "开源多模型聊天前端。",
+    "source": "https://github.com/mckaywrigley/chatbot-ui",
+    "aliases": [
+      "chatbot-ui",
+      "frontend",
+      "chat",
+      "mckaywrigley/chatbot-ui",
+      "mckaywrigley"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.chatbox_client",
+    "name": "Chatbox 客户端",
+    "summary": "桌面多模型聊天客户端。",
+    "source": "https://github.com/chatboxai/chatbox",
+    "aliases": [
+      "chatbox",
+      "desktop",
+      "assistant",
+      "chatboxai/chatbox",
+      "chatboxai"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.aider_pair_programming",
+    "name": "Aider 终端结对编程",
+    "summary": "终端内 AI 结对编程执行代理。",
+    "source": "https://github.com/Aider-AI/aider",
+    "aliases": [
+      "aider",
+      "coding",
+      "agent",
+      "Aider-AI/aider",
+      "Aider-AI"
+    ],
+    "capabilities": [
+      "skill.route",
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.continue_ci_checks",
+    "name": "Continue Source-controlled AI checks",
+    "summary": "可在 CI 强制执行 AI 代码检查策略。",
+    "source": "https://github.com/continuedev/continue",
+    "aliases": [
+      "continue",
+      "ci",
+      "code-check",
+      "continuedev/continue",
+      "continuedev"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.tabby_coding_assistant",
+    "name": "Tabby 自托管代码助手",
+    "summary": "企业可控的本地代码补全与辅助。",
+    "source": "https://github.com/TabbyML/tabby",
+    "aliases": [
+      "tabby",
+      "coding",
+      "assistant",
+      "TabbyML/tabby",
+      "TabbyML"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.daytona_runtime",
+    "name": "Daytona 执行沙箱",
+    "summary": "安全弹性运行 AI 生成代码。",
+    "source": "https://github.com/daytonaio/daytona",
+    "aliases": [
+      "daytona",
+      "runtime",
+      "sandbox",
+      "daytonaio/daytona",
+      "daytonaio"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.folo_reader",
+    "name": "Folo AI Reader",
+    "summary": "AI 阅读器，支持资讯聚合与摘要。",
+    "source": "https://github.com/RSSNext/Folo",
+    "aliases": [
+      "rss",
+      "reader",
+      "news",
+      "RSSNext/Folo",
+      "RSSNext",
+      "Folo"
+    ],
+    "capabilities": [
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.lobehub_agentspace",
+    "name": "LobeHub Agent Space",
+    "summary": "智能体协作空间与应用生态。",
+    "source": "https://github.com/lobehub/lobehub",
+    "aliases": [
+      "lobehub",
+      "agent",
+      "workspace",
+      "lobehub/lobehub"
+    ],
+    "capabilities": [
+      "skill.route",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_phaser_engine",
+    "name": "Phaser 3 网页小游戏引擎",
+    "summary": "开源 HTML5 游戏引擎，适合快速生成可玩小游戏。",
+    "source": "https://github.com/phaserjs/phaser",
+    "aliases": [
+      "小游戏",
+      "网页小游戏",
+      "手搓小游戏",
+      "phaser",
+      "phaserjs/phaser",
+      "mini game"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_phaser_examples",
+    "name": "Phaser 示例模板库",
+    "summary": "包含大量 Phaser 玩法样例，适合手搓规则与快速原型。",
+    "source": "https://github.com/phaserjs/examples",
+    "aliases": [
+      "phaser 示例",
+      "玩法模板",
+      "小游戏模板",
+      "phaserjs/examples",
+      "game examples"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "file.download",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "official_examples_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_kontra_engine",
+    "name": "Kontra 轻量手搓游戏引擎",
+    "summary": "微型 JS 游戏框架，适合快速手搓小游戏。",
+    "source": "https://github.com/straker/kontra",
+    "aliases": [
+      "kontra",
+      "手搓",
+      "微型游戏",
+      "javascript game",
+      "straker/kontra"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "well_known_indie_framework",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_p5js_engine",
+    "name": "p5.js 创意互动引擎",
+    "summary": "创意编码与互动动画框架，可快速生成网页小游戏交互。",
+    "source": "https://github.com/processing/p5.js",
+    "aliases": [
+      "p5",
+      "p5.js",
+      "创意编码",
+      "互动小游戏",
+      "processing/p5.js"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_p5play_plugin",
+    "name": "p5play 2D 游戏扩展",
+    "summary": "p5.js 的 2D 游戏扩展插件，适合角色移动与碰撞玩法。",
+    "source": "https://github.com/quinton-ashley/p5play",
+    "aliases": [
+      "p5play",
+      "2d小游戏",
+      "碰撞检测",
+      "手搓网页游戏",
+      "quinton-ashley/p5play"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "community_verified_plugin",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_pixijs_engine",
+    "name": "PixiJS 渲染引擎",
+    "summary": "高性能 2D WebGL 渲染引擎，适合小游戏视觉性能增强。",
+    "source": "https://github.com/pixijs/pixijs",
+    "aliases": [
+      "pixi",
+      "pixijs",
+      "2d渲染",
+      "网页游戏引擎",
+      "pixijs/pixijs"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_melonjs_engine",
+    "name": "melonJS HTML5 游戏引擎",
+    "summary": "开源 HTML5 游戏引擎，适合构建完整网页小游戏。",
+    "source": "https://github.com/melonjs/melonJS",
+    "aliases": [
+      "melonjs",
+      "html5游戏",
+      "小游戏引擎",
+      "melonjs/melonJS",
+      "web game"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_kaboom_engine",
+    "name": "Kaboom 网页游戏框架",
+    "summary": "简洁的 JS 网页游戏框架，适合快速出可玩 Demo。",
+    "source": "https://github.com/replit/kaboom",
+    "aliases": [
+      "kaboom",
+      "小游戏demo",
+      "快速开局",
+      "replit/kaboom",
+      "game jam"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "well_known_indie_framework",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_threejs_engine",
+    "name": "Three.js 3D 互动引擎",
+    "summary": "Web 3D 图形库，可用于 3D 小游戏和互动体验。",
+    "source": "https://github.com/mrdoob/three.js",
+    "aliases": [
+      "three",
+      "three.js",
+      "3d小游戏",
+      "mrdoob/three.js",
+      "webgl"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_babylonjs_engine",
+    "name": "Babylon.js 3D 游戏引擎",
+    "summary": "企业级 Web 3D 引擎，适合高质量 3D 网页互动玩法。",
+    "source": "https://github.com/babylonjs/Babylon.js",
+    "aliases": [
+      "babylon",
+      "babylonjs",
+      "3d网页游戏",
+      "babylonjs/Babylon.js",
+      "web3d"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_playcanvas_engine",
+    "name": "PlayCanvas WebGL 引擎",
+    "summary": "WebGL 游戏引擎，支持协作开发与网页端实时渲染。",
+    "source": "https://github.com/playcanvas/engine",
+    "aliases": [
+      "playcanvas",
+      "webgl引擎",
+      "多人协作",
+      "playcanvas/engine",
+      "web game engine"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_crafty_engine",
+    "name": "CraftyJS 组件游戏框架",
+    "summary": "组件化 2D 游戏框架，适合拼装式手搓小游戏。",
+    "source": "https://github.com/craftyjs/Crafty",
+    "aliases": [
+      "crafty",
+      "craftyjs",
+      "组件游戏",
+      "手搓规则",
+      "craftyjs/Crafty"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "classic_open_source_framework",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_boardgameio_engine",
+    "name": "boardgame.io 回合制规则引擎",
+    "summary": "适合回合制、卡牌与规则驱动玩法的状态机框架。",
+    "source": "https://github.com/boardgameio/boardgame.io",
+    "aliases": [
+      "boardgame.io",
+      "回合制",
+      "规则引擎",
+      "手搓规则模板",
+      "boardgameio/boardgame.io"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_colyseus_multiplayer",
+    "name": "Colyseus 多人联机框架",
+    "summary": "Node.js 联机框架，支持房间、状态同步和多人小游戏。",
+    "source": "https://github.com/colyseus/colyseus",
+    "aliases": [
+      "colyseus",
+      "多人联机",
+      "房间同步",
+      "multiplayer",
+      "colyseus/colyseus"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_matterjs_physics",
+    "name": "Matter.js 物理引擎",
+    "summary": "2D 物理引擎，适合小游戏碰撞、重力与运动模拟。",
+    "source": "https://github.com/liabru/matter-js",
+    "aliases": [
+      "matter",
+      "matter.js",
+      "物理引擎",
+      "碰撞",
+      "liabru/matter-js"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_howler_audio",
+    "name": "Howler.js 游戏音效引擎",
+    "summary": "跨平台 Web 音频库，适合小游戏音效与背景音乐控制。",
+    "source": "https://github.com/goldfire/howler.js",
+    "aliases": [
+      "howler",
+      "howler.js",
+      "音效",
+      "背景音乐",
+      "goldfire/howler.js"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_easeljs_canvas",
+    "name": "EaselJS 2D Canvas 工具",
+    "summary": "Canvas 2D 渲染与动画工具，适合轻量小游戏绘制。",
+    "source": "https://github.com/CreateJS/EaselJS",
+    "aliases": [
+      "easeljs",
+      "createjs",
+      "canvas游戏",
+      "2d动画",
+      "CreateJS/EaselJS"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "classic_open_source_framework",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_socketio_realtime",
+    "name": "Socket.IO 实时房间通信",
+    "summary": "实时双向通信框架，适合对战和协作小游戏。",
+    "source": "https://github.com/socketio/socket.io",
+    "aliases": [
+      "socketio",
+      "实时通信",
+      "对战",
+      "联机",
+      "socketio/socket.io"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_r3f_stack",
+    "name": "React Three Fiber 3D 场景栈",
+    "summary": "React + Three.js 生态封装，适合网页 3D 互动小游戏开发。",
+    "source": "https://github.com/pmndrs/react-three-fiber",
+    "aliases": [
+      "react-three-fiber",
+      "r3f",
+      "react 3d",
+      "3d互动",
+      "pmndrs/react-three-fiber"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "popular_open_source_repo",
+      "selectionDate": "2026-03-07"
+    }
+  },
+  {
+    "packId": "pack.safe.game_geckos_realtime",
+    "name": "geckos.io 低延迟联机框架",
+    "summary": "基于 WebRTC 的低延迟联机通信，适合实时小游戏。",
+    "source": "https://github.com/geckosio/geckos.io",
+    "aliases": [
+      "geckos",
+      "webrtc",
+      "低延迟",
+      "联机小游戏",
+      "geckosio/geckos.io"
+    ],
+    "capabilities": [
+      "skill.route",
+      "web.fetch",
+      "content.summary",
+      "runtime.healthcheck"
+    ],
+    "safety": {
+      "reviewed": true,
+      "reason": "community_verified_plugin",
+      "selectionDate": "2026-03-07"
+    }
+  }
+]
