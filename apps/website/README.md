@@ -87,6 +87,7 @@ npm run build
 - 发布版客户端默认连接云端 API（开箱即用）
 - 高级用户可选本地 Docker API 模式
 - 建议官网同时提供：安装包、版本号、更新日志、SHA256 校验值
+- Deploy marker: 2026-03-07
 
 ## Release Metadata Files
 
