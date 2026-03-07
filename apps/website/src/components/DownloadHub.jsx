@@ -2,27 +2,27 @@ import React, { useEffect, useMemo, useState } from 'react';
 import './DownloadHub.css';
 
 const DEFAULT_RELEASE_INFO = {
-  version: import.meta.env.VITE_ARIA_RELEASE_VERSION || 'v0.1.0',
+  version: import.meta.env.VITE_ARIA_RELEASE_VERSION || 'v0.1.4',
   publishedAt: import.meta.env.VITE_ARIA_RELEASE_DATE || '2026-03-07',
-  changelogUrl: import.meta.env.VITE_ARIA_CHANGELOG_URL || '/changelog.html',
+  changelogUrl: import.meta.env.VITE_ARIA_CHANGELOG_URL || 'https://github.com/ailovem/Aria/releases/tag/v0.1.4',
   downloads: {
     macos: {
-      files: '.dmg / .app',
-      arch: 'Apple Silicon / Intel',
-      url: import.meta.env.VITE_ARIA_DOWNLOAD_MAC || 'https://github.com/<your-account>/<your-repo>/releases/latest/download/Aria-latest-macOS.dmg',
-      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || '待发布填充'
+      files: '.dmg',
+      arch: 'Apple Silicon (M 系列)',
+      url: import.meta.env.VITE_ARIA_DOWNLOAD_MAC || 'https://github.com/ailovem/Aria/releases/download/v0.1.4/Aria_0.1.0_aarch64.dmg',
+      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || 'pending'
     },
     windows: {
-      files: '.msi / .exe',
+      files: '.exe / .msi',
       arch: 'x64',
-      url: import.meta.env.VITE_ARIA_DOWNLOAD_WINDOWS || 'https://github.com/<your-account>/<your-repo>/releases/latest/download/Aria-latest-windows.msi',
-      checksum: import.meta.env.VITE_ARIA_SHA256_WINDOWS || '待发布填充'
+      url: import.meta.env.VITE_ARIA_DOWNLOAD_WINDOWS || 'https://github.com/ailovem/Aria/releases/download/v0.1.4/Aria_0.1.0_x64-setup.exe',
+      checksum: import.meta.env.VITE_ARIA_SHA256_WINDOWS || 'pending'
     },
     linux: {
-      files: '.AppImage / .deb',
+      files: '暂未提供',
       arch: 'x64',
-      url: import.meta.env.VITE_ARIA_DOWNLOAD_LINUX || 'https://github.com/<your-account>/<your-repo>/releases/latest/download/Aria-latest-linux.AppImage',
-      checksum: import.meta.env.VITE_ARIA_SHA256_LINUX || '待发布填充'
+      url: import.meta.env.VITE_ARIA_DOWNLOAD_LINUX || 'https://github.com/ailovem/Aria/releases/tag/v0.1.4',
+      checksum: import.meta.env.VITE_ARIA_SHA256_LINUX || '-'
     }
   }
 };
@@ -59,26 +59,26 @@ const DownloadHub = () => {
     {
       key: 'macos',
       platform: 'macOS',
-      files: releaseInfo.downloads?.macos?.files || '.dmg / .app',
-      arch: releaseInfo.downloads?.macos?.arch || 'Apple Silicon / Intel',
+      files: releaseInfo.downloads?.macos?.files || '.dmg',
+      arch: releaseInfo.downloads?.macos?.arch || 'Apple Silicon (M 系列)',
       href: releaseInfo.downloads?.macos?.url || '#',
-      checksum: releaseInfo.downloads?.macos?.checksum || '待发布填充'
+      checksum: releaseInfo.downloads?.macos?.checksum || 'pending'
     },
     {
       key: 'windows',
       platform: 'Windows',
-      files: releaseInfo.downloads?.windows?.files || '.msi / .exe',
+      files: releaseInfo.downloads?.windows?.files || '.exe / .msi',
       arch: releaseInfo.downloads?.windows?.arch || 'x64',
       href: releaseInfo.downloads?.windows?.url || '#',
-      checksum: releaseInfo.downloads?.windows?.checksum || '待发布填充'
+      checksum: releaseInfo.downloads?.windows?.checksum || 'pending'
     },
     {
       key: 'linux',
       platform: 'Linux',
-      files: releaseInfo.downloads?.linux?.files || '.AppImage / .deb',
+      files: releaseInfo.downloads?.linux?.files || '暂未提供',
       arch: releaseInfo.downloads?.linux?.arch || 'x64',
       href: releaseInfo.downloads?.linux?.url || '#',
-      checksum: releaseInfo.downloads?.linux?.checksum || '待发布填充'
+      checksum: releaseInfo.downloads?.linux?.checksum || '-'
     }
   ]), [releaseInfo]);
 

@@ -1,26 +1,26 @@
 {
-  "version": "v0.1.0",
+  "version": "v0.1.4",
   "publishedAt": "2026-03-07",
   "channel": "stable",
-  "changelogUrl": "/changelog.html",
+  "changelogUrl": "https://github.com/ailovem/Aria/releases/tag/v0.1.4",
   "downloads": {
     "macos": {
-      "files": ".dmg / .app",
-      "arch": "Apple Silicon / Intel",
-      "url": "https://github.com/<your-account>/<your-repo>/releases/download/v0.1.0/Aria-v0.1.0-macOS.dmg",
-      "checksum": "to-be-filled-at-release"
+      "files": ".dmg",
+      "arch": "Apple Silicon (M 系列)",
+      "url": "https://github.com/ailovem/Aria/releases/download/v0.1.4/Aria_0.1.0_aarch64.dmg",
+      "checksum": "pending"
     },
     "windows": {
-      "files": ".msi / .exe",
+      "files": ".exe / .msi",
       "arch": "x64",
-      "url": "https://github.com/<your-account>/<your-repo>/releases/download/v0.1.0/Aria-v0.1.0-windows.msi",
-      "checksum": "to-be-filled-at-release"
+      "url": "https://github.com/ailovem/Aria/releases/download/v0.1.4/Aria_0.1.0_x64-setup.exe",
+      "checksum": "pending"
     },
     "linux": {
-      "files": ".AppImage / .deb",
+      "files": "暂未提供",
       "arch": "x64",
-      "url": "https://github.com/<your-account>/<your-repo>/releases/download/v0.1.0/Aria-v0.1.0-linux.AppImage",
-      "checksum": "to-be-filled-at-release"
+      "url": "https://github.com/ailovem/Aria/releases/tag/v0.1.4",
+      "checksum": "-"
     }
   }
 }
