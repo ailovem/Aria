@@ -67,7 +67,7 @@ jobs:
         run: |
           rustup target add x86_64-apple-darwin
           pnpm run build
-          pnpm run build -- --target x86_64-apple-darwin
+          pnpm tauri build --target x86_64-apple-darwin
 
       - name: Build Windows installers
         if: steps.app_check.outputs.ready == 'true' && runner.os == 'Windows'
