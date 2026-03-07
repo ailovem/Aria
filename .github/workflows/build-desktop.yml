@@ -36,8 +36,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
-          cache-dependency-path: apps/desktop/pnpm-lock.yaml
 
       - name: Setup pnpm
         if: steps.app_check.outputs.ready == 'true'
