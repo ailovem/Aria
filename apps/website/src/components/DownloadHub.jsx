@@ -11,13 +11,13 @@ const DEFAULT_RELEASE_INFO = {
       arch: 'Apple Silicon / Intel',
       url: import.meta.env.VITE_ARIA_DOWNLOAD_MAC || 'https://github.com/ailovem/Aria/releases/download/v0.1.9/Aria_0.1.9_aarch64.dmg',
       intelUrl: import.meta.env.VITE_ARIA_DOWNLOAD_MAC_INTEL || 'https://github.com/ailovem/Aria/releases/download/v0.1.9/Aria_0.1.9_x64.dmg',
-      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || 'ARM: 71087cacbbda78e51550d1a6d8b1b0e4dbacfef4d6df990c67322c9de2b72979 | Intel: 发布后自动更新'
+      checksum: import.meta.env.VITE_ARIA_SHA256_MAC || 'ARM: 71087cacbbda78e51550d1a6d8b1b0e4dbacfef4d6df990c67322c9de2b72979 | Intel: 541d4ff3db61b5733f064d31cdbea184781fa2361ba4e6ccd27760051b406118'
     },
     windows: {
       files: '.exe / .msi',
       arch: 'x64',
       url: import.meta.env.VITE_ARIA_DOWNLOAD_WINDOWS || 'https://github.com/ailovem/Aria/releases/download/v0.1.9/Aria_0.1.9_x64-setup.exe',
-      checksum: import.meta.env.VITE_ARIA_SHA256_WINDOWS || 'EXE: 发布后自动更新 | MSI: 发布后自动更新'
+      checksum: import.meta.env.VITE_ARIA_SHA256_WINDOWS || 'EXE: da41e50684dfc928edb1936d3888de44f435336af6bf7e1169f391d795307668 | MSI: 7edfa5c140a2dc40a9893d6e4c29246ad2d87da2bb57b595da2a778236ede1c2'
     },
     linux: {
       files: '暂未提供',
@@ -229,7 +229,7 @@ const DownloadHub = () => {
         clientInfo.os === 'macos' && clientInfo.arch === 'x64'
           ? '下载 macOS (Apple Silicon)'
           : '下载 macOS (Intel)',
-      checksum: releaseInfo.downloads?.macos?.checksum || 'ARM: 71087cacbbda78e51550d1a6d8b1b0e4dbacfef4d6df990c67322c9de2b72979 | Intel: 发布后自动更新'
+      checksum: releaseInfo.downloads?.macos?.checksum || 'ARM: 71087cacbbda78e51550d1a6d8b1b0e4dbacfef4d6df990c67322c9de2b72979 | Intel: 541d4ff3db61b5733f064d31cdbea184781fa2361ba4e6ccd27760051b406118'
     },
     {
       key: 'windows',
@@ -240,7 +240,7 @@ const DownloadHub = () => {
       secondaryHref: '',
       buttonText: clientInfo.os === 'windows' ? '下载 Windows (推荐)' : '下载 Windows',
       secondaryButtonText: '',
-      checksum: releaseInfo.downloads?.windows?.checksum || 'EXE: 发布后自动更新 | MSI: 发布后自动更新'
+      checksum: releaseInfo.downloads?.windows?.checksum || 'EXE: da41e50684dfc928edb1936d3888de44f435336af6bf7e1169f391d795307668 | MSI: 7edfa5c140a2dc40a9893d6e4c29246ad2d87da2bb57b595da2a778236ede1c2'
     },
     {
       key: 'linux',
