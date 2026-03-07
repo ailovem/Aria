@@ -21,6 +21,7 @@ const Navbar = () => {
             <div className="nav-container">
                 <div className="logo text-gradient-aria">Aria.</div>
                 <ul className="nav-links">
+                    <li><a href="#quickstart">30秒上手</a></li>
                     <li><a href="#download">客户端下载</a></li>
                     <li><a href="#core-value">核心架构</a></li>
                     <li><a href="#scenes">全场景聚合</a></li>

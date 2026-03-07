@@ -2,6 +2,7 @@ import React from 'react';
 import useScrollReveal from './hooks/useScrollReveal';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import QuickStart30s from './components/QuickStart30s';
 import DownloadHub from './components/DownloadHub';
 import CoreValue from './components/CoreValue';
 import MultiScene from './components/MultiScene';
@@ -17,6 +18,7 @@ function App() {
     <>
       <Navbar />
       <Hero />
+      <QuickStart30s />
       <DownloadHub />
       <CoreValue />
       <MultiScene />

@@ -14,6 +14,7 @@ const Footer = () => {
                     可下载、可部署、可持续进化的 AI 伴侣。既有高情商陪伴，也有高可靠自动化执行。
                 </p>
                 <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', fontSize: '0.85rem' }}>
+                    <a href="#quickstart" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>30秒上手</a>
                     <a href="#download" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>下载中心</a>
                     <a href="#deploy" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>部署模式</a>
                     <a href="/changelog.html" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>更新日志</a>

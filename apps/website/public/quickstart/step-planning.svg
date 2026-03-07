@@ -1,0 +1,25 @@
+<svg width="720" height="420" viewBox="0 0 720 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgB" x1="60" y1="54" x2="650" y2="366" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#64D2FF" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#FF9F0A" stop-opacity="0.26"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="704" height="404" rx="24" fill="#08090C" stroke="rgba(255,255,255,0.18)"/>
+  <rect x="28" y="28" width="664" height="364" rx="20" fill="url(#bgB)"/>
+  <rect x="82" y="76" width="556" height="268" rx="24" fill="#FFFFFF" fill-opacity="0.06" stroke="rgba(255,255,255,0.2)"/>
+  <rect x="126" y="116" width="240" height="22" rx="11" fill="#0A84FF" fill-opacity="0.32"/>
+  <rect x="126" y="158" width="452" height="18" rx="9" fill="#FFFFFF" fill-opacity="0.24"/>
+  <rect x="126" y="194" width="386" height="18" rx="9" fill="#FFFFFF" fill-opacity="0.18"/>
+  <rect x="126" y="230" width="452" height="18" rx="9" fill="#FFFFFF" fill-opacity="0.24"/>
+  <rect x="126" y="266" width="322" height="18" rx="9" fill="#FFFFFF" fill-opacity="0.18"/>
+  <circle cx="102" cy="167" r="10" fill="#64D2FF"/>
+  <path d="M98 167L101.7 170.7L108 164.4" stroke="#06243A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="102" cy="239" r="10" fill="#64D2FF"/>
+  <path d="M98 239L101.7 242.7L108 236.4" stroke="#06243A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="538" cy="166" r="50" fill="#FF9F0A" fill-opacity="0.24" stroke="rgba(255,159,10,0.58)"/>
+  <circle cx="538" cy="166" r="28" fill="#FF9F0A" fill-opacity="0.36"/>
+  <path d="M538 146V166L550 174" stroke="#FFF1DF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="478" y="302" width="124" height="34" rx="17" fill="#0A84FF" fill-opacity="0.25" stroke="rgba(10,132,255,0.46)"/>
+  <text x="540" y="324" text-anchor="middle" fill="#D7ECFF" font-family="Inter, sans-serif" font-size="15" font-weight="600">Plan Sync</text>
+</svg>

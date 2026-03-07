@@ -1,0 +1,27 @@
+<svg width="720" height="420" viewBox="0 0 720 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgC" x1="56" y1="52" x2="648" y2="370" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#BF5AF2" stop-opacity="0.23"/>
+      <stop offset="1" stop-color="#0A84FF" stop-opacity="0.24"/>
+    </linearGradient>
+  </defs>
+  <rect x="8" y="8" width="704" height="404" rx="24" fill="#08090C" stroke="rgba(255,255,255,0.18)"/>
+  <rect x="28" y="28" width="664" height="364" rx="20" fill="url(#bgC)"/>
+  <rect x="80" y="78" width="560" height="264" rx="24" fill="#0C0D11" fill-opacity="0.62" stroke="rgba(255,255,255,0.2)"/>
+  <rect x="120" y="114" width="220" height="120" rx="18" fill="#FFFFFF" fill-opacity="0.06" stroke="rgba(255,255,255,0.16)"/>
+  <rect x="146" y="142" width="168" height="12" rx="6" fill="#64D2FF" fill-opacity="0.8"/>
+  <rect x="146" y="166" width="128" height="10" rx="5" fill="#FFFFFF" fill-opacity="0.46"/>
+  <rect x="146" y="186" width="150" height="10" rx="5" fill="#FFFFFF" fill-opacity="0.36"/>
+  <rect x="378" y="114" width="220" height="120" rx="18" fill="#FFFFFF" fill-opacity="0.06" stroke="rgba(255,255,255,0.16)"/>
+  <rect x="404" y="142" width="168" height="12" rx="6" fill="#FF9F0A" fill-opacity="0.82"/>
+  <rect x="404" y="166" width="144" height="10" rx="5" fill="#FFFFFF" fill-opacity="0.46"/>
+  <rect x="404" y="186" width="132" height="10" rx="5" fill="#FFFFFF" fill-opacity="0.36"/>
+  <path d="M350 174H368" stroke="#AFC8FF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M356 168L368 174L356 180" stroke="#AFC8FF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="356" cy="280" r="44" fill="#0A84FF" fill-opacity="0.28" stroke="rgba(10,132,255,0.54)"/>
+  <path d="M356 256V280L372 292" stroke="#DDEEFF" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="500" cy="280" r="44" fill="#FF9F0A" fill-opacity="0.28" stroke="rgba(255,159,10,0.54)"/>
+  <path d="M500 258L506.5 271.2L521 273.3L510.5 283.4L513 297.8L500 291L487 297.8L489.5 283.4L479 273.3L493.5 271.2L500 258Z" fill="#FFE9C7"/>
+  <rect x="112" y="300" width="194" height="32" rx="16" fill="#34C759" fill-opacity="0.24" stroke="rgba(52,199,89,0.52)"/>
+  <text x="209" y="321" text-anchor="middle" fill="#CFF8DA" font-family="Inter, sans-serif" font-size="14.5" font-weight="600">Run + Receipt</text>
+</svg>
