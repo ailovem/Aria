@@ -26,6 +26,10 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "icon": [
+      "icons/icon.png",
+      "icons/icon.ico"
+    ],
     "shortDescription": "Aria AI companion desktop app",
     "createUpdaterArtifacts": false
   }
