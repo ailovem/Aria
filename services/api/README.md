@@ -40,6 +40,7 @@ Data persistence:
 ## Endpoints
 
 - `GET /health`
+- `GET /v1/public/drug/label?search=<query>&limit=5`（公开，无需鉴权，代理 OpenFDA，官网药品查查使用）
 - `POST /v1/auth/guest`
 - `GET /v1/state`
 - `GET /v1/scene/config`

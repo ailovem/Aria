@@ -3,6 +3,8 @@ import './LumingHealthEntry.css';
 
 const DRUG_AI_ENDPOINT = (import.meta.env.VITE_DRUG_AI_ENDPOINT || '').trim();
 const DRUG_AI_MODEL = (import.meta.env.VITE_DRUG_AI_MODEL || 'deepseek-v3').trim();
+// OpenFDA 不支持 CORS，需经代理。配置 VITE_DRUG_FDA_PROXY 指向 Aria API（如 http://localhost:8787），否则使用公共 CORS 代理
+const DRUG_FDA_PROXY = (import.meta.env.VITE_DRUG_FDA_PROXY || '').trim();
 
 const LUMING_ENTRIES = [
     {
@@ -247,11 +249,28 @@ const LumingHealthEntry = () => {
 
         try {
             const query = encodeURIComponent(`openfda.brand_name:"${keyword}"+openfda.generic_name:"${keyword}"`);
-            const response = await fetch(`https://api.fda.gov/drug/label.json?search=${query}&limit=5`);
-            if (!response.ok) {
-                throw new Error(await resolveApiError(response));
+            const fdaUrl = `https://api.fda.gov/drug/label.json?search=${query}&limit=5`;
+            let response;
+            if (DRUG_FDA_PROXY) {
+                response = await fetch(
+                    `${DRUG_FDA_PROXY.replace(/\/$/, '')}/v1/public/drug/label?search=${encodeURIComponent(`openfda.brand_name:"${keyword}"+openfda.generic_name:"${keyword}"`)}&limit=5`
+                );
+            } else {
+                response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(fdaUrl)}`);
             }
-            const payload = await response.json();
+            const rawText = await response.text();
+            let payload;
+            try {
+                payload = JSON.parse(rawText);
+            } catch {
+                throw new Error('药品数据解析失败，请稍后重试。');
+            }
+            if (payload?.error?.message) {
+                throw new Error(payload.error.message);
+            }
+            if (DRUG_FDA_PROXY && !response.ok) {
+                throw new Error(payload?.error?.message || `查询失败（HTTP ${response.status}）`);
+            }
             const nextResults = normalizeDrugResults(payload?.results);
             if (!nextResults.length) {
                 setDrugError('未查到公开标签数据，可尝试英文通用名或换一个关键词。');

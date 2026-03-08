@@ -34732,6 +34732,31 @@ const server = createServer(async (req, res) => {
       return;
     }
 
+    if (req.method === "GET" && pathname === "/v1/public/drug/label") {
+      const search = String(requestUrl.searchParams.get("search") || "").trim();
+      const limit = Math.min(20, Math.max(1, Number(requestUrl.searchParams.get("limit") || 5)));
+      if (!search) {
+        json(res, 400, { error: { message: "缺少 search 参数" } });
+        return;
+      }
+      const fdaUrl = `https://api.fda.gov/drug/label.json?search=${encodeURIComponent(search)}&limit=${limit}`;
+      try {
+        const fdaRes = await fetch(fdaUrl, { signal: AbortSignal.timeout(10000) });
+        const payload = await fdaRes.json();
+        res.setHeader("Access-Control-Allow-Origin", "*");
+        res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        json(res, fdaRes.ok ? 200 : fdaRes.status, payload);
+      } catch (err) {
+        json(res, 502, {
+          error: {
+            message: err?.message || "OpenFDA 代理请求失败，请稍后重试。"
+          }
+        });
+      }
+      return;
+    }
+
     if (pathname.startsWith("/v1/")) {
       const auth = requireAuth(req);
       if (!auth.ok) {
