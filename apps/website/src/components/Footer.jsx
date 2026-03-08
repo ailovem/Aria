@@ -18,7 +18,6 @@ const Footer = () => {
                     <a href="#quickstart" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>30秒上手</a>
                     <a href="#download" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>下载中心</a>
                     <a href="#deploy" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>部署模式</a>
-                    <a href="/luming-health.html" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>认证文档</a>
                     <a href="/changelog.html" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>更新日志</a>
                     <a href="#security" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>隐私与合规</a>
                 </div>

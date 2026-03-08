@@ -534,6 +534,33 @@ export type DemoMemoryItem = {
   content: string;
 };
 
+export type MemoryArchitectureTierConfig = {
+  enabled: boolean;
+  maxItems: number;
+};
+
+export type MemoryArchitectureConfig = {
+  mode: "three_plus_one" | "classic" | string;
+  shortTerm: MemoryArchitectureTierConfig;
+  midTerm: MemoryArchitectureTierConfig;
+  longTerm: MemoryArchitectureTierConfig;
+  temporary: MemoryArchitectureTierConfig;
+  realtimeReasoning: {
+    topK: number;
+    includeCrossScene: boolean;
+    hybridSearch: boolean;
+  };
+  updatedAt?: string;
+};
+
+export type MemoryArchitectureSummary = {
+  longTerm: number;
+  middleTerm: number;
+  shortTerm: number;
+  temporary: number;
+  vectorIndex: number;
+};
+
 export type ProactiveSuggestion = {
   id: string;
   type: string;
@@ -1270,6 +1297,7 @@ export type SystemConfigResult = {
   modelRouterRuntime?: ModelRouterRuntime;
   memoryPlaneRuntime?: {
     backend?: string;
+    architecture?: Partial<MemoryArchitectureConfig>;
     vector?: {
       mode?: string;
       qdrant?: {
@@ -1286,11 +1314,7 @@ export type SystemConfigResult = {
         lastSearchHits?: number;
       };
     };
-    memorySummary?: {
-      longTerm?: number;
-      shortTerm?: number;
-      temporary?: number;
-      vectorIndex?: number;
+    memorySummary?: Partial<MemoryArchitectureSummary> & {
       sceneCounts?: Record<string, number>;
     };
     jobs?: Record<string, string>;
@@ -2008,6 +2032,66 @@ function nextEmbeddedPackId() {
   return `pack-${Date.now()}-${embeddedPackSequence}`;
 }
 
+function asEmbeddedRecord(input: unknown): Record<string, unknown> {
+  if (!input || typeof input !== "object" || Array.isArray(input)) {
+    return {};
+  }
+  return input as Record<string, unknown>;
+}
+
+function clampEmbeddedInt(input: unknown, fallback: number, min: number, max: number) {
+  const parsed = Number.parseInt(String(input ?? ""), 10);
+  if (!Number.isFinite(parsed)) {
+    return fallback;
+  }
+  return Math.max(min, Math.min(max, parsed));
+}
+
+function normalizeEmbeddedMemoryArchitecture(
+  input: unknown,
+  fallback?: Partial<MemoryArchitectureConfig>
+): MemoryArchitectureConfig {
+  const source = asEmbeddedRecord(input);
+  const fallbackSource = asEmbeddedRecord(fallback);
+  const sourceShort = asEmbeddedRecord(source.shortTerm);
+  const sourceMid = asEmbeddedRecord(source.midTerm);
+  const sourceLong = asEmbeddedRecord(source.longTerm);
+  const sourceTemporary = asEmbeddedRecord(source.temporary);
+  const sourceReasoning = asEmbeddedRecord(source.realtimeReasoning);
+  const fallbackShort = asEmbeddedRecord(fallbackSource.shortTerm);
+  const fallbackMid = asEmbeddedRecord(fallbackSource.midTerm);
+  const fallbackLong = asEmbeddedRecord(fallbackSource.longTerm);
+  const fallbackTemporary = asEmbeddedRecord(fallbackSource.temporary);
+  const fallbackReasoning = asEmbeddedRecord(fallbackSource.realtimeReasoning);
+  const rawMode = String(source.mode ?? fallbackSource.mode ?? "three_plus_one").trim().toLowerCase();
+  const mode = rawMode === "classic" || rawMode === "legacy" ? "classic" : "three_plus_one";
+  return {
+    mode,
+    shortTerm: {
+      enabled: sourceShort.enabled === undefined ? fallbackShort.enabled !== false : sourceShort.enabled !== false,
+      maxItems: clampEmbeddedInt(sourceShort.maxItems, clampEmbeddedInt(fallbackShort.maxItems, 260, 20, 6000), 20, 6000)
+    },
+    midTerm: {
+      enabled: mode === "three_plus_one" && (sourceMid.enabled === undefined ? fallbackMid.enabled !== false : sourceMid.enabled !== false),
+      maxItems: clampEmbeddedInt(sourceMid.maxItems, clampEmbeddedInt(fallbackMid.maxItems, 420, 20, 6000), 20, 6000)
+    },
+    longTerm: {
+      enabled: sourceLong.enabled === undefined ? fallbackLong.enabled !== false : sourceLong.enabled !== false,
+      maxItems: clampEmbeddedInt(sourceLong.maxItems, clampEmbeddedInt(fallbackLong.maxItems, 360, 20, 6000), 20, 6000)
+    },
+    temporary: {
+      enabled: sourceTemporary.enabled === undefined ? fallbackTemporary.enabled !== false : sourceTemporary.enabled !== false,
+      maxItems: clampEmbeddedInt(sourceTemporary.maxItems, clampEmbeddedInt(fallbackTemporary.maxItems, 180, 20, 6000), 20, 6000)
+    },
+    realtimeReasoning: {
+      topK: clampEmbeddedInt(sourceReasoning.topK, clampEmbeddedInt(fallbackReasoning.topK, 8, 1, 24), 1, 24),
+      includeCrossScene: sourceReasoning.includeCrossScene === undefined ? fallbackReasoning.includeCrossScene !== false : sourceReasoning.includeCrossScene !== false,
+      hybridSearch: sourceReasoning.hybridSearch === undefined ? fallbackReasoning.hybridSearch !== false : sourceReasoning.hybridSearch !== false
+    },
+    updatedAt: String(source.updatedAt || fallbackSource.updatedAt || nowIso())
+  };
+}
+
 function parseEmbeddedRequestBody(body: RequestInit["body"]) {
   if (typeof body !== "string" || !body.trim()) {
     return {};
@@ -2084,6 +2168,51 @@ function buildEmbeddedSystemConfig(loadedAt: string): SystemConfigResult {
       ariaKernelProvider: "openai"
     },
     {
+      id: "cn-aliyun-qwen-plus",
+      vendor: "openai-compatible",
+      model: "qwen-plus",
+      roles: ["emotional_companion", "work_planning", "coding_execution", "memory_digest"],
+      baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      apiKeyEnv: "ARIA_MODEL_PROVIDER_CN_ALIYUN_QWEN_PLUS_API_KEY",
+      ariaKernelProvider: "dashscope"
+    },
+    {
+      id: "cn-deepseek-chat",
+      vendor: "openai-compatible",
+      model: "deepseek-chat",
+      roles: ["work_planning", "autonomy_dispatch", "coding_execution", "memory_digest"],
+      baseUrl: "https://api.deepseek.com/v1",
+      apiKeyEnv: "ARIA_MODEL_PROVIDER_CN_DEEPSEEK_CHAT_API_KEY",
+      ariaKernelProvider: "deepseek"
+    },
+    {
+      id: "cn-zhipu-glm-4-plus",
+      vendor: "openai-compatible",
+      model: "glm-4-plus",
+      roles: ["emotional_companion", "work_planning", "coding_execution"],
+      baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+      apiKeyEnv: "ARIA_MODEL_PROVIDER_CN_ZHIPU_GLM_4_PLUS_API_KEY",
+      ariaKernelProvider: "zhipu"
+    },
+    {
+      id: "cn-siliconflow-deepseek-v3",
+      vendor: "openai-compatible",
+      model: "deepseek-ai/DeepSeek-V3",
+      roles: ["work_planning", "autonomy_dispatch", "coding_execution", "memory_digest"],
+      baseUrl: "https://api.siliconflow.cn/v1",
+      apiKeyEnv: "ARIA_MODEL_PROVIDER_CN_SILICONFLOW_DEEPSEEK_V3_API_KEY",
+      ariaKernelProvider: "siliconflow"
+    },
+    {
+      id: "cn-siliconflow-qwen",
+      vendor: "openai-compatible",
+      model: "Qwen/Qwen2.5-72B-Instruct",
+      roles: ["emotional_companion", "work_planning", "coding_execution", "memory_digest"],
+      baseUrl: "https://api.siliconflow.cn/v1",
+      apiKeyEnv: "ARIA_MODEL_PROVIDER_CN_SILICONFLOW_QWEN_API_KEY",
+      ariaKernelProvider: "siliconflow"
+    },
+    {
       id: "aria-safe-fallback",
       vendor: "builtin",
       model: "aria-companion-template",
@@ -2093,11 +2222,38 @@ function buildEmbeddedSystemConfig(loadedAt: string): SystemConfigResult {
   ];
 
   const taskRoutes: Record<string, string[]> = {
-    emotional_companion: ["aria-empathy", "aria-fast", "aria-safe-fallback"],
-    work_planning: ["aria-executor", "aria-fast", "aria-safe-fallback"],
-    memory_digest: ["aria-empathy", "aria-safe-fallback"],
-    autonomy_dispatch: ["aria-executor", "aria-safe-fallback"],
-    coding_execution: ["aria-executor", "aria-safe-fallback"]
+    emotional_companion: [
+      "aria-empathy",
+      "cn-aliyun-qwen-plus",
+      "cn-zhipu-glm-4-plus",
+      "aria-fast",
+      "aria-safe-fallback"
+    ],
+    work_planning: [
+      "aria-executor",
+      "cn-aliyun-qwen-plus",
+      "cn-deepseek-chat",
+      "aria-fast",
+      "aria-safe-fallback"
+    ],
+    memory_digest: [
+      "aria-empathy",
+      "cn-aliyun-qwen-plus",
+      "cn-siliconflow-qwen",
+      "aria-safe-fallback"
+    ],
+    autonomy_dispatch: [
+      "aria-executor",
+      "cn-deepseek-chat",
+      "cn-siliconflow-deepseek-v3",
+      "aria-safe-fallback"
+    ],
+    coding_execution: [
+      "aria-executor",
+      "cn-deepseek-chat",
+      "cn-siliconflow-deepseek-v3",
+      "aria-safe-fallback"
+    ]
   };
 
   return {
@@ -2244,6 +2400,19 @@ function buildEmbeddedSystemConfig(loadedAt: string): SystemConfigResult {
     },
     memoryPlaneRuntime: {
       backend: "embedded-memory",
+      architecture: normalizeEmbeddedMemoryArchitecture({
+        mode: "three_plus_one",
+        shortTerm: { enabled: true, maxItems: 260 },
+        midTerm: { enabled: true, maxItems: 420 },
+        longTerm: { enabled: true, maxItems: 360 },
+        temporary: { enabled: true, maxItems: 180 },
+        realtimeReasoning: {
+          topK: 8,
+          includeCrossScene: true,
+          hybridSearch: true
+        },
+        updatedAt: loadedAt
+      }),
       vector: {
         mode: "local",
         qdrant: {
@@ -2255,6 +2424,7 @@ function buildEmbeddedSystemConfig(loadedAt: string): SystemConfigResult {
       },
       memorySummary: {
         longTerm: 12,
+        middleTerm: 9,
         shortTerm: 24,
         temporary: 8,
         vectorIndex: 44,
@@ -2655,7 +2825,7 @@ function buildEmbeddedState(now: string): DemoState {
     userId: "guest-aria-embedded",
     preferences: {
       mode: "陪伴",
-      online: true
+      online: false
     },
     messages: [
       {
@@ -3305,10 +3475,75 @@ function pickModelRoute(
   };
 }
 
+function pickEmbeddedOneLiner(items: string[]) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return "";
+  }
+  const index = Math.floor(Math.random() * items.length);
+  return String(items[index] || "").trim();
+}
+
+function buildEmbeddedDirectOneLiner(textInput: string) {
+  const text = String(textInput || "").trim();
+  if (!text) {
+    return "";
+  }
+  const asksOneLine = /一句|一条|一句话|短句|简短|只回一句|只说一句|来一句|单句|不超过/.test(text);
+  const generationIntent = /生成|写|给我|帮我|想要|来|出一条|文案|造句/.test(text);
+  if (!asksOneLine && !generationIntent) {
+    return "";
+  }
+  if (/夸|夸赞|赞美|夸夸|表扬/.test(text)) {
+    if (/不油|真诚|自然|别油/.test(text)) {
+      return pickEmbeddedOneLiner([
+        "你做事很踏实，和你一起会很安心。",
+        "你说话有分寸又有温度，和你相处很舒服。",
+        "你不是那种喧闹的人，但总能把事做得很漂亮。",
+        "你给人的安全感，不靠嘴上说，靠每次都靠谱。"
+      ]);
+    }
+    return pickEmbeddedOneLiner([
+      "你认真起来真的很有魅力。",
+      "你身上那种稳定又温暖的劲儿很打动人。",
+      "你总能把复杂的事处理得很从容，真的很厉害。",
+      "你一出现，气氛都会变得踏实很多。"
+    ]);
+  }
+  if (/安慰|鼓励|哄我|抱抱|低落|难过|焦虑/.test(text)) {
+    return pickEmbeddedOneLiner([
+      "你已经很努力了，慢一点也没关系，我在这儿陪你。",
+      "先别急着否定自己，你已经比昨天更靠前一步了。",
+      "今天辛苦了，先把呼吸放慢，我们一件一件来。",
+      "你不用一个人扛，我会陪你把这段难走的路走过去。"
+    ]);
+  }
+  if (/道歉|认错|挽回|和好/.test(text)) {
+    return pickEmbeddedOneLiner([
+      "对不起，刚才是我没顾及你的感受，我会改。",
+      "这次是我做得不对，我愿意把问题补上，不让你再难受。",
+      "抱歉让你失望了，我不找借口，接下来我用行动修正。",
+      "对不起，我听到了你的委屈，我们好好把这件事处理完。"
+    ]);
+  }
+  if (/邀约|约她|约他|约会|邀请/.test(text)) {
+    return pickEmbeddedOneLiner([
+      "这周末有空吗，我想请你喝杯咖啡，顺便好好聊聊。",
+      "你这周哪天方便？我想约你出来走走。",
+      "最近一直想见你一面，找个你舒服的时间一起吃个饭吧。",
+      "如果你愿意，这周我们见一面，我来安排轻松一点的行程。"
+    ]);
+  }
+  return "";
+}
+
 function buildCompanionReply(textInput: string, scene: SceneConfigScene) {
   const rawText = String(textInput || "")
     .replace(/\[img:[^\]]+\]/g, "")
     .trim();
+  const directOneLiner = buildEmbeddedDirectOneLiner(rawText);
+  if (directOneLiner) {
+    return directOneLiner;
+  }
   const topic = rawText || "你现在的状态";
 
   if (scene === "work" || scene === "coding") {
@@ -4765,6 +5000,72 @@ function buildEmbeddedFallbackResponse(path: string, init?: RequestInit): Respon
     return makeEmbeddedJsonResponse({
       items: buildMemorySearchItems(store, query, limit),
       query
+    });
+  }
+
+  if (pathname === "/v1/memory/architecture" && method === "GET") {
+    const runtime = store.systemConfig.memoryPlaneRuntime || {};
+    const architecture = normalizeEmbeddedMemoryArchitecture(runtime.architecture);
+    const summary = {
+      longTerm: Number(runtime.memorySummary?.longTerm || 0),
+      middleTerm: Number(runtime.memorySummary?.middleTerm || 0),
+      shortTerm: Number(runtime.memorySummary?.shortTerm || 0),
+      temporary: Number(runtime.memorySummary?.temporary || 0),
+      vectorIndex: Number(runtime.memorySummary?.vectorIndex || 0)
+    };
+    return makeEmbeddedJsonResponse({
+      architecture,
+      summary,
+      updatedAt
+    });
+  }
+
+  if (pathname === "/v1/memory/architecture" && method === "POST") {
+    const runtime = store.systemConfig.memoryPlaneRuntime || {};
+    const current = normalizeEmbeddedMemoryArchitecture(runtime.architecture);
+    const rawPatch = asEmbeddedRecord(
+      body.architecture && typeof body.architecture === "object"
+        ? body.architecture
+        : body
+    );
+    const merged = {
+      ...current,
+      ...rawPatch,
+      shortTerm: {
+        ...current.shortTerm,
+        ...asEmbeddedRecord(rawPatch.shortTerm)
+      },
+      midTerm: {
+        ...current.midTerm,
+        ...asEmbeddedRecord(rawPatch.midTerm)
+      },
+      longTerm: {
+        ...current.longTerm,
+        ...asEmbeddedRecord(rawPatch.longTerm)
+      },
+      temporary: {
+        ...current.temporary,
+        ...asEmbeddedRecord(rawPatch.temporary)
+      },
+      realtimeReasoning: {
+        ...current.realtimeReasoning,
+        ...asEmbeddedRecord(rawPatch.realtimeReasoning)
+      },
+      updatedAt
+    };
+    const architecture = normalizeEmbeddedMemoryArchitecture(merged, current);
+    store.systemConfig.memoryPlaneRuntime = {
+      ...runtime,
+      architecture,
+      memorySummary: {
+        ...runtime.memorySummary,
+        middleTerm: Number(runtime.memorySummary?.middleTerm || 0)
+      }
+    };
+    return makeEmbeddedJsonResponse({
+      architecture: deepCloneValue(architecture),
+      runtime: deepCloneValue(store.systemConfig.memoryPlaneRuntime),
+      updatedAt
     });
   }
 
@@ -6471,6 +6772,36 @@ export async function searchDemoMemory(
   return data;
 }
 
+export type MemoryArchitectureUpdatePayload = {
+  mode?: "three_plus_one" | "classic";
+  shortTerm?: Partial<MemoryArchitectureTierConfig>;
+  midTerm?: Partial<MemoryArchitectureTierConfig>;
+  longTerm?: Partial<MemoryArchitectureTierConfig>;
+  temporary?: Partial<MemoryArchitectureTierConfig>;
+  realtimeReasoning?: Partial<MemoryArchitectureConfig["realtimeReasoning"]>;
+};
+
+export async function fetchMemoryArchitectureConfig() {
+  const data = await request<{
+    architecture: MemoryArchitectureConfig;
+    summary: MemoryArchitectureSummary;
+    updatedAt: string;
+  }>("/v1/memory/architecture");
+  return data;
+}
+
+export async function updateMemoryArchitectureConfig(payload: MemoryArchitectureUpdatePayload) {
+  const data = await request<{
+    architecture: MemoryArchitectureConfig;
+    runtime?: SystemConfigResult["memoryPlaneRuntime"];
+    updatedAt: string;
+  }>("/v1/memory/architecture", {
+    method: "POST",
+    body: JSON.stringify(payload || {})
+  });
+  return data;
+}
+
 export async function fetchMemoryBackendSelfCheck() {
   const data = await request<{ check: MemoryBackendSelfCheckResult }>(
     "/v1/memory/backend/check"
@@ -6482,7 +6813,7 @@ export async function createDemoMemory(
   content: string,
   options?: {
     scene?: string;
-    tier?: "long_term" | "short_term" | "temporary";
+    tier?: "long_term" | "mid_term" | "short_term" | "temporary";
     source?: string;
     tags?: string[];
     importance?: number;

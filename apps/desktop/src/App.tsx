@@ -25,6 +25,7 @@ import {
   fetchExpansionState,
   fetchFunGames,
   fetchMemoryBackendSelfCheck,
+  fetchMemoryArchitectureConfig,
   fetchSystemConfigHistory,
   fetchSystemConfig,
   fetchTimelineDiagnosis,
@@ -72,6 +73,7 @@ import {
   updateSystemConfig,
   updateAutonomyQueuePolicy,
   updateRuntimeGuardianConfig,
+  updateMemoryArchitectureConfig,
   updateDevicePermission,
   updateCodingWorkspace,
   pickCodingWorkspaceDirectory,
@@ -103,6 +105,7 @@ import {
   type HardwareStatusResult,
   type MemorySearchItem,
   type MemoryBackendSelfCheckResult,
+  type MemoryArchitectureUpdatePayload,
   type ModelRouteInfo,
   type ModelRoutingProvider,
   type ProactiveNextResult,
@@ -1562,16 +1565,10 @@ const lifeLeftModules: LifeLeftModule[] = [
     prompt: "进入生活自动执行模式，帮我把今天的生活代办排成自动执行链路。"
   },
   {
-    id: "life-external",
-    title: "外接",
-    hint: "第三方服务和平台连接",
-    prompt: "进入生活外接配置，列出可接入的服务并给我授权步骤。"
-  },
-  {
-    id: "life-hardware",
-    title: "硬件终端",
-    hint: "家居设备和手机终端协同",
-    prompt: "进入硬件终端配置，帮我设置家居设备与手机的联动规则。"
+    id: "life-more",
+    title: "更多工具",
+    hint: "外接服务、硬件终端等低频配置入口",
+    prompt: "进入生活场景更多工具入口，汇总外接服务和硬件终端配置，给我一键可执行方案。"
   }
 ];
 
@@ -1683,16 +1680,10 @@ const loveLeftModules: LoveLeftModule[] = [
     prompt: "进入情感技能配置，给我争执修复、夸赞表达、安慰陪伴三套技能模板。"
   },
   {
-    id: "love-mcp",
-    title: "关系 MCP Labs",
-    hint: "关系实验与互动剧本",
-    prompt: "进入关系 MCP Labs，生成 3 个可执行的情感互动实验剧本。"
-  },
-  {
-    id: "love-wish",
-    title: "愿望",
-    hint: "愿望清单和阶段目标",
-    prompt: "进入愿望池配置，帮我制定短期和长期愿望清单，并给推进计划。"
+    id: "love-more",
+    title: "更多工具",
+    hint: "关系实验与愿望池等低频入口",
+    prompt: "进入情感世界更多工具入口，汇总关系实验剧本和愿望推进计划，并给我可执行路径。"
   }
 ];
 
@@ -2992,6 +2983,19 @@ function App() {
   const [vectorQdrantCollectionDraft, setVectorQdrantCollectionDraft] = useState("aria_memory");
   const [vectorQdrantTimeoutDraft, setVectorQdrantTimeoutDraft] = useState(6000);
   const [vectorBackendApplying, setVectorBackendApplying] = useState(false);
+  const [memoryArchitectureModeDraft, setMemoryArchitectureModeDraft] = useState<"three_plus_one" | "classic">("three_plus_one");
+  const [memoryArchitectureTopKDraft, setMemoryArchitectureTopKDraft] = useState(8);
+  const [memoryArchitectureCrossSceneDraft, setMemoryArchitectureCrossSceneDraft] = useState(true);
+  const [memoryArchitectureHybridDraft, setMemoryArchitectureHybridDraft] = useState(true);
+  const [memoryArchitectureShortEnabledDraft, setMemoryArchitectureShortEnabledDraft] = useState(true);
+  const [memoryArchitectureShortLimitDraft, setMemoryArchitectureShortLimitDraft] = useState(260);
+  const [memoryArchitectureMidEnabledDraft, setMemoryArchitectureMidEnabledDraft] = useState(true);
+  const [memoryArchitectureMidLimitDraft, setMemoryArchitectureMidLimitDraft] = useState(420);
+  const [memoryArchitectureLongEnabledDraft, setMemoryArchitectureLongEnabledDraft] = useState(true);
+  const [memoryArchitectureLongLimitDraft, setMemoryArchitectureLongLimitDraft] = useState(360);
+  const [memoryArchitectureTemporaryEnabledDraft, setMemoryArchitectureTemporaryEnabledDraft] = useState(true);
+  const [memoryArchitectureTemporaryLimitDraft, setMemoryArchitectureTemporaryLimitDraft] = useState(180);
+  const [memoryArchitectureApplying, setMemoryArchitectureApplying] = useState(false);
   const [memoryBackendCheck, setMemoryBackendCheck] = useState<MemoryBackendSelfCheckResult | null>(null);
   const [memoryBackendChecking, setMemoryBackendChecking] = useState(false);
   const [systemTaskRoutesDraft, setSystemTaskRoutesDraft] = useState<Record<string, string>>({});
@@ -3805,6 +3809,7 @@ function App() {
   const agiFlowPreview = useMemo(() => agiFlowCandidates.slice(0, 6), [agiFlowCandidates]);
   const systemProviderOptions = systemConfigState?.modelRoutingPolicy?.providers || [];
   const memoryPlaneRuntime = systemConfigState?.memoryPlaneRuntime || null;
+  const memoryPlaneArchitecture = memoryPlaneRuntime?.architecture || null;
   const memoryPlaneSummary = memoryPlaneRuntime?.memorySummary || null;
   const memoryPlaneJobs = memoryPlaneRuntime?.jobs || {};
   const memoryPlaneStats = memoryPlaneRuntime?.stats || {};
@@ -3859,7 +3864,7 @@ function App() {
     const base = {
       tone: "idle" as RouteLampTone,
       title: "模型路由待命",
-      detail: "发送一条消息后显示实时通道状态。"
+      detail: "你发一句话，我就马上连通最稳的模型通道。"
     };
     if (latestRouteScene !== "coding" && streamStatus === "idle") {
       return base;
@@ -3867,16 +3872,16 @@ function App() {
     if (streamStatus === "loading" || streamStatus === "streaming") {
       return {
         tone: "running" as RouteLampTone,
-        title: "模型路由执行中",
-        detail: "正在建立通道并生成回复。"
+        title: "模型路由连接中",
+        detail: "我正在连通模型并生成回复，很快给你。"
       };
     }
     if (streamStatus === "error") {
       const detail = String(streamError || "").trim();
       return {
         tone: "error" as RouteLampTone,
-        title: "模型路由异常",
-        detail: detail || "通道异常，已建议重试。"
+        title: "模型通道波动",
+        detail: detail || "这轮通道有点抖，我已准备好重试与自愈切换。"
       };
     }
     if (!latestRouteInfo) {
@@ -3888,22 +3893,22 @@ function App() {
       const reason = failedAttempts[0]?.reason || "all_providers_failed";
       return {
         tone: "warning" as RouteLampTone,
-        title: "已降级到本地模板",
-        detail: `原因：${reason} · 建议点“自愈重试”恢复真实模型`
+        title: "已启用保底陪伴回复",
+        detail: `原因：${reason} · 你点“自愈重试”，我会自动切回真实模型。`
       };
     }
     if (failedAttempts.length > 0) {
       return {
         tone: "warning" as RouteLampTone,
         title: `已自动切到 ${latestRouteInfo.providerId || "可用模型"}`,
-        detail: `前置失败 ${failedAttempts.length} 次，当前已恢复回复。`
+        detail: `前面抖动了 ${failedAttempts.length} 次，现在已经恢复稳定。`
       };
     }
     const providerLabel = latestRouteInfo.providerId || "unknown-provider";
     const modelLabel = latestRouteInfo.model || "unknown-model";
     return {
       tone: "ok" as RouteLampTone,
-      title: `模型通道稳定 · ${providerLabel}`,
+      title: `模型通道已稳定 · ${providerLabel}`,
       detail: modelLabel
     };
   }, [latestRouteInfo, latestRouteScene, streamError, streamStatus]);
@@ -3914,41 +3919,41 @@ function App() {
       return {
         tone: "running" as RouteLampTone,
         title: "AutoRepair 进行中",
-        detail: "正在执行一键重放修复..."
+        detail: "我正在自动修复这条链路，很快给你回报。"
       };
     }
     if (streamStatus === "loading" || streamStatus === "streaming") {
       return {
         tone: "running" as RouteLampTone,
         title: "AutoRepair 监测中",
-        detail: "当前任务执行中，异常时会自动介入修复。"
+        detail: "这轮执行我在盯着，异常会立即自动介入。"
       };
     }
     if (!agiActiveSceneExecutionSignal.autoRepairApplied) {
       return {
         tone: "idle" as RouteLampTone,
         title: "AutoRepair 待命",
-        detail: "本轮未触发自动修复。"
+        detail: "本轮暂时不需要自动修复。"
       };
     }
     if (agiActiveSceneExecutionSignal.dispatchStatus === "completed") {
       return {
         tone: "ok" as RouteLampTone,
         title: "AutoRepair 已生效",
-        detail: agiActiveSceneExecutionSignal.autoRepairSummary || "修复链已执行并恢复完成。"
+        detail: agiActiveSceneExecutionSignal.autoRepairSummary || "修复链已执行，当前已恢复。"
       };
     }
     if (agiActiveSceneExecutionSignal.dispatchStatus === "partial") {
       return {
         tone: "warning" as RouteLampTone,
         title: "AutoRepair 部分恢复",
-        detail: agiActiveSceneExecutionSignal.autoRepairSummary || "修复后仍有步骤待补齐。"
+        detail: agiActiveSceneExecutionSignal.autoRepairSummary || "已经拉回一部分，剩余步骤我继续补齐。"
       };
     }
     return {
       tone: "error" as RouteLampTone,
       title: "AutoRepair 未恢复",
-      detail: agiActiveSceneExecutionSignal.autoRepairSummary || "修复链已执行，但当前仍失败。"
+      detail: agiActiveSceneExecutionSignal.autoRepairSummary || "修复链已执行，但这轮还没完全拉回来。"
     };
   }, [
     agiActiveFlowId,
@@ -3963,7 +3968,7 @@ function App() {
       return {
         tone: "running" as RouteLampTone,
         title: "Idempotency 检测中",
-        detail: "正在防止重复执行和重复副作用。"
+        detail: "我在防止重复执行，避免多次触发副作用。"
       };
     }
     if (agiActiveSceneExecutionSignal.idempotencyHit) {
@@ -3973,13 +3978,13 @@ function App() {
       return {
         tone: "ok" as RouteLampTone,
         title: "Idempotency 已命中",
-        detail: `${dispatchHint}，避免重复执行。`
+        detail: `${dispatchHint}，我已帮你避免重复执行。`
       };
     }
     return {
       tone: "idle" as RouteLampTone,
       title: "Idempotency 待命",
-      detail: "当前未发生重复请求。"
+      detail: "当前没有重复请求。"
     };
   }, [
     agiActiveSceneExecutionSignal.dispatchId,
@@ -4656,14 +4661,14 @@ function App() {
       void updatePreferences({ mode: sceneMeta[item.scene].mode });
     }
     if (action === "upload") {
-      setMomentumToast(`已进入 ${panelMeta[targetPanel].label}：填写内容后点写入即可。`);
+      setMomentumToast(`我带你进到 ${panelMeta[targetPanel].label} 了，填好内容点写入就行。`);
       return;
     }
     if (action === "edit") {
-      setMomentumToast(`已进入 ${item.title} 规则编辑区。`);
+      setMomentumToast(`已打开 ${item.title} 规则编辑区，我陪你一起调。`);
       return;
     }
-    setMomentumToast(`${item.title} 已打开。`);
+    setMomentumToast(`${item.title} 已打开，我们继续。`);
   };
 
   const launchCodingAutopilot = (templatePrompt?: string) => {
@@ -4674,7 +4679,7 @@ function App() {
       : "请进入自主编程模式，先问我目标，再自动拆解任务并开始生成可运行代码。";
     setWorkbenchDraft(finalPrompt);
     openPanel("workday", "coding");
-    setMomentumToast("已进入编程工作台：需求已写入输入框，点击“执行”即可开始。");
+    setMomentumToast("我把需求写进编程工作台了，点“执行”就能开始。");
   };
 
   const triggerSceneQuickAction = async (input: {
@@ -4692,10 +4697,10 @@ function App() {
     setDraft(finalPrompt);
     openPanel(input.panel, input.scene);
     if (writeOnly) {
-      setMomentumToast(`已写入${input.label}指令（Shift+点击默认仅写入）。`);
+      setMomentumToast(`我先帮你写好了${input.label}指令（Shift+点击默认仅写入）。`);
       return;
     }
-    setMomentumToast(`已发起${input.label}执行，完成后会回执结果。`);
+    setMomentumToast(`我已经发起${input.label}执行，跑完会第一时间回你结果。`);
     await sendMessage(finalPrompt, {
       scene: input.scene,
       panel: input.panel
@@ -4753,13 +4758,13 @@ function App() {
       ]);
       setMomentumToast(
         bootstrapSummary
-          ? `小游戏已生成并完成插件接入：${created.title}`
-          : `小游戏已生成：${created.title}`
+          ? `小游戏《${created.title}》已准备好，插件也接好了。`
+          : `小游戏《${created.title}》已经给你准备好啦。`
       );
     } catch (createError) {
       const message = createError instanceof Error ? createError.message : "小游戏生成失败";
       setStreamError(message);
-      setMomentumToast(`小游戏生成失败：${message}`);
+      setMomentumToast(`这次小游戏没生成成功，我已记下原因：${message}`);
     } finally {
       setSceneConfigApplyingKey("");
     }
@@ -4845,7 +4850,7 @@ function App() {
     } catch (applyError) {
       const message = applyError instanceof Error ? applyError.message : "场景配置执行失败";
       setStreamError(message);
-      setMomentumToast(`「${input.title}」执行失败：${message}`);
+      setMomentumToast(`「${input.title}」这轮没跑通，我会继续帮你修复：${message}`);
     } finally {
       setSceneConfigApplyingKey("");
     }
@@ -5268,7 +5273,7 @@ function App() {
         routeInfo,
         "error",
         "模型路由自愈失败",
-        "未找到可用 provider（可能缺少 key 或均不可用）。"
+        "未找到可用 provider（可能缺少 key 或当前都不可用）。"
       );
       return false;
     }
@@ -5280,7 +5285,7 @@ function App() {
     }
     const nextProvider = systemProviderMap.get(nextProviderId);
     setMomentumToast(
-      `模型通道自愈完成：已切换到 ${nextProvider?.id || nextProviderId}${options?.reason ? `（${options.reason}）` : ""}`
+      `我把模型通道拉回来了：已切到 ${nextProvider?.id || nextProviderId}${options?.reason ? `（${options.reason}）` : ""}`
     );
     const healedRouteInfo: ModelRouteInfo = {
       taskType: String(routeInfo?.taskType || sceneTaskTypeMap[scene] || "").trim(),
@@ -5303,12 +5308,12 @@ function App() {
 
   const retryLatestRouteWithAutoHeal = async () => {
     if (routeAutoHealBusy || sending) {
-      setMomentumToast("当前仍在发送中，请稍后再试自愈重试。");
+      setMomentumToast("我这边还在发送中，稍等一下再做自愈重试。");
       return;
     }
     const text = String(latestRouteUserText || "").trim() || String(lastFailedDraft || "").trim();
     if (!text) {
-      setMomentumToast("没有可重试的最近消息。请先发送一条编程指令。");
+      setMomentumToast("还没有可重试的上一条消息，你先发一条我就接着修复。");
       return;
     }
     const scene = latestRouteScene || "coding";
@@ -5323,7 +5328,7 @@ function App() {
           [scene]: nextProviderId
         }));
       }
-      setMomentumToast("正在执行模型通道自愈重试...");
+      setMomentumToast("我正在做模型通道自愈重试，马上给你结果。");
       await sendMessage(text, {
         scene,
         panel: scene === "coding" ? "workday" : rightPanel,
@@ -6395,6 +6400,26 @@ function App() {
     setVectorQdrantTimeoutDraft(
       parseNumberDraft(vectorRuntimeQdrant.timeoutMs, 6000, 1000, 30000)
     );
+    const memoryArchitecture = asObjectRecord(systemConfigState.memoryPlaneRuntime?.architecture);
+    const shortTermArch = asObjectRecord(memoryArchitecture.shortTerm);
+    const midTermArch = asObjectRecord(memoryArchitecture.midTerm);
+    const longTermArch = asObjectRecord(memoryArchitecture.longTerm);
+    const temporaryArch = asObjectRecord(memoryArchitecture.temporary);
+    const realtimeReasoningArch = asObjectRecord(memoryArchitecture.realtimeReasoning);
+    const architectureModeRaw = String(memoryArchitecture.mode || "three_plus_one").trim().toLowerCase();
+    const architectureMode = architectureModeRaw === "classic" ? "classic" : "three_plus_one";
+    setMemoryArchitectureModeDraft(architectureMode);
+    setMemoryArchitectureShortEnabledDraft(shortTermArch.enabled !== false);
+    setMemoryArchitectureShortLimitDraft(parseNumberDraft(shortTermArch.maxItems, 260, 20, 6000));
+    setMemoryArchitectureMidEnabledDraft(architectureMode === "three_plus_one" ? midTermArch.enabled !== false : false);
+    setMemoryArchitectureMidLimitDraft(parseNumberDraft(midTermArch.maxItems, 420, 20, 6000));
+    setMemoryArchitectureLongEnabledDraft(longTermArch.enabled !== false);
+    setMemoryArchitectureLongLimitDraft(parseNumberDraft(longTermArch.maxItems, 360, 20, 6000));
+    setMemoryArchitectureTemporaryEnabledDraft(temporaryArch.enabled !== false);
+    setMemoryArchitectureTemporaryLimitDraft(parseNumberDraft(temporaryArch.maxItems, 180, 20, 6000));
+    setMemoryArchitectureTopKDraft(parseNumberDraft(realtimeReasoningArch.topK, 8, 1, 24));
+    setMemoryArchitectureCrossSceneDraft(realtimeReasoningArch.includeCrossScene !== false);
+    setMemoryArchitectureHybridDraft(realtimeReasoningArch.hybridSearch !== false);
     setMemoryBackendCheck(null);
     setSystemConfigHistoryState(systemConfigState.configOps || null);
   }, [systemConfigState]);
@@ -8022,6 +8047,149 @@ function App() {
     }
   };
 
+  const applyMemoryArchitecturePolicy = async (
+    options: {
+      preset?: "three_plus_one" | "classic";
+      successToast?: string;
+    } = {}
+  ) => {
+    const preset = options.preset;
+    const nextMode = preset || memoryArchitectureModeDraft;
+    const isThreePlusOne = nextMode !== "classic";
+    const presetPayload: MemoryArchitectureUpdatePayload | null = preset
+      ? (preset === "three_plus_one"
+        ? {
+          mode: "three_plus_one",
+          shortTerm: {
+            enabled: true,
+            maxItems: 260
+          },
+          midTerm: {
+            enabled: true,
+            maxItems: 420
+          },
+          longTerm: {
+            enabled: true,
+            maxItems: 360
+          },
+          temporary: {
+            enabled: true,
+            maxItems: 180
+          },
+          realtimeReasoning: {
+            topK: 8,
+            includeCrossScene: true,
+            hybridSearch: true
+          }
+        }
+        : {
+          mode: "classic",
+          shortTerm: {
+            enabled: true,
+            maxItems: 220
+          },
+          midTerm: {
+            enabled: false,
+            maxItems: 260
+          },
+          longTerm: {
+            enabled: true,
+            maxItems: 420
+          },
+          temporary: {
+            enabled: true,
+            maxItems: 160
+          },
+          realtimeReasoning: {
+            topK: 6,
+            includeCrossScene: false,
+            hybridSearch: true
+          }
+        })
+      : null;
+    const payload: MemoryArchitectureUpdatePayload = presetPayload || {
+      mode: nextMode,
+      shortTerm: {
+        enabled: memoryArchitectureShortEnabledDraft,
+        maxItems: parseNumberDraft(memoryArchitectureShortLimitDraft, 260, 20, 6000)
+      },
+      midTerm: {
+        enabled: isThreePlusOne ? memoryArchitectureMidEnabledDraft : false,
+        maxItems: parseNumberDraft(memoryArchitectureMidLimitDraft, 420, 20, 6000)
+      },
+      longTerm: {
+        enabled: memoryArchitectureLongEnabledDraft,
+        maxItems: parseNumberDraft(memoryArchitectureLongLimitDraft, 360, 20, 6000)
+      },
+      temporary: {
+        enabled: memoryArchitectureTemporaryEnabledDraft,
+        maxItems: parseNumberDraft(memoryArchitectureTemporaryLimitDraft, 180, 20, 6000)
+      },
+      realtimeReasoning: {
+        topK: parseNumberDraft(memoryArchitectureTopKDraft, 8, 1, 24),
+        includeCrossScene: memoryArchitectureCrossSceneDraft,
+        hybridSearch: memoryArchitectureHybridDraft
+      }
+    };
+
+    setMemoryArchitectureApplying(true);
+    setStreamError("");
+    try {
+      const data = await updateMemoryArchitectureConfig(payload);
+      if (data.runtime) {
+        setSystemConfigState((prev) => {
+          if (!prev) {
+            return prev;
+          }
+          return {
+            ...prev,
+            memoryPlaneRuntime: data.runtime
+          };
+        });
+      }
+      await syncSystemConfig({ silent: true });
+      setMomentumToast(
+        options.successToast
+          || (preset === "classic"
+            ? "已切换 classic 记忆架构。"
+            : preset === "three_plus_one"
+              ? "已切换 3+1 推荐架构。"
+              : "记忆架构策略已保存并生效。")
+      );
+    } catch (error) {
+      setStreamError(error instanceof Error ? error.message : "记忆架构策略保存失败");
+    } finally {
+      setMemoryArchitectureApplying(false);
+    }
+  };
+
+  const refreshMemoryArchitectureSnapshot = async () => {
+    setMemoryArchitectureApplying(true);
+    setStreamError("");
+    try {
+      const snapshot = await fetchMemoryArchitectureConfig();
+      setSystemConfigState((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          memoryPlaneRuntime: {
+            ...(prev.memoryPlaneRuntime || {}),
+            architecture: snapshot.architecture,
+            memorySummary: {
+              ...(prev.memoryPlaneRuntime?.memorySummary || {}),
+              ...snapshot.summary
+            }
+          }
+        };
+      });
+      setMomentumToast("记忆架构快照已刷新。");
+    } catch (error) {
+      setStreamError(error instanceof Error ? error.message : "记忆架构快照读取失败");
+    } finally {
+      setMemoryArchitectureApplying(false);
+    }
+  };
+
   const runMemoryBackendSelfCheck = async () => {
     setMemoryBackendChecking(true);
     setStreamError("");
@@ -9359,7 +9527,7 @@ function App() {
         setDraft("");
         setPendingImages([]);
       }
-      setMomentumToast(`已加入发送队列（前方 ${Math.max(0, outgoingQueueRef.current.length - 1)} 条）`);
+      setMomentumToast(`我先把它放进发送队列了（前面还有 ${Math.max(0, outgoingQueueRef.current.length - 1)} 条）。`);
       return;
     }
 
@@ -9422,7 +9590,7 @@ function App() {
         { id: `user-local-${now}`, role: "user", text: rawText, time: nowTime(), timestamp: now, scene: sceneForSend },
         { id: `aria-local-${now}`, role: "aria", text: assistantReply, time: nowTime(), timestamp: now + 1, scene: sceneForSend }
       ]);
-      setMomentumToast("已接管小红书闭环控制。");
+      setMomentumToast("已接管小红书闭环控制，我会持续盯着进度。");
       return;
     }
     if (xhsQuickIntent) {
@@ -9462,7 +9630,7 @@ function App() {
         { id: `user-local-${now}`, role: "user", text: rawText, time: nowTime(), timestamp: now, scene: sceneForSend },
         { id: `aria-local-${now}`, role: "aria", text: assistantReply, time: nowTime(), timestamp: now + 1, scene: sceneForSend }
       ]);
-      setMomentumToast("已进入小红书闭环执行入口。");
+      setMomentumToast("已进入小红书闭环入口，随时可以直接开跑。");
       return;
     }
 
@@ -9593,7 +9761,7 @@ function App() {
           void syncRuntimeGuardian({ silent: true });
           void syncUnifiedTimelineState({ silent: true, limit: 120 });
           if (!shouldFollowupExecution) {
-            setMomentumToast("回复完成：可以继续推进下一步任务。");
+            setMomentumToast("这一轮我已经回复好了，我们可以继续推进下一步。");
           }
           queueVoiceTtsFromFullText(String(payload.delta?.assistantMessage?.text || ""), { finalFlush: true });
         }
@@ -9642,7 +9810,7 @@ function App() {
           item.id === optimisticAriaId
             ? {
               ...item,
-              text: `⚠️ 这次执行失败：${compactError}\n你可以点击「重试上一条」，或继续发新消息进入队列。`,
+              text: `我这轮没跑通，先把原因告诉你：${compactError}\n你可以点「重试上一条」，我会继续接着处理；也可以直接发新消息。`,
               time: nowTime()
             }
             : item
@@ -9652,7 +9820,7 @@ function App() {
         setDraft(rawText);
         setPendingImages(images);
         if (outgoingQueueRef.current.length > 0) {
-          setMomentumToast("本条发送失败，队列已暂停。修复后可继续发送。");
+          setMomentumToast("这条发送没成功，我先暂停队列；修复后我会继续发送。");
         }
       } else {
         continueDrainQueue = false;
@@ -9663,14 +9831,14 @@ function App() {
           panel: panelForSend
         });
         setQueuedSendCount(outgoingQueueRef.current.length);
-        setMomentumToast("队列发送中断：上一条失败，请点击“重试上一条”。");
+        setMomentumToast("队列被上一条中断了，点“重试上一条”我就继续往下发。");
       }
     } finally {
       setSending(false);
       if (continueDrainQueue && outgoingQueueRef.current.length > 0) {
         const next = dequeueOutgoingMessage();
         if (next) {
-          setMomentumToast(`正在自动发送队列（剩余 ${outgoingQueueRef.current.length} 条）`);
+          setMomentumToast(`我在继续自动发送队列（剩余 ${outgoingQueueRef.current.length} 条）。`);
           void sendMessage(next.text, {
             images: next.images,
             scene: next.scene,
@@ -12236,6 +12404,181 @@ function App() {
                           />
                         </label>
                       </div>
+                      <div className="brain-memory-runtime-head">
+                        <strong>3+1 记忆架构控制台</strong>
+                        <span>
+                          {memoryPlaneArchitecture?.mode === "classic" ? "classic 经典策略" : "three_plus_one 分层策略"}
+                        </span>
+                      </div>
+                      <div className="brain-memory-config">
+                        <label>
+                          <span>架构模式</span>
+                          <select
+                            value={memoryArchitectureModeDraft}
+                            onChange={(event) => setMemoryArchitectureModeDraft(event.target.value === "classic" ? "classic" : "three_plus_one")}
+                            disabled={systemConfigLoading || memoryArchitectureApplying}
+                          >
+                            <option value="three_plus_one">three_plus_one（短+中+长+实时）</option>
+                            <option value="classic">classic（短+长+实时）</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span>实时推理 TopK</span>
+                          <input
+                            type="number"
+                            min={1}
+                            max={24}
+                            value={memoryArchitectureTopKDraft}
+                            onChange={(event) => setMemoryArchitectureTopKDraft(Number(event.target.value || 0))}
+                            disabled={systemConfigLoading || memoryArchitectureApplying}
+                          />
+                        </label>
+                        <label>
+                          <span>跨场景召回</span>
+                          <select
+                            value={memoryArchitectureCrossSceneDraft ? "on" : "off"}
+                            onChange={(event) => setMemoryArchitectureCrossSceneDraft(event.target.value === "on")}
+                            disabled={systemConfigLoading || memoryArchitectureApplying}
+                          >
+                            <option value="on">开启</option>
+                            <option value="off">关闭</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span>混合检索</span>
+                          <select
+                            value={memoryArchitectureHybridDraft ? "on" : "off"}
+                            onChange={(event) => setMemoryArchitectureHybridDraft(event.target.value === "on")}
+                            disabled={systemConfigLoading || memoryArchitectureApplying}
+                          >
+                            <option value="on">开启</option>
+                            <option value="off">关闭</option>
+                          </select>
+                        </label>
+                      </div>
+                      <div className="brain-memory-config">
+                        <label>
+                          <span>短期层开关</span>
+                          <select
+                            value={memoryArchitectureShortEnabledDraft ? "on" : "off"}
+                            onChange={(event) => setMemoryArchitectureShortEnabledDraft(event.target.value === "on")}
+                            disabled={systemConfigLoading || memoryArchitectureApplying}
+                          >
+                            <option value="on">开启</option>
+                            <option value="off">关闭</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span>短期层容量</span>
+                          <input
+                            type="number"
+                            min={20}
+                            max={6000}
+                            value={memoryArchitectureShortLimitDraft}
+                            onChange={(event) => setMemoryArchitectureShortLimitDraft(Number(event.target.value || 0))}
+                            disabled={systemConfigLoading || memoryArchitectureApplying}
+                          />
+                        </label>
+                        <label>
+                          <span>中期层开关</span>
+                          <select
+                            value={memoryArchitectureMidEnabledDraft ? "on" : "off"}
+                            onChange={(event) => setMemoryArchitectureMidEnabledDraft(event.target.value === "on")}
+                            disabled={systemConfigLoading || memoryArchitectureApplying || memoryArchitectureModeDraft === "classic"}
+                          >
+                            <option value="on">开启</option>
+                            <option value="off">关闭</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span>中期层容量</span>
+                          <input
+                            type="number"
+                            min={20}
+                            max={6000}
+                            value={memoryArchitectureMidLimitDraft}
+                            onChange={(event) => setMemoryArchitectureMidLimitDraft(Number(event.target.value || 0))}
+                            disabled={systemConfigLoading || memoryArchitectureApplying || memoryArchitectureModeDraft === "classic"}
+                          />
+                        </label>
+                        <label>
+                          <span>长期层开关</span>
+                          <select
+                            value={memoryArchitectureLongEnabledDraft ? "on" : "off"}
+                            onChange={(event) => setMemoryArchitectureLongEnabledDraft(event.target.value === "on")}
+                            disabled={systemConfigLoading || memoryArchitectureApplying}
+                          >
+                            <option value="on">开启</option>
+                            <option value="off">关闭</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span>长期层容量</span>
+                          <input
+                            type="number"
+                            min={20}
+                            max={6000}
+                            value={memoryArchitectureLongLimitDraft}
+                            onChange={(event) => setMemoryArchitectureLongLimitDraft(Number(event.target.value || 0))}
+                            disabled={systemConfigLoading || memoryArchitectureApplying}
+                          />
+                        </label>
+                        <label>
+                          <span>临时层开关</span>
+                          <select
+                            value={memoryArchitectureTemporaryEnabledDraft ? "on" : "off"}
+                            onChange={(event) => setMemoryArchitectureTemporaryEnabledDraft(event.target.value === "on")}
+                            disabled={systemConfigLoading || memoryArchitectureApplying}
+                          >
+                            <option value="on">开启</option>
+                            <option value="off">关闭</option>
+                          </select>
+                        </label>
+                        <label>
+                          <span>临时层容量</span>
+                          <input
+                            type="number"
+                            min={20}
+                            max={6000}
+                            value={memoryArchitectureTemporaryLimitDraft}
+                            onChange={(event) => setMemoryArchitectureTemporaryLimitDraft(Number(event.target.value || 0))}
+                            disabled={systemConfigLoading || memoryArchitectureApplying}
+                          />
+                        </label>
+                      </div>
+                      <div className="brain-memory-actions">
+                        <button
+                          type="button"
+                          onClick={() => void applyMemoryArchitecturePolicy()}
+                          disabled={systemConfigLoading || systemConfigSaving || systemConfigRollbacking || memoryArchitectureApplying}
+                        >
+                          {memoryArchitectureApplying ? "保存中..." : "保存记忆架构策略"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void applyMemoryArchitecturePolicy({ preset: "three_plus_one", successToast: "已切换 3+1 推荐架构并生效。" })}
+                          disabled={systemConfigLoading || systemConfigSaving || systemConfigRollbacking || memoryArchitectureApplying}
+                        >
+                          一键切换 3+1 推荐
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void applyMemoryArchitecturePolicy({ preset: "classic", successToast: "已切换 classic 经典架构并生效。" })}
+                          disabled={systemConfigLoading || systemConfigSaving || systemConfigRollbacking || memoryArchitectureApplying}
+                        >
+                          一键切换 classic
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void refreshMemoryArchitectureSnapshot()}
+                          disabled={systemConfigLoading || memoryArchitectureApplying}
+                        >
+                          读取架构快照
+                        </button>
+                      </div>
+                      <div className="workday-meta">
+                        新手建议：先用“3+1 推荐”，TopK 保持 8；如果追求绝对稳定和低复杂度，再切 classic。
+                      </div>
                       <div className="brain-memory-risk-grid">
                         <article>
                           <strong>风险提示</strong>
@@ -12344,10 +12687,20 @@ function App() {
                           <strong>记忆层计数</strong>
                           <span>
                             长期 {memoryPlaneSummary?.longTerm || 0} ·
+                            中期 {memoryPlaneSummary?.middleTerm || 0} ·
                             短期 {memoryPlaneSummary?.shortTerm || 0} ·
                             临时 {memoryPlaneSummary?.temporary || 0}
                           </span>
                           <em>向量索引：{memoryPlaneSummary?.vectorIndex || 0}</em>
+                        </article>
+                        <article className="brain-memory-runtime-item">
+                          <strong>架构实时参数</strong>
+                          <span>模式：{memoryPlaneArchitecture?.mode || "three_plus_one"}</span>
+                          <em>TopK：{memoryPlaneArchitecture?.realtimeReasoning?.topK ?? 8}</em>
+                          <small>
+                            跨场景：{memoryPlaneArchitecture?.realtimeReasoning?.includeCrossScene === false ? "关闭" : "开启"} ·
+                            混合检索：{memoryPlaneArchitecture?.realtimeReasoning?.hybridSearch === false ? "关闭" : "开启"}
+                          </small>
                         </article>
                         <article className="brain-memory-runtime-item">
                           <strong>四场景存储</strong>
@@ -12809,6 +13162,28 @@ function App() {
                             <article key={item.id} className={`work-collapse-item ${item.enabled ? "is-on" : ""}`}>
                               <strong>{item.title}</strong>
                               <p>{item.note}</p>
+                              <div className="work-expansion-actions">
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    void triggerSceneQuickAction({
+                                      prompt: `进入工作 Skill「${item.title}」配置。当前状态：${item.enabled ? "已启用" : "未启用"}；说明：${item.note || "无"}。请给我可执行步骤并先完成第一步。`,
+                                      scene: workSceneKey,
+                                      panel: "workday",
+                                      label: `Skill「${item.title}」`,
+                                      writeOnly: event.shiftKey
+                                    });
+                                  }}
+                                >
+                                  {item.enabled ? "执行 Skill" : "配置并执行"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openPanel("autonomy", workSceneKey)}
+                                >
+                                  打开执行内核
+                                </button>
+                              </div>
                             </article>
                           ))}
                           {workbenchLeftModules.filter(m => m.id === "coding_skill").length === 0 && (
@@ -12826,6 +13201,28 @@ function App() {
                             <article key={item.id} className={`work-collapse-item ${item.enabled ? "is-on" : ""}`}>
                               <strong>{item.title}</strong>
                               <p>{item.note}</p>
+                              <div className="work-expansion-actions">
+                                <button
+                                  type="button"
+                                  onClick={(event) => {
+                                    void triggerSceneQuickAction({
+                                      prompt: `进入工作 MCP 协议「${item.title}」配置。当前状态：${item.enabled ? "已连接" : "未连接"}；说明：${item.note || "无"}。请先做连接自检，再返回可执行结果。`,
+                                      scene: workSceneKey,
+                                      panel: "workday",
+                                      label: `MCP「${item.title}」`,
+                                      writeOnly: event.shiftKey
+                                    });
+                                  }}
+                                >
+                                  {item.enabled ? "自检并执行" : "连接并执行"}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => openPanel("device", workSceneKey)}
+                                >
+                                  打开设备执行
+                                </button>
+                              </div>
                             </article>
                           ))}
                           {workbenchLeftModules.filter(m => m.id === "mcp_hub").length === 0 && (
@@ -12846,6 +13243,42 @@ function App() {
                         </div>
                       </details>
                     )}
+
+                    <details className="work-collapse-section work-advanced-toggle">
+                      <summary>📦 更多工具（低频）</summary>
+                      <div className="work-collapse-body">
+                        <p className="work-collapse-hint">高频入口已上移；低频配置和运维能力统一收口到这里。</p>
+                        {isCodingScene ? (
+                          <div className="work-expansion-actions">
+                            <button type="button" onClick={() => openPanel("workday", "work")}>
+                              返回工作场景
+                            </button>
+                            <button type="button" onClick={() => openPanel("autonomy", "coding")}>
+                              查看执行回放
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="work-expansion-actions">
+                            <button type="button" onClick={() => openPanel("autonomy", workSceneKey)}>
+                              打开统一时间线
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                openPanel("workday", "coding");
+                                setMomentumToast("已切到编程场景，可直接使用补丁安全闸。");
+                              }}
+                            >
+                              进入补丁安全闸
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setCoworkingView((prev) => !prev)}
+                            >
+                              {coworkingView ? "关闭占座位" : "打开占座位"}
+                            </button>
+                          </div>
+                        )}
 
                     {!isCodingScene && XHS_IN_ARIA_ENABLED && (
                       <details className="work-collapse-section" open>
@@ -13010,7 +13443,8 @@ function App() {
                       </details>
                     )}
 
-                    <details className="work-collapse-section" open={workSceneKey === "coding"}>
+                    {isCodingScene && (
+                      <details className="work-collapse-section" open>
                       <summary>🛡️ 补丁安全闸</summary>
                       <div className="work-collapse-body patch-gate-body">
                         <label className="patch-gate-field">
@@ -13118,6 +13552,7 @@ function App() {
                         ) : null}
                       </div>
                     </details>
+                    )}
 
                     {!isCodingScene && (
                       <details className="work-collapse-section">
@@ -13290,6 +13725,8 @@ function App() {
                         </div>
                       </details>
                     )}
+                      </div>
+                    </details>
                   </aside>
 
                   {/* Center: Chat Conversation or Coworking Office */}

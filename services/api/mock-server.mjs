@@ -122,7 +122,7 @@ const MODEL_ROUTER_AUTONOMY_TOTAL_BUDGET_MS = clampInteger(
 const MODEL_ROUTER_AUTONOMY_MAX_RETRIES = clampInteger(Number(process.env.ARIA_MODEL_AUTONOMY_MAX_RETRIES || 1), 1, 0, 6);
 const MODEL_ROUTER_PROVIDER_COOLDOWN_MS = clampInteger(Number(process.env.ARIA_MODEL_PROVIDER_COOLDOWN_MS || 90000), 90000, 5000, 900000);
 const MODEL_ROUTER_PROVIDER_COOLDOWN_THRESHOLD = clampInteger(Number(process.env.ARIA_MODEL_PROVIDER_COOLDOWN_THRESHOLD || 2), 2, 1, 6);
-const MODEL_ROUTER_CHAT_FAST_MAX_CANDIDATES = clampInteger(Number(process.env.ARIA_MODEL_CHAT_FAST_MAX_CANDIDATES || 2), 2, 1, 6);
+const MODEL_ROUTER_CHAT_FAST_MAX_CANDIDATES = clampInteger(Number(process.env.ARIA_MODEL_CHAT_FAST_MAX_CANDIDATES || 3), 3, 1, 6);
 const MODEL_ROUTER_AUTONOMY_MAX_CANDIDATES = clampInteger(Number(process.env.ARIA_MODEL_AUTONOMY_MAX_CANDIDATES || 2), 2, 1, 6);
 const MODEL_ROUTER_MAX_PROVIDER_CANDIDATES = clampInteger(
   Number(process.env.ARIA_MODEL_MAX_PROVIDER_CANDIDATES || 6),
@@ -131,6 +131,42 @@ const MODEL_ROUTER_MAX_PROVIDER_CANDIDATES = clampInteger(
   20
 );
 const MODEL_ROUTER_CHAT_MAX_TOKENS = Number(process.env.ARIA_MODEL_MAX_TOKENS || 600);
+const MODEL_ROUTER_HEALTH_DEFAULT_LATENCY_MS = clampInteger(
+  Number(process.env.ARIA_MODEL_HEALTH_DEFAULT_LATENCY_MS || 4800),
+  4800,
+  800,
+  30000
+);
+const MODEL_ROUTER_HEALTH_EMA_ALPHA = clampPolicyNumber(
+  Number(process.env.ARIA_MODEL_HEALTH_EMA_ALPHA || 0.35),
+  0.35,
+  0.05,
+  0.95
+);
+const MODEL_ROUTER_EMOTIONAL_STABLE_LATENCY_MS = clampInteger(
+  Number(process.env.ARIA_MODEL_EMOTIONAL_STABLE_LATENCY_MS || 3200),
+  3200,
+  800,
+  20000
+);
+const STREAM_REPLY_SLICE_BUDGET_MS = clampInteger(
+  Number(process.env.ARIA_STREAM_REPLY_SLICE_BUDGET_MS || 3000),
+  3000,
+  800,
+  15000
+);
+const STREAM_REPLY_SLICE_FOLLOWUP_MS = clampInteger(
+  Number(process.env.ARIA_STREAM_REPLY_SLICE_FOLLOWUP_MS || 3800),
+  3800,
+  1000,
+  15000
+);
+const STREAM_REPLY_SLICE_MAX_HINTS = clampInteger(
+  Number(process.env.ARIA_STREAM_REPLY_SLICE_MAX_HINTS || 3),
+  3,
+  1,
+  8
+);
 const FLYWHEEL_SIGNAL_HISTORY_LIMIT = clampInteger(
   Number(process.env.ARIA_FLYWHEEL_SIGNAL_HISTORY_LIMIT || 240),
   240,
@@ -196,8 +232,11 @@ const CHAT_MESSAGE_MAX_TOTAL = clampInteger(Number(process.env.ARIA_CHAT_MESSAGE
 const CHAT_MESSAGE_MAX_PER_SCENE = clampInteger(Number(process.env.ARIA_CHAT_MESSAGE_MAX_PER_SCENE || 80), 80, 20, 240);
 const MEMORY_VECTOR_DIM = clampInteger(Number(process.env.ARIA_MEMORY_VECTOR_DIM || 96), 96, 32, 256);
 const MEMORY_VECTOR_INDEX_LIMIT = clampInteger(Number(process.env.ARIA_MEMORY_VECTOR_INDEX_LIMIT || 1200), 1200, 200, 5000);
+const MEMORY_ARCH_ENV_MODE = String(process.env.ARIA_MEMORY_ARCH_MODE || "three_plus_one").trim().toLowerCase();
+const MEMORY_REASONING_TOPK_DEFAULT = clampInteger(Number(process.env.ARIA_MEMORY_REASONING_TOPK || 8), 8, 4, 24);
 const MEMORY_TIER_LIMITS = {
   long_term: clampInteger(Number(process.env.ARIA_MEMORY_LONG_TERM_LIMIT || 360), 360, 40, 3000),
+  mid_term: clampInteger(Number(process.env.ARIA_MEMORY_MID_TERM_LIMIT || 420), 420, 40, 4000),
   short_term: clampInteger(Number(process.env.ARIA_MEMORY_SHORT_TERM_LIMIT || 260), 260, 40, 3000),
   temporary: clampInteger(Number(process.env.ARIA_MEMORY_TEMPORARY_LIMIT || 180), 180, 20, 2000),
   scene: clampInteger(Number(process.env.ARIA_MEMORY_SCENE_LIMIT || 220), 220, 40, 3000)
@@ -841,7 +880,7 @@ const DEFAULT_SYSTEM_PROFILE = {
 };
 
 const DEFAULT_MODEL_ROUTING_POLICY = {
-  version: "2026.3.3",
+  version: "2026.3.7",
   routingMode: "task-first",
   providers: [
     {
@@ -861,14 +900,83 @@ const DEFAULT_MODEL_ROUTING_POLICY = {
       vendor: "openai-compatible",
       model: "o4-mini",
       roles: ["coding", "tool-use", "debug"]
+    },
+    {
+      id: "cn-aliyun-qwen-plus",
+      vendor: "openai-compatible",
+      model: "qwen-plus",
+      roles: ["chat", "planning", "emotion", "coding", "tool-use"],
+      baseUrl: "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      apiKeyEnv: "ARIA_MODEL_PROVIDER_CN_ALIYUN_QWEN_PLUS_API_KEY"
+    },
+    {
+      id: "cn-deepseek-chat",
+      vendor: "openai-compatible",
+      model: "deepseek-chat",
+      roles: ["chat", "planning", "coding", "tool-use"],
+      baseUrl: "https://api.deepseek.com/v1",
+      apiKeyEnv: "ARIA_MODEL_PROVIDER_CN_DEEPSEEK_CHAT_API_KEY"
+    },
+    {
+      id: "cn-zhipu-glm-4-plus",
+      vendor: "openai-compatible",
+      model: "glm-4-plus",
+      roles: ["chat", "planning", "emotion", "coding", "tool-use"],
+      baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+      apiKeyEnv: "ARIA_MODEL_PROVIDER_CN_ZHIPU_GLM_4_PLUS_API_KEY"
+    },
+    {
+      id: "cn-siliconflow-deepseek-v3",
+      vendor: "openai-compatible",
+      model: "deepseek-ai/DeepSeek-V3",
+      roles: ["chat", "planning", "coding", "tool-use"],
+      baseUrl: "https://api.siliconflow.cn/v1",
+      apiKeyEnv: "ARIA_MODEL_PROVIDER_CN_SILICONFLOW_DEEPSEEK_V3_API_KEY"
+    },
+    {
+      id: "cn-siliconflow-qwen",
+      vendor: "openai-compatible",
+      model: "Qwen/Qwen2.5-72B-Instruct",
+      roles: ["chat", "planning", "emotion", "coding", "tool-use"],
+      baseUrl: "https://api.siliconflow.cn/v1",
+      apiKeyEnv: "ARIA_MODEL_PROVIDER_CN_SILICONFLOW_QWEN_API_KEY"
     }
   ],
   taskRoutes: {
-    emotional_companion: ["companion-primary", "companion-fallback"],
-    coding_execution: ["code-specialist", "companion-primary", "companion-fallback"],
-    work_planning: ["companion-primary", "code-specialist", "companion-fallback"],
-    autonomy_dispatch: ["code-specialist", "companion-fallback"],
-    memory_digest: ["companion-fallback"]
+    emotional_companion: [
+      "cn-aliyun-qwen-plus",
+      "cn-zhipu-glm-4-plus",
+      "cn-siliconflow-qwen",
+      "companion-primary",
+      "companion-fallback"
+    ],
+    coding_execution: [
+      "cn-deepseek-chat",
+      "cn-siliconflow-deepseek-v3",
+      "cn-aliyun-qwen-plus",
+      "code-specialist",
+      "companion-fallback"
+    ],
+    work_planning: [
+      "cn-aliyun-qwen-plus",
+      "cn-zhipu-glm-4-plus",
+      "cn-deepseek-chat",
+      "code-specialist",
+      "companion-fallback"
+    ],
+    autonomy_dispatch: [
+      "cn-deepseek-chat",
+      "cn-siliconflow-deepseek-v3",
+      "cn-aliyun-qwen-plus",
+      "code-specialist",
+      "companion-fallback"
+    ],
+    memory_digest: [
+      "cn-aliyun-qwen-plus",
+      "cn-siliconflow-qwen",
+      "cn-deepseek-chat",
+      "companion-fallback"
+    ]
   },
   degradeStrategy: {
     timeoutMs: 20000,
@@ -3683,10 +3791,14 @@ function createDefaultMemorySystemState() {
     };
   }
   return {
-    version: "2026.3.4",
+    version: "2026.3.8",
     backend: isQdrantEnabled() ? "qdrant" : "local-vector-index",
     vectorDim: MEMORY_VECTOR_DIM,
     longTerm: {
+      items: [],
+      updatedAt: ""
+    },
+    middleTerm: {
       items: [],
       updatedAt: ""
     },
@@ -3710,6 +3822,7 @@ function createDefaultMemorySystemState() {
       lastPrelearningAt: "",
       lastContextRecycleAt: ""
     },
+    architecture: createDefaultMemoryArchitectureState(),
     stats: {
       totalWrites: 0,
       dedupeRemovals: 0,
@@ -5552,6 +5665,22 @@ function isFunGameFixIntent(textInput = "") {
   return /修复|修正|改一下|调正|调一下|优化|没做好|有问题|错误|bug|失效|不能|无法|不灵|方向键|上下左右/.test(text);
 }
 
+function pickRotatingFunGameBlueprint(userState, modeInput = "mini_game") {
+  const mode = sanitizeFunGameMode(modeInput, "mini_game");
+  if (mode !== "mini_game") {
+    return "reaction";
+  }
+  const pool = ["reaction", "memory_flip", "whack_mole", "match3", "snake", "tetris"];
+  const games = ensureFunGamesState(userState);
+  const latestMiniGame = games.find((item) => String(item?.mode || "") === "mini_game") || null;
+  const latestBlueprint = sanitizeFunGameBlueprint(latestMiniGame?.blueprint, "");
+  const latestIndex = pool.indexOf(latestBlueprint);
+  if (latestIndex < 0) {
+    return pool[0];
+  }
+  return pool[(latestIndex + 1) % pool.length];
+}
+
 function maybeCreateFunGameFromChat(userState, textInput = "", options = {}) {
   const text = String(textInput || "").trim();
   const scene = normalizeMessageScene(options?.scene, "love");
@@ -5584,6 +5713,9 @@ function maybeCreateFunGameFromChat(userState, textInput = "", options = {}) {
         reviveEnabled: latestGame.reviveEnabled
       }
     );
+  }
+  if (!shouldInheritBlueprint && inferred.mode === "mini_game" && !hasExplicitFunGameBlueprintCue(text)) {
+    inferred.blueprint = pickRotatingFunGameBlueprint(userState, inferred.mode);
   }
   const result = createFunGameArtifact(
     userState,
@@ -6542,19 +6674,47 @@ function applyPersonaIntensityToRuleBasedReply(baseText, userInput = "", persona
   if (deduped.length === 0) {
     return "";
   }
+  const runtimeScene = String(personaRuntime.scene || "").trim().toLowerCase();
+  const runtimeTaskType = String(personaRuntime.taskType || "").trim().toLowerCase();
+  const suppressExecutionTone = shouldSuppressExecutionToneForScene(runtimeScene, userInput);
+  const explicitExecutionIntent = !suppressExecutionTone && chatIntentRequestsExecution(userInput);
+  const preferCompanionTone = !explicitExecutionIntent && (
+    runtimeTaskType === "emotional_companion"
+    || runtimeTaskType === "general_chat"
+    || runtimeTaskType === "general"
+    || runtimeScene === "love"
+    || runtimeScene === "life"
+    || runtimeScene === "fun"
+  );
   const inferredGoal = inferConciseGoalFromInput(userInput);
   const hasInferredGoal = inferredGoal && inferredGoal !== "当前任务";
-  const sharedNextStepLine = hasInferredGoal
-    ? pickRandom([
-      `下一步：你拍板优先级后，我先冲「${inferredGoal}」。`,
-      `下一步：我先推进「${inferredGoal}」，你补一句时限我就开跑。`,
-      `下一步：我按「${inferredGoal}」往下做，卡点我会第一时间回你。`
-    ])
-    : pickRandom([
-      "下一步：你给我一个时限或数量，我继续推进。",
-      "下一步：你定优先级，我马上并行推进。",
-      "下一步：你补一句关键限制，我直接开做。"
-    ]);
+  const sharedNextStepLine = preferCompanionTone
+    ? (
+      hasInferredGoal
+        ? pickRandom([
+          `下一步：你先缓一口气，我们从「${inferredGoal}」里最轻的一步开始。`,
+          `下一步：你点头我就陪你从「${inferredGoal}」的第一小步走起。`,
+          `下一步：先把心稳住，我陪你把「${inferredGoal}」拆成一口能咽下的小步。`
+        ])
+        : pickRandom([
+          "下一步：你告诉我现在最想先稳住哪一点，我陪你。",
+          "下一步：先喝口水，我在这儿等你一句“继续”。",
+          "下一步：你不用急，我们先做最小的一步就好。"
+        ])
+    )
+    : (
+      hasInferredGoal
+        ? pickRandom([
+          `下一步：你拍板优先级后，我先冲「${inferredGoal}」。`,
+          `下一步：我先推进「${inferredGoal}」，你补一句时限我就开跑。`,
+          `下一步：我按「${inferredGoal}」往下做，卡点我会第一时间回你。`
+        ])
+        : pickRandom([
+          "下一步：你给我一个时限或数量，我继续推进。",
+          "下一步：你定优先级，我马上并行推进。",
+          "下一步：你补一句关键限制，我直接开做。"
+        ])
+    );
   const highRiskLine = pickRandom([
     "这类操作有风险，我先和你二次确认再执行。",
     "涉及权限/资金/隐私，我会先等你确认后继续。",
@@ -6582,18 +6742,34 @@ function applyPersonaIntensityToRuleBasedReply(baseText, userInput = "", persona
   }
 
   const advanced = deduped.slice(0, 3);
-  if (!advanced.some((line) => /^执行策略[:：]/.test(line))) {
-    const strategyLine = hasInferredGoal
-      ? pickRandom([
-        `执行策略：我会围绕「${inferredGoal}」并行推进，并在关键节点主动回执。`,
-        `执行策略：以「${inferredGoal}」为主线，先快跑关键步骤，再补齐细节。`,
-        `执行策略：我先锁定「${inferredGoal}」的高优先级动作，持续给你进展回报。`
-      ])
-      : pickRandom([
-        "执行策略：我会持续跟进目标，并在关键节点主动回执。",
-        "执行策略：先推进高价值步骤，再按结果回补细节。",
-        "执行策略：我会边执行边汇报，确保你随时可接管。"
-      ]);
+  if (!advanced.some((line) => /^执行策略[:：]|^陪伴节奏[:：]/.test(line))) {
+    const strategyLine = preferCompanionTone
+      ? (
+        hasInferredGoal
+          ? pickRandom([
+            `陪伴节奏：我先接住你的情绪，再陪你把「${inferredGoal}」走到可落地。`,
+            `陪伴节奏：先让你稳下来，再把「${inferredGoal}」拆成可执行小步。`,
+            `陪伴节奏：我会边安抚边推进「${inferredGoal}」，不让你一个人扛。`
+          ])
+          : pickRandom([
+            "陪伴节奏：先把你现在的情绪接住，再一起推进最小一步。",
+            "陪伴节奏：我会先稳住你，再给你不费力也能做到的下一步。",
+            "陪伴节奏：这轮我先陪你，再把问题慢慢拆开。"
+          ])
+      )
+      : (
+        hasInferredGoal
+          ? pickRandom([
+            `执行策略：我会围绕「${inferredGoal}」并行推进，并在关键节点主动回执。`,
+            `执行策略：以「${inferredGoal}」为主线，先快跑关键步骤，再补齐细节。`,
+            `执行策略：我先锁定「${inferredGoal}」的高优先级动作，持续给你进展回报。`
+          ])
+          : pickRandom([
+            "执行策略：我会持续跟进目标，并在关键节点主动回执。",
+            "执行策略：先推进高价值步骤，再按结果回补细节。",
+            "执行策略：我会边执行边汇报，确保你随时可接管。"
+          ])
+      );
     advanced.push(strategyLine);
   }
   if (isHighRisk) {
@@ -7074,11 +7250,15 @@ function buildScenePromptRegistryPreview() {
   };
 }
 
-function buildRuleBasedOpeningFromScenePrompt(sceneInput = "", promptInput = "") {
+function buildRuleBasedOpeningFromScenePrompt(sceneInput = "", promptInput = "", options = {}) {
   const scene = resolveScenePromptScene(sceneInput);
   const prompt = String(promptInput || "").trim();
+  const userInput = String(options?.userInput || "").trim();
+  const styleLine = pickSceneStyleLine(scene, userInput, "opening", {
+    userState: options?.userState
+  });
   if (!prompt) {
-    return "";
+    return styleLine;
   }
   const sceneOpenings = {
     coding: [
@@ -7108,6 +7288,9 @@ function buildRuleBasedOpeningFromScenePrompt(sceneInput = "", promptInput = "")
     ]
   };
   const sceneOpeningCandidates = sceneOpenings[scene] || [];
+  if (styleLine) {
+    return styleLine;
+  }
   if (sceneOpeningCandidates.length > 0) {
     return pickRandom(sceneOpeningCandidates);
   }
@@ -14463,6 +14646,51 @@ function buildChannelSendAttachments(operation, context) {
     .filter((item) => item.path);
 }
 
+function buildQueueSharedStateFromDispatch(autonomyInput, dispatchIdInput = "") {
+  const shared = {};
+  const autonomy = autonomyInput && typeof autonomyInput === "object" ? autonomyInput : null;
+  const dispatchId = String(dispatchIdInput || "").trim();
+  if (!autonomy || !dispatchId) {
+    return shared;
+  }
+  const history = Array.isArray(autonomy.dispatch?.history) ? autonomy.dispatch.history : [];
+  const dispatch = history.find((item) => String(item?.id || "").trim() === dispatchId) || null;
+  if (!dispatch) {
+    return shared;
+  }
+  const steps = Array.isArray(dispatch.steps) ? dispatch.steps : [];
+  for (const step of steps) {
+    const type = String(step?.type || "").trim();
+    const status = String(step?.status || "").trim().toLowerCase();
+    const output = step?.output && typeof step.output === "object" ? step.output : null;
+    if (!output || status !== "completed") {
+      continue;
+    }
+    if (type === "file_search") {
+      const matches = Array.isArray(output.matches) ? output.matches : [];
+      if (matches.length > 0) {
+        shared.lastFileSearch = {
+          ...output,
+          matches
+        };
+      }
+      continue;
+    }
+    if (type === "web_research" && !shared.lastWebResearch) {
+      shared.lastWebResearch = output;
+      continue;
+    }
+    if (type === "research_bundle" && !shared.lastResearchBundle) {
+      shared.lastResearchBundle = output;
+      continue;
+    }
+    if (type === "channel_send" && !shared.lastChannelSend) {
+      shared.lastChannelSend = output;
+    }
+  }
+  return shared;
+}
+
 function parseBooleanFlag(valueInput, fallback = false) {
   const text = String(valueInput ?? "").trim().toLowerCase();
   if (!text) {
@@ -16954,6 +17182,7 @@ function enqueueAutonomyDispatchPlan(userState, intentText, operationsInput = []
   let queuedCount = 0;
   let blockedCount = 0;
   let skippedCount = 0;
+  const pendingQueueEntries = [];
 
   for (let index = 0; index < operations.length; index += 1) {
     const operation = operations[index];
@@ -17022,10 +17251,7 @@ function enqueueAutonomyDispatchPlan(userState, intentText, operationsInput = []
       lastError: "",
       lastSummary: "queued_from_chat_async"
     };
-    autonomy.queue.items.unshift(entry);
-    if (autonomy.queue.items.length > AUTONOMY_QUEUE_MAX_ITEMS) {
-      autonomy.queue.items.length = AUTONOMY_QUEUE_MAX_ITEMS;
-    }
+    pendingQueueEntries.push(entry);
     step.output = {
       summary: `已入队，等待执行器处理（队列 ID: ${entry.id}）。`,
       queueEntryId: entry.id,
@@ -17033,6 +17259,15 @@ function enqueueAutonomyDispatchPlan(userState, intentText, operationsInput = []
     };
     queuedCount += 1;
     dispatch.steps.push(step);
+  }
+
+  if (pendingQueueEntries.length > 0) {
+    for (let index = pendingQueueEntries.length - 1; index >= 0; index -= 1) {
+      autonomy.queue.items.unshift(pendingQueueEntries[index]);
+    }
+    if (autonomy.queue.items.length > AUTONOMY_QUEUE_MAX_ITEMS) {
+      autonomy.queue.items.length = AUTONOMY_QUEUE_MAX_ITEMS;
+    }
   }
 
   if (queuedCount <= 0) {
@@ -17924,6 +18159,7 @@ async function processAutonomyQueue(userState, options = {}) {
   let retried = 0;
   let deadLettered = 0;
   let changed = false;
+  const queueSharedStateByDispatchId = new Map();
 
   for (const wrapper of sorted) {
     if (processed >= limit) {
@@ -18024,11 +18260,25 @@ async function processAutonomyQueue(userState, options = {}) {
     });
 
     let result;
+    const dispatchSharedStateKey = String(entry.dispatchId || entry.flowId || "").trim();
+    const dispatchSharedState = (() => {
+      if (!dispatchSharedStateKey) {
+        return {};
+      }
+      if (!queueSharedStateByDispatchId.has(dispatchSharedStateKey)) {
+        queueSharedStateByDispatchId.set(
+          dispatchSharedStateKey,
+          buildQueueSharedStateFromDispatch(autonomy, entry.dispatchId)
+        );
+      }
+      return queueSharedStateByDispatchId.get(dispatchSharedStateKey) || {};
+    })();
     try {
       result = await executeAutonomyOperation(userState, entry.operation || {}, {
         flowId: entry.flowId || entry.dispatchId,
         dispatchId: entry.dispatchId,
-        source: "queue_retry"
+        source: "queue_retry",
+        shared: dispatchSharedState
       });
     } catch (error) {
       result = {
@@ -18038,6 +18288,9 @@ async function processAutonomyQueue(userState, options = {}) {
           error: error instanceof Error ? error.message : String(error)
         }
       };
+    }
+    if (dispatchSharedStateKey) {
+      queueSharedStateByDispatchId.set(dispatchSharedStateKey, dispatchSharedState);
     }
 
     if (result.status === "completed") {
@@ -22895,11 +23148,13 @@ function sanitizeMemorySystemState(userState, options = {}) {
     ? memorySystem.sceneVaults[scene].items
     : memorySystem.vectorIndex.items;
   return {
-    version: String(memorySystem.version || "2026.3.4"),
+    version: String(memorySystem.version || "2026.3.8"),
     backend: String(memorySystem.backend || "local-vector-index"),
     vectorDim: clampInteger(memorySystem.vectorDim, MEMORY_VECTOR_DIM, 16, 2048),
+    architecture: memorySystem.architecture,
     summary: {
       longTerm: memorySystem.longTerm.items.length,
+      middleTerm: memorySystem.middleTerm.items.length,
       shortTerm: memorySystem.shortTerm.items.length,
       temporary: memorySystem.temporary.items.length,
       vectorIndex: memorySystem.vectorIndex.items.length,
@@ -22950,8 +23205,10 @@ function buildMemoryPlaneRuntimeSnapshot(userState) {
         lastSearchHits: vectorBackendRuntime.qdrant.lastSearchHits
       }
     },
+    architecture: memorySystem.architecture,
     memorySummary: {
       longTerm: memorySystem.longTerm.items.length,
+      middleTerm: memorySystem.middleTerm.items.length,
       shortTerm: memorySystem.shortTerm.items.length,
       temporary: memorySystem.temporary.items.length,
       vectorIndex: memorySystem.vectorIndex.items.length,
@@ -24127,16 +24384,187 @@ function normalizeMemoryScene(sceneInput, fallback = "love") {
 
 function normalizeMemoryTier(tierInput, fallback = "long_term") {
   const tier = String(tierInput || "").trim().toLowerCase();
-  if (tier === "long_term" || tier === "short_term" || tier === "temporary") {
+  if (tier === "long_term" || tier === "mid_term" || tier === "short_term" || tier === "temporary") {
     return tier;
   }
   return fallback;
 }
 
-function memoryTierLimit(tier) {
-  if (tier === "short_term") return MEMORY_TIER_LIMITS.short_term;
-  if (tier === "temporary") return MEMORY_TIER_LIMITS.temporary;
+function normalizeMemoryArchitectureMode(modeInput, fallback = "three_plus_one") {
+  const mode = String(modeInput || "").trim().toLowerCase();
+  if (mode === "three_plus_one" || mode === "3+1" || mode === "three-plus-one") {
+    return "three_plus_one";
+  }
+  if (mode === "classic" || mode === "legacy") {
+    return "classic";
+  }
+  return fallback === "classic" ? "classic" : "three_plus_one";
+}
+
+function normalizeMemoryArchitectureState(input = {}, options = {}) {
+  const raw = input && typeof input === "object" ? input : {};
+  const fallbackMode = normalizeMemoryArchitectureMode(
+    options.fallbackMode,
+    normalizeMemoryArchitectureMode(MEMORY_ARCH_ENV_MODE, "three_plus_one")
+  );
+  const mode = normalizeMemoryArchitectureMode(raw.mode, fallbackMode);
+  const shortTermRaw = raw.shortTerm && typeof raw.shortTerm === "object" ? raw.shortTerm : {};
+  const midTermRaw = raw.midTerm && typeof raw.midTerm === "object" ? raw.midTerm : {};
+  const longTermRaw = raw.longTerm && typeof raw.longTerm === "object" ? raw.longTerm : {};
+  const temporaryRaw = raw.temporary && typeof raw.temporary === "object" ? raw.temporary : {};
+  const realtimeReasoningRaw =
+    raw.realtimeReasoning && typeof raw.realtimeReasoning === "object"
+      ? raw.realtimeReasoning
+      : {};
+  return {
+    mode,
+    shortTerm: {
+      enabled: shortTermRaw.enabled !== false,
+      maxItems: clampInteger(shortTermRaw.maxItems, MEMORY_TIER_LIMITS.short_term, 20, 6000)
+    },
+    midTerm: {
+      enabled: mode === "three_plus_one" ? midTermRaw.enabled !== false : false,
+      maxItems: clampInteger(midTermRaw.maxItems, MEMORY_TIER_LIMITS.mid_term, 20, 6000)
+    },
+    longTerm: {
+      enabled: longTermRaw.enabled !== false,
+      maxItems: clampInteger(longTermRaw.maxItems, MEMORY_TIER_LIMITS.long_term, 20, 6000)
+    },
+    temporary: {
+      enabled: temporaryRaw.enabled !== false,
+      maxItems: clampInteger(temporaryRaw.maxItems, MEMORY_TIER_LIMITS.temporary, 20, 6000)
+    },
+    realtimeReasoning: {
+      topK: clampInteger(realtimeReasoningRaw.topK, MEMORY_REASONING_TOPK_DEFAULT, 1, 24),
+      includeCrossScene: realtimeReasoningRaw.includeCrossScene !== false,
+      hybridSearch: realtimeReasoningRaw.hybridSearch !== false
+    },
+    updatedAt: String(
+      raw.updatedAt
+      || (options.touchUpdatedAt === true ? new Date().toISOString() : "")
+    )
+  };
+}
+
+function createDefaultMemoryArchitectureState() {
+  return normalizeMemoryArchitectureState(
+    {
+      mode: MEMORY_ARCH_ENV_MODE,
+      realtimeReasoning: {
+        topK: MEMORY_REASONING_TOPK_DEFAULT
+      }
+    },
+    {
+      fallbackMode: MEMORY_ARCH_ENV_MODE,
+      touchUpdatedAt: true
+    }
+  );
+}
+
+function isMemoryTierEnabled(memorySystem, tierInput) {
+  const tier = normalizeMemoryTier(tierInput, "long_term");
+  const architecture =
+    memorySystem && typeof memorySystem.architecture === "object"
+      ? memorySystem.architecture
+      : normalizeMemoryArchitectureState({}, { fallbackMode: MEMORY_ARCH_ENV_MODE });
+  if (tier === "long_term") return architecture.longTerm?.enabled !== false;
+  if (tier === "mid_term") return architecture.midTerm?.enabled !== false;
+  if (tier === "short_term") return architecture.shortTerm?.enabled !== false;
+  if (tier === "temporary") return architecture.temporary?.enabled !== false;
+  return true;
+}
+
+function resolveWritableMemoryTier(memorySystem, tierInput, fallback = "long_term") {
+  const tier = normalizeMemoryTier(tierInput, fallback);
+  const candidateOrderByTier = {
+    long_term: ["long_term", "mid_term", "short_term", "temporary"],
+    mid_term: ["mid_term", "long_term", "short_term", "temporary"],
+    short_term: ["short_term", "mid_term", "temporary", "long_term"],
+    temporary: ["temporary", "short_term", "mid_term", "long_term"]
+  };
+  const candidates = candidateOrderByTier[tier] || candidateOrderByTier.long_term;
+  for (const candidateTier of candidates) {
+    if (isMemoryTierEnabled(memorySystem, candidateTier)) {
+      return candidateTier;
+    }
+  }
+  return normalizeMemoryTier(fallback, "long_term");
+}
+
+function memoryTierLimit(tier, memorySystem = null) {
+  const normalizedTier = normalizeMemoryTier(tier, "long_term");
+  const architecture =
+    memorySystem && memorySystem.architecture && typeof memorySystem.architecture === "object"
+      ? memorySystem.architecture
+      : null;
+  if (architecture) {
+    if (normalizedTier === "mid_term") return clampInteger(architecture.midTerm?.maxItems, MEMORY_TIER_LIMITS.mid_term, 20, 6000);
+    if (normalizedTier === "short_term") return clampInteger(architecture.shortTerm?.maxItems, MEMORY_TIER_LIMITS.short_term, 20, 6000);
+    if (normalizedTier === "temporary") return clampInteger(architecture.temporary?.maxItems, MEMORY_TIER_LIMITS.temporary, 20, 6000);
+    return clampInteger(architecture.longTerm?.maxItems, MEMORY_TIER_LIMITS.long_term, 20, 6000);
+  }
+  if (normalizedTier === "mid_term") return MEMORY_TIER_LIMITS.mid_term;
+  if (normalizedTier === "short_term") return MEMORY_TIER_LIMITS.short_term;
+  if (normalizedTier === "temporary") return MEMORY_TIER_LIMITS.temporary;
   return MEMORY_TIER_LIMITS.long_term;
+}
+
+function trimMemoryBucketsToArchitectureLimits(memorySystem) {
+  for (const [bucketKey, tierKey] of [
+    ["longTerm", "long_term"],
+    ["middleTerm", "mid_term"],
+    ["shortTerm", "short_term"],
+    ["temporary", "temporary"]
+  ]) {
+    if (!memorySystem[bucketKey] || typeof memorySystem[bucketKey] !== "object") {
+      memorySystem[bucketKey] = { items: [], updatedAt: "" };
+    }
+    if (!Array.isArray(memorySystem[bucketKey].items)) {
+      memorySystem[bucketKey].items = [];
+    }
+    const max = memoryTierLimit(tierKey, memorySystem);
+    if (memorySystem[bucketKey].items.length > max) {
+      memorySystem[bucketKey].items.length = max;
+    }
+  }
+}
+
+function updateMemoryArchitecture(userState, patchInput = {}, options = {}) {
+  const memorySystem = ensureMemoryPlaneState(userState);
+  const patch = patchInput && typeof patchInput === "object" ? patchInput : {};
+  const merged = {
+    ...memorySystem.architecture,
+    ...patch,
+    shortTerm: {
+      ...(memorySystem.architecture?.shortTerm || {}),
+      ...(patch.shortTerm && typeof patch.shortTerm === "object" ? patch.shortTerm : {})
+    },
+    midTerm: {
+      ...(memorySystem.architecture?.midTerm || {}),
+      ...(patch.midTerm && typeof patch.midTerm === "object" ? patch.midTerm : {})
+    },
+    longTerm: {
+      ...(memorySystem.architecture?.longTerm || {}),
+      ...(patch.longTerm && typeof patch.longTerm === "object" ? patch.longTerm : {})
+    },
+    temporary: {
+      ...(memorySystem.architecture?.temporary || {}),
+      ...(patch.temporary && typeof patch.temporary === "object" ? patch.temporary : {})
+    },
+    realtimeReasoning: {
+      ...(memorySystem.architecture?.realtimeReasoning || {}),
+      ...(patch.realtimeReasoning && typeof patch.realtimeReasoning === "object" ? patch.realtimeReasoning : {})
+    }
+  };
+  memorySystem.architecture = normalizeMemoryArchitectureState(merged, {
+    fallbackMode: memorySystem.architecture?.mode || MEMORY_ARCH_ENV_MODE,
+    touchUpdatedAt: true
+  });
+  trimMemoryBucketsToArchitectureLimits(memorySystem);
+  if (options.updateVersion !== false) {
+    memorySystem.version = "2026.3.8";
+  }
+  return memorySystem.architecture;
 }
 
 function buildTextEmbeddingVector(text, dim = MEMORY_VECTOR_DIM) {
@@ -24577,8 +25005,13 @@ function ensureMemoryPlaneState(userState) {
     userState.memorySystem = createDefaultMemorySystemState();
   }
   const memorySystem = userState.memorySystem;
+  memorySystem.version = "2026.3.8";
+  memorySystem.vectorDim = clampInteger(memorySystem.vectorDim, MEMORY_VECTOR_DIM, 16, 2048);
   if (!memorySystem.longTerm || typeof memorySystem.longTerm !== "object") {
     memorySystem.longTerm = { items: [], updatedAt: "" };
+  }
+  if (!memorySystem.middleTerm || typeof memorySystem.middleTerm !== "object") {
+    memorySystem.middleTerm = { items: [], updatedAt: "" };
   }
   if (!memorySystem.shortTerm || typeof memorySystem.shortTerm !== "object") {
     memorySystem.shortTerm = { items: [], updatedAt: "" };
@@ -24586,6 +25019,12 @@ function ensureMemoryPlaneState(userState) {
   if (!memorySystem.temporary || typeof memorySystem.temporary !== "object") {
     memorySystem.temporary = { items: [], updatedAt: "" };
   }
+  memorySystem.architecture = normalizeMemoryArchitectureState(
+    memorySystem.architecture,
+    {
+      fallbackMode: MEMORY_ARCH_ENV_MODE
+    }
+  );
   if (!memorySystem.sceneVaults || typeof memorySystem.sceneVaults !== "object") {
     memorySystem.sceneVaults = {};
   }
@@ -24650,22 +25089,30 @@ function ensureMemoryPlaneState(userState) {
     memorySystem.stats.bootstrappedFromHighlights = false;
   }
 
-  for (const tier of ["longTerm", "shortTerm", "temporary"]) {
+  for (const tier of ["longTerm", "middleTerm", "shortTerm", "temporary"]) {
     if (!Array.isArray(memorySystem[tier].items)) {
       memorySystem[tier].items = [];
     }
-    const normalizedTier = tier === "longTerm" ? "long_term" : (tier === "shortTerm" ? "short_term" : "temporary");
+    const normalizedTier =
+      tier === "longTerm"
+        ? "long_term"
+        : tier === "middleTerm"
+          ? "mid_term"
+          : tier === "shortTerm"
+            ? "short_term"
+            : "temporary";
     memorySystem[tier].items = memorySystem[tier].items
       .filter((item) => item && typeof item === "object")
       .map((item) => ({
         ...sanitizeMemoryVectorRecord(item),
         tier: normalizedTier
       }))
-      .slice(0, memoryTierLimit(normalizedTier));
+      .slice(0, memoryTierLimit(normalizedTier, memorySystem));
     if (typeof memorySystem[tier].updatedAt !== "string") {
       memorySystem[tier].updatedAt = "";
     }
   }
+  trimMemoryBucketsToArchitectureLimits(memorySystem);
 
   if (!Array.isArray(userState.memoryHighlights)) {
     userState.memoryHighlights = [];
@@ -24696,10 +25143,12 @@ function writeMemoryRecord(userState, input = {}) {
     return null;
   }
   const memorySystem = ensureMemoryPlaneState(userState);
+  const normalizedTier = normalizeMemoryTier(input.tier, "long_term");
+  const writableTier = resolveWritableMemoryTier(memorySystem, normalizedTier, "long_term");
   const record = createMemoryVectorRecord({
     content,
     scene: normalizeMemoryScene(input.scene, "love"),
-    tier: normalizeMemoryTier(input.tier, "long_term"),
+    tier: writableTier,
     source: input.source || "memory",
     tags: input.tags || [],
     importance: input.importance,
@@ -24710,10 +25159,12 @@ function writeMemoryRecord(userState, input = {}) {
   const targetTier = record.tier;
   const tierBucket = targetTier === "short_term"
     ? memorySystem.shortTerm
+    : targetTier === "mid_term"
+      ? memorySystem.middleTerm
     : targetTier === "temporary"
       ? memorySystem.temporary
       : memorySystem.longTerm;
-  const tierPush = pushMemoryRecord(tierBucket.items, record, memoryTierLimit(targetTier));
+  const tierPush = pushMemoryRecord(tierBucket.items, record, memoryTierLimit(targetTier, memorySystem));
   const scenePush = pushMemoryRecord(memorySystem.sceneVaults[targetScene].items, tierPush.record, MEMORY_TIER_LIMITS.scene);
   const vectorPush = pushMemoryRecord(memorySystem.vectorIndex.items, scenePush.record, MEMORY_VECTOR_INDEX_LIMIT);
   tierBucket.updatedAt = nowIso;
@@ -24737,6 +25188,7 @@ function removeMemoryRecordById(userState, memoryId) {
     return removed;
   };
   let removed = removeFromBucket(memorySystem.longTerm)
+    || removeFromBucket(memorySystem.middleTerm)
     || removeFromBucket(memorySystem.shortTerm)
     || removeFromBucket(memorySystem.temporary);
   for (const scene of MEMORY_SCENES) {
@@ -24781,13 +25233,18 @@ function getMemoryRecordsByScene(userState, sceneInput = "") {
 }
 
 function buildMemorySearchCandidates(userState, options = {}) {
+  const memorySystem = ensureMemoryPlaneState(userState);
   const scene = normalizeMemoryScene(options.scene, "");
   const includeCrossScene = options.includeCrossScene !== false;
-  const records = getMemoryRecordsByScene(userState, scene);
+  const records = getMemoryRecordsByScene(userState, scene).filter((item) =>
+    isMemoryTierEnabled(memorySystem, normalizeMemoryTier(item.tier, "long_term"))
+  );
   if (scene && includeCrossScene) {
-    const memorySystem = ensureMemoryPlaneState(userState);
     const crossSceneRecords = memorySystem.vectorIndex.items
-      .filter((item) => item.scene !== scene)
+      .filter((item) =>
+        item.scene !== scene
+        && isMemoryTierEnabled(memorySystem, normalizeMemoryTier(item.tier, "long_term"))
+      )
       .slice(0, 220);
     return [...records, ...crossSceneRecords];
   }
@@ -24795,14 +25252,28 @@ function buildMemorySearchCandidates(userState, options = {}) {
 }
 
 function searchMemoryCandidates(userState, query, limit, options = {}) {
+  const memorySystem = ensureMemoryPlaneState(userState);
+  const architecture = memorySystem.architecture || createDefaultMemoryArchitectureState();
+  const reasoningTopK = clampInteger(
+    architecture?.realtimeReasoning?.topK,
+    MEMORY_REASONING_TOPK_DEFAULT,
+    1,
+    24
+  );
+  const architectureCrossScene = architecture?.realtimeReasoning?.includeCrossScene !== false;
+  const hybridSearch = architecture?.realtimeReasoning?.hybridSearch !== false;
   const normalizedQuery = normalizeSearchText(query);
   const queryTokens = tokenizeSearchQuery(query);
   const mode = userState.preferences?.mode || "陪伴";
   const modeTerms = modeKeywords[mode] || [];
-  const maxItems = clampInteger(limit, 6, 1, 20);
+  const maxItems = clampInteger(limit, reasoningTopK, 1, 20);
   const scene = normalizeMemoryScene(options.scene, "");
-  const includeCrossScene = options.includeCrossScene !== false;
-  const queryVector = buildTextEmbeddingVector(normalizedQuery || query || "", MEMORY_VECTOR_DIM).vector;
+  const includeCrossScene = options.includeCrossScene === undefined
+    ? architectureCrossScene
+    : options.includeCrossScene !== false;
+  const queryVector = hybridSearch
+    ? buildTextEmbeddingVector(normalizedQuery || query || "", MEMORY_VECTOR_DIM).vector
+    : [];
   const candidates = buildMemorySearchCandidates(userState, {
     scene,
     includeCrossScene
@@ -24812,7 +25283,9 @@ function searchMemoryCandidates(userState, query, limit, options = {}) {
     .map((candidate, index) => {
       const normalizedContent = normalizeSearchText(candidate.content);
       const reasons = [];
-      const embeddingCosine = cosineSimilarityFromVector(queryVector, candidate.vector || []);
+      const embeddingCosine = hybridSearch
+        ? cosineSimilarityFromVector(queryVector, candidate.vector || [])
+        : 0;
       let score = Math.max(0, embeddingCosine);
       let rerankScore = score;
 
@@ -24851,6 +25324,8 @@ function searchMemoryCandidates(userState, query, limit, options = {}) {
 
       if (candidate.tier === "long_term") {
         score += 0.08;
+      } else if (candidate.tier === "mid_term") {
+        score += 0.06;
       } else if (candidate.tier === "short_term") {
         score += 0.04;
       }
@@ -24885,7 +25360,7 @@ function searchMemoryCandidates(userState, query, limit, options = {}) {
         embedding_score: Number(Math.min(0.99, Math.max(0, embeddingCosine)).toFixed(3)),
         rerank_score: Number(Math.min(0.99, Math.max(0, rerankScore)).toFixed(3)),
         trigger_confidence: Number(Math.min(0.99, Math.max(0, (score + rerankScore) / 2)).toFixed(3)),
-        reasons
+        reasons: hybridSearch ? reasons : [...reasons, "hybrid_search_disabled"]
       };
     })
     .filter((item) => {
@@ -24913,8 +25388,20 @@ function searchMemoryCandidates(userState, query, limit, options = {}) {
 }
 
 async function searchMemoryCandidatesWithBackend(userState, query, limit, options = {}) {
+  const memorySystem = ensureMemoryPlaneState(userState);
+  const architecture = memorySystem.architecture || createDefaultMemoryArchitectureState();
+  const hybridSearch = architecture?.realtimeReasoning?.hybridSearch !== false;
+  const reasoningTopK = clampInteger(
+    architecture?.realtimeReasoning?.topK,
+    MEMORY_REASONING_TOPK_DEFAULT,
+    1,
+    24
+  );
+  const includeCrossScene = options.includeCrossScene === undefined
+    ? architecture?.realtimeReasoning?.includeCrossScene !== false
+    : options.includeCrossScene !== false;
   const localResult = searchMemoryCandidates(userState, query, limit, options);
-  if (!isQdrantEnabled()) {
+  if (!isQdrantEnabled() || !hybridSearch) {
     return localResult;
   }
   const queryVector = buildTextEmbeddingVector(String(query || ""), MEMORY_VECTOR_DIM).vector;
@@ -24923,8 +25410,8 @@ async function searchMemoryCandidatesWithBackend(userState, query, limit, option
     queryVector,
     {
       scene: options.scene,
-      includeCrossScene: options.includeCrossScene !== false,
-      limit: clampInteger(limit, 8, 1, 40)
+      includeCrossScene,
+      limit: clampInteger(limit, reasoningTopK, 1, 40)
     }
   );
   if (!remoteResult.ok || !Array.isArray(remoteResult.items) || remoteResult.items.length === 0) {
@@ -24944,7 +25431,7 @@ async function searchMemoryCandidatesWithBackend(userState, query, limit, option
   }
   const mergedItems = Array.from(mergedMap.values())
     .sort((left, right) => Number(right.score || 0) - Number(left.score || 0))
-    .slice(0, clampInteger(limit, 6, 1, 20));
+    .slice(0, clampInteger(limit, reasoningTopK, 1, 20));
   const triggerConfidence = mergedItems.length > 0
     ? Number((mergedItems.reduce((sum, item) => sum + Number(item.trigger_confidence || item.score || 0), 0) / mergedItems.length).toFixed(3))
     : 0;
@@ -25012,12 +25499,12 @@ function extractMemoryHighlights(text, state, options = {}) {
 
 function addMemoryHighlight(userState, content, options = {}) {
   const scene = normalizeMemoryScene(options.scene, "love");
-  const tier = normalizeMemoryTier(options.tier, "long_term");
+  const requestedTier = normalizeMemoryTier(options.tier, "long_term");
   dedupePush(userState.memoryHighlights, content, 80);
   const record = writeMemoryRecord(userState, {
     content,
     scene,
-    tier,
+    tier: requestedTier,
     source: options.source || "manual_memory",
     tags: options.tags || ["manual", scene],
     importance: options.importance ?? 0.76,
@@ -25027,7 +25514,7 @@ function addMemoryHighlight(userState, content, options = {}) {
     id: String(record?.id || memoryItemId("highlight", 0, content)),
     source: String(record?.source || "memory_highlight"),
     scene,
-    tier,
+    tier: normalizeMemoryTier(record?.tier, requestedTier),
     content
   };
 }
@@ -26100,7 +26587,7 @@ async function runAuthorityLearningJobForUser(userState) {
     const record = writeMemoryRecord(userState, {
       content: `权威学习[${host}]：${digest.summary}`,
       scene: "work",
-      tier: "long_term",
+      tier: "mid_term",
       source: "authority_learning",
       tags: ["authority", "learning", "work"],
       importance: 0.82,
@@ -26129,7 +26616,7 @@ function runFeedbackLearningDigestJobForUser(userState) {
     const record = writeMemoryRecord(userState, {
       content: `反馈学习：${normalized}`,
       scene: "love",
-      tier: "long_term",
+      tier: "mid_term",
       source: "feedback_learning",
       tags: ["feedback", "preference", "love"],
       importance: 0.8,
@@ -26178,6 +26665,8 @@ function runContextRecycleJobForUser(userState) {
   const memorySystem = ensureMemoryPlaneState(userState);
   let dedupeRemovals = 0;
   let promotions = 0;
+  let promotionsShortToMid = 0;
+  let promotionsMidToLong = 0;
   for (const scene of MEMORY_SCENES) {
     const seen = new Set();
     const deduped = [];
@@ -26199,21 +26688,54 @@ function runContextRecycleJobForUser(userState) {
     0.4,
     0.95
   );
+  const shortToMidThreshold = Math.max(0.48, promoteThreshold - 0.14);
+  const midToLongThreshold = Math.min(0.92, promoteThreshold + 0.06);
   for (const item of shortTermCandidates) {
     const score = clampPolicyFloat(item.importance, 0.6, 0, 1);
-    if (score < promoteThreshold) {
+    if (score < shortToMidThreshold) {
+      continue;
+    }
+    const promoted = writeMemoryRecord(userState, {
+      content: item.content,
+      scene: item.scene,
+      tier: "mid_term",
+      source: "context_promote_mid",
+      tags: uniqueStringArray([...(item.tags || []), "promoted"], 12),
+      importance: Math.max(0.72, score),
+      confidence: Math.max(0.68, clampPolicyFloat(item.confidence, 0.6, 0, 1))
+    });
+    if (promoted) {
+      promotions += 1;
+      if (promoted.tier === "mid_term") {
+        promotionsShortToMid += 1;
+      } else if (promoted.tier === "long_term") {
+        promotionsMidToLong += 1;
+      }
+    }
+  }
+  const middleTermCandidates = memorySystem.middleTerm.items.slice(0, 20);
+  for (const item of middleTermCandidates) {
+    const score = clampPolicyFloat(item.importance, 0.68, 0, 1);
+    if (score < midToLongThreshold) {
       continue;
     }
     const promoted = writeMemoryRecord(userState, {
       content: item.content,
       scene: item.scene,
       tier: "long_term",
-      source: "context_promote",
-      tags: uniqueStringArray([...(item.tags || []), "promoted"], 12),
-      importance: Math.max(0.8, score),
-      confidence: Math.max(0.72, clampPolicyFloat(item.confidence, 0.6, 0, 1))
+      source: "context_promote_long",
+      tags: uniqueStringArray([...(item.tags || []), "promoted", "long_term"], 12),
+      importance: Math.max(0.82, score),
+      confidence: Math.max(0.74, clampPolicyFloat(item.confidence, 0.66, 0, 1))
     });
-    if (promoted) promotions += 1;
+    if (promoted) {
+      promotions += 1;
+      if (promoted.tier === "long_term") {
+        promotionsMidToLong += 1;
+      } else if (promoted.tier === "mid_term") {
+        promotionsShortToMid += 1;
+      }
+    }
   }
   memorySystem.stats.dedupeRemovals += dedupeRemovals;
   memorySystem.stats.promotions += promotions;
@@ -26221,7 +26743,9 @@ function runContextRecycleJobForUser(userState) {
     changed: dedupeRemovals > 0 || promotions > 0,
     reason: dedupeRemovals > 0 || promotions > 0 ? "context_recycled" : "context_recycle_noop",
     dedupeRemovals,
-    promotions
+    promotions,
+    promotionsShortToMid,
+    promotionsMidToLong
   };
 }
 
@@ -26851,16 +27375,60 @@ function ensureModelRouterProviderHealthEntry(providerIdInput) {
       lastFailureReason: "",
       lastFailureStatus: 0,
       lastSuccessAt: "",
-      transientFailures: 0
+      lastSuccessReason: "",
+      lastAttemptAt: "",
+      lastOutcome: "",
+      transientFailures: 0,
+      successCount: 0,
+      failureCount: 0,
+      emptyResponseCount: 0,
+      lastLatencyMs: 0,
+      avgLatencyMs: 0,
+      emaLatencyMs: 0,
+      totalLatencyMs: 0
     });
   }
   return modelRouterProviderHealth.get(providerId);
 }
 
+function coerceProviderLatencyMs(latencyInput, fallback = 0) {
+  const latency = Number(latencyInput);
+  if (!Number.isFinite(latency)) {
+    return Math.max(0, Number(fallback || 0));
+  }
+  return Math.max(0, Math.round(latency));
+}
+
+function updateModelRouterProviderLatencyMetrics(entryInput = {}, latencyMsInput = 0) {
+  const entry = entryInput && typeof entryInput === "object" ? entryInput : null;
+  if (!entry) {
+    return;
+  }
+  const latencyMs = coerceProviderLatencyMs(latencyMsInput, 0);
+  if (latencyMs <= 0) {
+    return;
+  }
+  const successCount = clampInteger(Number(entry.successCount || 0), 0, 0, 1000000);
+  const failureCount = clampInteger(Number(entry.failureCount || 0), 0, 0, 1000000);
+  const nextRuns = Math.max(1, successCount + failureCount);
+  const prevTotalLatency = Number(entry.totalLatencyMs || 0);
+  const nextTotalLatency = Math.max(0, prevTotalLatency + latencyMs);
+  entry.totalLatencyMs = nextTotalLatency;
+  entry.lastLatencyMs = latencyMs;
+  entry.avgLatencyMs = Math.round(nextTotalLatency / nextRuns);
+  const prevEma = coerceProviderLatencyMs(
+    entry.emaLatencyMs || entry.avgLatencyMs || entry.lastLatencyMs || latencyMs,
+    latencyMs
+  );
+  entry.emaLatencyMs = Math.round(
+    prevEma * (1 - MODEL_ROUTER_HEALTH_EMA_ALPHA) + latencyMs * MODEL_ROUTER_HEALTH_EMA_ALPHA
+  );
+}
+
 function shouldApplyModelRouterProviderCooldown(resultInput = {}) {
   const reason = String(resultInput.reason || "").trim();
   const status = Number(resultInput.status || 0);
-  if (reason === "provider_timeout" || reason === "provider_exception") {
+  if (reason === "provider_timeout" || reason === "provider_exception" || reason === "empty_response") {
     return true;
   }
   if (reason === "provider_http_error") {
@@ -26869,11 +27437,18 @@ function shouldApplyModelRouterProviderCooldown(resultInput = {}) {
   return false;
 }
 
-function noteModelRouterProviderSuccess(providerIdInput) {
+function noteModelRouterProviderSuccess(providerIdInput, resultInput = {}) {
   const entry = ensureModelRouterProviderHealthEntry(providerIdInput);
+  const result = resultInput && typeof resultInput === "object" ? resultInput : {};
+  const latencyMs = coerceProviderLatencyMs(result.latencyMs, 0);
   entry.transientFailures = 0;
   entry.cooldownUntilMs = 0;
   entry.lastSuccessAt = new Date().toISOString();
+  entry.lastSuccessReason = String(result.reason || "provider_success").trim() || "provider_success";
+  entry.lastAttemptAt = entry.lastSuccessAt;
+  entry.lastOutcome = "provider_success";
+  entry.successCount = clampInteger(Number(entry.successCount || 0) + 1, 1, 0, 1000000);
+  updateModelRouterProviderLatencyMetrics(entry, latencyMs);
   return entry;
 }
 
@@ -26882,9 +27457,17 @@ function noteModelRouterProviderFailure(providerIdInput, resultInput = {}) {
   const result = resultInput && typeof resultInput === "object" ? resultInput : {};
   const reason = String(result.reason || "").trim();
   const status = Number(result.status || 0);
+  const latencyMs = coerceProviderLatencyMs(result.latencyMs, 0);
   entry.lastFailureAt = new Date().toISOString();
   entry.lastFailureReason = reason;
   entry.lastFailureStatus = status;
+  entry.lastAttemptAt = entry.lastFailureAt;
+  entry.lastOutcome = reason || "provider_failed";
+  entry.failureCount = clampInteger(Number(entry.failureCount || 0) + 1, 1, 0, 1000000);
+  if (reason === "empty_response") {
+    entry.emptyResponseCount = clampInteger(Number(entry.emptyResponseCount || 0) + 1, 1, 0, entry.failureCount);
+  }
+  updateModelRouterProviderLatencyMetrics(entry, latencyMs);
   if (shouldApplyModelRouterProviderCooldown(result)) {
     entry.transientFailures += 1;
     if (entry.transientFailures >= MODEL_ROUTER_PROVIDER_COOLDOWN_THRESHOLD) {
@@ -27010,7 +27593,156 @@ function rankModelRouteCandidatesByFlywheel(userState, taskTypeInput, candidates
   return ordered.map((item) => item.candidate);
 }
 
-function resolveModelRouteCandidates(taskType, preferredProviderId = "", userState = null) {
+function normalizeModelRouteScene(sceneInput = "", taskTypeInput = "") {
+  const scene = String(sceneInput || "").trim().toLowerCase();
+  if (scene) {
+    return scene;
+  }
+  const taskType = String(taskTypeInput || "").trim().toLowerCase();
+  if (taskType === "emotional_companion") {
+    return "love";
+  }
+  if (taskType === "memory_digest") {
+    return "life";
+  }
+  if (taskType === "coding_execution") {
+    return "coding";
+  }
+  if (taskType === "work_planning" || taskType === "autonomy_dispatch") {
+    return "work";
+  }
+  return "";
+}
+
+function rankModelRouteCandidatesByHealth(
+  taskTypeInput,
+  sceneInput,
+  candidatesInput = [],
+  preferredProviderId = "",
+  userState = null
+) {
+  const candidates = Array.isArray(candidatesInput) ? candidatesInput.slice(0) : [];
+  if (candidates.length <= 1) {
+    return candidates;
+  }
+  const taskType = String(taskTypeInput || "").trim();
+  const scene = normalizeModelRouteScene(sceneInput, taskType);
+  const emotionalPriority = taskType === "emotional_companion" || scene === "love" || scene === "life";
+  const codingPriority = taskType === "coding_execution" || scene === "coding";
+  const preferredProvider = String(preferredProviderId || "").trim();
+  const nowMs = Date.now();
+  const scored = candidates.map((candidate, index) => {
+    const providerId = String(candidate?.id || "").trim();
+    const runtime = resolveModelProviderRuntime(candidate);
+    const hasApiKey = Boolean(runtime.apiKey);
+    const health = ensureModelRouterProviderHealthEntry(providerId);
+    const successCount = clampInteger(health.successCount, 0, 0, 1000000);
+    const failureCount = clampInteger(health.failureCount, 0, 0, 1000000);
+    const totalRuns = successCount + failureCount;
+    const successRate = totalRuns > 0
+      ? clampPolicyFloat(successCount / totalRuns, 0.52, 0, 1)
+      : 0.52;
+    const emptyRate = failureCount > 0
+      ? clampPolicyFloat(clampInteger(health.emptyResponseCount, 0, 0, failureCount) / failureCount, 0, 0, 1)
+      : 0;
+    const latencyMs = coerceProviderLatencyMs(
+      health.emaLatencyMs || health.avgLatencyMs || health.lastLatencyMs,
+      MODEL_ROUTER_HEALTH_DEFAULT_LATENCY_MS
+    );
+    const cooldownRemainingMs = getModelRouterProviderCooldownRemainingMs(providerId, nowMs);
+    const hasEmotionRole = Array.isArray(candidate?.roles)
+      && candidate.roles.some((role) => String(role || "").trim().toLowerCase() === "emotion");
+    const hasCodingRole = Array.isArray(candidate?.roles)
+      && candidate.roles.some((role) => /coding|tool-use|debug/i.test(String(role || "")));
+    const learned = getFlywheelProviderRouteScore(userState, taskType, providerId);
+    const learnedReady = Boolean(learned && learned.runs >= FLYWHEEL_AUTO_ROUTE_MIN_RUNS && learned.score >= 0);
+    let tier = "warm";
+    if (!hasApiKey) {
+      tier = "no_key";
+    } else if (cooldownRemainingMs > 0) {
+      tier = "cooldown";
+    } else if (totalRuns >= 2 && (successRate < 0.35 || emptyRate > 0.45)) {
+      tier = "risky";
+    } else if (
+      totalRuns >= 2
+      && successRate >= 0.72
+      && emptyRate <= 0.2
+      && latencyMs <= Math.round(MODEL_ROUTER_EMOTIONAL_STABLE_LATENCY_MS * 1.25)
+    ) {
+      tier = "stable";
+    }
+    let score = 0;
+    score += tier === "stable" ? 280 : tier === "warm" ? 190 : tier === "risky" ? 80 : tier === "cooldown" ? -60 : -120;
+    score += successRate * 70;
+    score -= emptyRate * 35;
+    if (learnedReady) {
+      score += clampPolicyFloat(learned.score, 0, 0, 1) * 45;
+    }
+    if (preferredProvider && providerId === preferredProvider) {
+      score += 80;
+    }
+    if (emotionalPriority) {
+      score += hasEmotionRole ? 24 : -8;
+      const latencyGap = latencyMs - MODEL_ROUTER_EMOTIONAL_STABLE_LATENCY_MS;
+      if (latencyGap <= 0) {
+        score += Math.min(26, Math.abs(latencyGap) / 140);
+      } else {
+        score -= Math.min(34, latencyGap / 180);
+      }
+    }
+    if (codingPriority) {
+      score += hasCodingRole ? 18 : -12;
+    }
+    if (totalRuns === 0) {
+      score -= 8;
+    }
+    if (cooldownRemainingMs > 0) {
+      score -= Math.min(60, cooldownRemainingMs / 1000);
+    }
+    score -= index * 0.01;
+    return {
+      candidate,
+      index,
+      score,
+      tier,
+      latencyMs
+    };
+  });
+  let preferred = null;
+  const rest = [];
+  for (const item of scored) {
+    if (preferredProvider && item.candidate?.id === preferredProvider && !preferred) {
+      preferred = item;
+      continue;
+    }
+    rest.push(item);
+  }
+  const tierWeight = {
+    stable: 4,
+    warm: 3,
+    risky: 2,
+    cooldown: 1,
+    no_key: 0
+  };
+  rest.sort((left, right) => {
+    const tierDiff = (tierWeight[right.tier] || 0) - (tierWeight[left.tier] || 0);
+    if (tierDiff !== 0) {
+      return tierDiff;
+    }
+    const scoreDiff = right.score - left.score;
+    if (Math.abs(scoreDiff) >= 0.001) {
+      return scoreDiff > 0 ? 1 : -1;
+    }
+    if (left.latencyMs !== right.latencyMs) {
+      return left.latencyMs - right.latencyMs;
+    }
+    return left.index - right.index;
+  });
+  const ordered = preferred ? [preferred, ...rest] : rest;
+  return ordered.map((item) => item.candidate);
+}
+
+function resolveModelRouteCandidates(taskType, preferredProviderId = "", userState = null, sceneInput = "") {
   const providers = Array.isArray(modelRoutingPolicy?.providers) ? modelRoutingPolicy.providers : [];
   const providerMap = new Map(providers.map((provider) => [provider.id, provider]));
   const queue = [];
@@ -27038,7 +27770,8 @@ function resolveModelRouteCandidates(taskType, preferredProviderId = "", userSta
     .map((providerId) => providerMap.get(providerId))
     .filter((item) => item && item.disabled !== true)
     .map((item) => normalizeModelRoutingProvider(item));
-  return rankModelRouteCandidatesByFlywheel(userState, taskType, candidates, preferredProviderId);
+  const flywheelRanked = rankModelRouteCandidatesByFlywheel(userState, taskType, candidates, preferredProviderId);
+  return rankModelRouteCandidatesByHealth(taskType, sceneInput, flywheelRanked, preferredProviderId, userState);
 }
 
 function buildModelRouterRuntimeSnapshot(taskTypeInput = "") {
@@ -27097,6 +27830,10 @@ function buildModelRouterRuntimeSnapshot(taskTypeInput = "") {
       const runtime = resolveModelProviderRuntime(provider);
       const health = ensureModelRouterProviderHealthEntry(runtime.id);
       const cooldownRemainingMs = getModelRouterProviderCooldownRemainingMs(runtime.id);
+      const successCount = clampInteger(health.successCount, 0, 0, 1000000);
+      const failureCount = clampInteger(health.failureCount, 0, 0, 1000000);
+      const totalRuns = successCount + failureCount;
+      const successRate = totalRuns > 0 ? clampPolicyFloat(successCount / totalRuns, 0, 0, 1) : 0;
       return {
         id: runtime.id,
         model: runtime.model,
@@ -27110,10 +27847,282 @@ function buildModelRouterRuntimeSnapshot(taskTypeInput = "") {
         cooldownRemainingMs,
         lastFailureReason: String(health.lastFailureReason || ""),
         lastFailureAt: String(health.lastFailureAt || ""),
-        lastSuccessAt: String(health.lastSuccessAt || "")
+        lastSuccessAt: String(health.lastSuccessAt || ""),
+        lastSuccessReason: String(health.lastSuccessReason || ""),
+        lastOutcome: String(health.lastOutcome || ""),
+        lastAttemptAt: String(health.lastAttemptAt || ""),
+        successCount,
+        failureCount,
+        successRate,
+        emptyResponseCount: clampInteger(health.emptyResponseCount, 0, 0, failureCount),
+        lastLatencyMs: coerceProviderLatencyMs(health.lastLatencyMs, 0),
+        avgLatencyMs: coerceProviderLatencyMs(health.avgLatencyMs, 0),
+        emaLatencyMs: coerceProviderLatencyMs(health.emaLatencyMs, 0)
       };
     })
   };
+}
+
+function createDefaultCompanionStyleProfile() {
+  return {
+    version: "2026.3.8",
+    preferredVariant: "gentle",
+    confidence: 0.42,
+    brevity: "normal",
+    nicknamePreference: "neutral",
+    warmth: 0.74,
+    signalCounts: {
+      gentle: 0,
+      direct: 0,
+      rational: 0,
+      playful: 0
+    },
+    updatedAt: ""
+  };
+}
+
+function sanitizeCompanionStyleProfile(profileInput = {}) {
+  const raw = profileInput && typeof profileInput === "object" ? profileInput : {};
+  const base = createDefaultCompanionStyleProfile();
+  const preferredVariant = ["gentle", "direct", "rational", "playful"].includes(String(raw.preferredVariant || ""))
+    ? String(raw.preferredVariant)
+    : base.preferredVariant;
+  const brevity = ["brief", "normal", "detailed"].includes(String(raw.brevity || ""))
+    ? String(raw.brevity)
+    : base.brevity;
+  const nicknamePreference = ["neutral", "intimate"].includes(String(raw.nicknamePreference || ""))
+    ? String(raw.nicknamePreference)
+    : base.nicknamePreference;
+  return {
+    version: String(raw.version || base.version),
+    preferredVariant,
+    confidence: clampPolicyFloat(raw.confidence, base.confidence, 0, 1),
+    brevity,
+    nicknamePreference,
+    warmth: clampPolicyFloat(raw.warmth, base.warmth, 0.35, 0.95),
+    signalCounts: {
+      gentle: clampInteger(raw?.signalCounts?.gentle, 0, 0, 999999),
+      direct: clampInteger(raw?.signalCounts?.direct, 0, 0, 999999),
+      rational: clampInteger(raw?.signalCounts?.rational, 0, 0, 999999),
+      playful: clampInteger(raw?.signalCounts?.playful, 0, 0, 999999)
+    },
+    updatedAt: String(raw.updatedAt || "")
+  };
+}
+
+function ensureCompanionStyleProfileState(userState) {
+  if (!userState || typeof userState !== "object") {
+    return createDefaultCompanionStyleProfile();
+  }
+  if (!userState.companionStyle || typeof userState.companionStyle !== "object") {
+    userState.companionStyle = createDefaultCompanionStyleProfile();
+  }
+  userState.companionStyle = sanitizeCompanionStyleProfile(userState.companionStyle);
+  return userState.companionStyle;
+}
+
+function detectCompanionStyleSignal(textInput = "", sceneInput = "love") {
+  const text = String(textInput || "").trim();
+  const scene = normalizeMessageScene(sceneInput, "love");
+  const scores = {
+    gentle: 0,
+    direct: 0,
+    rational: 0,
+    playful: 0
+  };
+  let brevity = "normal";
+  let brevityExplicit = false;
+  let nicknamePreference = "";
+
+  if (!text) {
+    return {
+      topVariant: scene === "work" || scene === "coding"
+        ? "direct"
+        : scene === "fun"
+          ? "playful"
+          : "gentle",
+      topScore: 0,
+      scores,
+      brevity,
+      brevityExplicit,
+      nicknamePreference,
+      warmth: scene === "work" || scene === "coding" ? 0.62 : 0.74
+    };
+  }
+
+  if (/温柔|慢一点|先安慰|先抱抱|陪我|暖心|别凶|别冷冰冰|别生硬|情绪价值/i.test(text)) {
+    scores.gentle += 3;
+  }
+  if (/直接|结论先|别废话|快点|马上|只说重点|务实|别绕弯|先给结果/i.test(text)) {
+    scores.direct += 3;
+  }
+  if (/理性|客观|结构化|条理|严谨|专业|步骤|清单|分层|分析/i.test(text)) {
+    scores.rational += 3;
+  }
+  if (/轻松|有趣|好玩|幽默|逗我|整活|可爱|哈哈|玩/i.test(text)) {
+    scores.playful += 3;
+  }
+
+  if (/安慰|抱抱|难受|焦虑|低落|委屈|害怕|孤单|想你|爱你/i.test(text)) {
+    scores.gentle += 2;
+  }
+  if (/工作|汇报|老板|项目|执行|排期|交付|推进/i.test(text)) {
+    scores.direct += 1;
+    scores.rational += 1;
+  }
+  if (/代码|编程|修复|debug|报错|terminal|命令|脚本/i.test(text)) {
+    scores.rational += 2;
+    scores.direct += 1;
+  }
+  if (/小游戏|娱乐|玩一把|轻松一下|开玩/i.test(text)) {
+    scores.playful += 2;
+  }
+
+  if (scene === "work" || scene === "coding") {
+    scores.direct += 1;
+  } else if (scene === "fun") {
+    scores.playful += 1;
+  } else {
+    scores.gentle += 1;
+  }
+
+  if (/简短|一句话|一两句|别太长|短一点|只回一句|只说一句/i.test(text)) {
+    brevity = "brief";
+    brevityExplicit = true;
+    scores.direct += 1;
+  } else if (/详细|展开|说细一点|具体一点|完整一点|多说一点|一步一步|逐步/i.test(text)) {
+    brevity = "detailed";
+    brevityExplicit = true;
+    scores.rational += 1;
+  }
+
+  if (/别叫我|不要叫我|别喊我|别用爱称|不要用爱称|叫我名字|称呼正式一点/i.test(text)) {
+    nicknamePreference = "neutral";
+  } else if (/叫我(老公|老婆|宝贝|宝宝|亲爱的)|用(老公|老婆|宝贝|宝宝|亲爱的)称呼我/i.test(text)) {
+    nicknamePreference = "intimate";
+  }
+
+  const ranking = Object.entries(scores)
+    .sort((left, right) => {
+      const scoreDiff = Number(right[1] || 0) - Number(left[1] || 0);
+      if (scoreDiff !== 0) {
+        return scoreDiff;
+      }
+      return String(left[0] || "").localeCompare(String(right[0] || ""));
+    });
+  const topVariant = String(ranking[0]?.[0] || "gentle");
+  const topScore = Number(ranking[0]?.[1] || 0);
+  const warmthByVariant = {
+    gentle: 0.84,
+    direct: 0.58,
+    rational: 0.64,
+    playful: 0.76
+  };
+  const warmth = clampPolicyFloat(warmthByVariant[topVariant], 0.74, 0.35, 0.95);
+  return {
+    topVariant,
+    topScore,
+    scores,
+    brevity,
+    brevityExplicit,
+    nicknamePreference,
+    warmth
+  };
+}
+
+function resolveCompanionStyleSnapshot(userState, sceneInput = "", userInput = "") {
+  const scene = normalizeMessageScene(sceneInput, "love");
+  const profile = ensureCompanionStyleProfileState(userState);
+  const signal = detectCompanionStyleSignal(userInput, scene);
+  const sceneDefaultVariant = scene === "work" || scene === "coding"
+    ? "direct"
+    : scene === "fun"
+      ? "playful"
+      : "gentle";
+  let variant = String(profile.preferredVariant || sceneDefaultVariant).trim() || sceneDefaultVariant;
+  if (signal.topScore >= 2) {
+    variant = signal.topVariant;
+  } else if (!["gentle", "direct", "rational", "playful"].includes(variant) || profile.confidence < 0.2) {
+    variant = sceneDefaultVariant;
+  }
+  const brevity = signal.brevityExplicit
+    ? signal.brevity
+    : (["brief", "normal", "detailed"].includes(profile.brevity) ? profile.brevity : "normal");
+  const nicknamePreference = signal.nicknamePreference
+    || (["neutral", "intimate"].includes(profile.nicknamePreference) ? profile.nicknamePreference : "neutral");
+  const warmth = clampPolicyFloat(
+    signal.topScore >= 2
+      ? signal.warmth
+      : (Number(profile.warmth || 0.74) * 0.78 + Number(signal.warmth || 0.74) * 0.22),
+    0.74,
+    0.35,
+    0.95
+  );
+  return {
+    variant,
+    brevity,
+    nicknamePreference,
+    warmth,
+    confidence: clampPolicyFloat(profile.confidence, 0.42, 0, 1)
+  };
+}
+
+function updateCompanionStyleProfileFromUserInput(userState, sceneInput = "", userInput = "") {
+  const profile = ensureCompanionStyleProfileState(userState);
+  const text = String(userInput || "").trim();
+  if (!text) {
+    return profile;
+  }
+  const scene = normalizeMessageScene(sceneInput, "love");
+  const signal = detectCompanionStyleSignal(text, scene);
+  if (signal.topScore >= 2) {
+    profile.preferredVariant = signal.topVariant;
+    profile.confidence = clampPolicyFloat(profile.confidence * 0.72 + 0.28, 0.42, 0, 1);
+  } else {
+    profile.confidence = clampPolicyFloat(profile.confidence * 0.97, 0.42, 0, 1);
+  }
+  if (signal.brevityExplicit) {
+    profile.brevity = signal.brevity;
+  }
+  if (signal.nicknamePreference) {
+    profile.nicknamePreference = signal.nicknamePreference;
+  }
+  profile.warmth = clampPolicyFloat(profile.warmth * 0.74 + signal.warmth * 0.26, 0.74, 0.35, 0.95);
+  if (profile.signalCounts && typeof profile.signalCounts === "object") {
+    profile.signalCounts[signal.topVariant] = clampInteger(profile.signalCounts[signal.topVariant], 0, 0, 999999) + 1;
+  }
+  profile.updatedAt = new Date().toISOString();
+  userState.companionStyle = sanitizeCompanionStyleProfile(profile);
+  return userState.companionStyle;
+}
+
+function buildCompanionStylePromptLines(styleSnapshotInput = {}) {
+  const styleSnapshot = styleSnapshotInput && typeof styleSnapshotInput === "object" ? styleSnapshotInput : {};
+  const variant = String(styleSnapshot.variant || "gentle");
+  const variantLabelMap = {
+    gentle: "温柔共情",
+    direct: "直给高效",
+    rational: "理性结构化",
+    playful: "轻松互动"
+  };
+  const brevity = String(styleSnapshot.brevity || "normal");
+  const brevityLabelMap = {
+    brief: "简短",
+    normal: "标准",
+    detailed: "展开"
+  };
+  const nicknamePreference = String(styleSnapshot.nicknamePreference || "neutral");
+  const nicknameLabelMap = {
+    neutral: "中性称呼（默认不用亲昵称）",
+    intimate: "亲密称呼（在场景合适时可用）"
+  };
+  return [
+    `- 语气主风格：${variantLabelMap[variant] || variantLabelMap.gentle}。`,
+    `- 回复长度偏好：${brevityLabelMap[brevity] || brevityLabelMap.normal}。`,
+    `- 称呼偏好：${nicknameLabelMap[nicknamePreference] || nicknameLabelMap.neutral}。`,
+    `- 情绪温度：${Math.round(clampPolicyFloat(styleSnapshot.warmth, 0.74, 0.35, 0.95) * 100)} / 100。`,
+    "- 同一会话里避免重复同一句开场，保持语义一致但句式变化。"
+  ];
 }
 
 function buildAssistantPromptContext(userState, mode, input, taskType, sceneInput = "") {
@@ -27155,7 +28164,7 @@ function buildAssistantPromptContext(userState, mode, input, taskType, sceneInpu
   const recalledMemories = searchMemoryCandidates(
     userState,
     String(input || ""),
-    6,
+    undefined,
     {
       scene: soulScene,
       includeCrossScene: allowCrossSceneRecall
@@ -27170,6 +28179,8 @@ function buildAssistantPromptContext(userState, mode, input, taskType, sceneInpu
     .map((item) => `${item.role === "user" ? "用户" : "Aria"}: ${String(item.text || "")}`);
   const modeGuide = modeHints[mode] || modeHints["陪伴"];
   const directInput = String(input || "").trim();
+  const styleSnapshot = resolveCompanionStyleSnapshot(userState, soulScene, directInput);
+  const stylePromptLines = buildCompanionStylePromptLines(styleSnapshot);
   const forceSingleSentence = /只回一句|只说一句|一句话回复|一句话回答/i.test(directInput);
   const explicitCommand = /^(请)?(就)?(只)?(说|回复|叫我|别叫我|不要叫我|用|按|以|当|扮演|模仿)/i.test(directInput)
     || /不要把我当用户|别把我当用户|按.+身份|以.+身份/.test(directInput);
@@ -27226,6 +28237,8 @@ function buildAssistantPromptContext(userState, mode, input, taskType, sceneInpu
     ...(sceneSoulDirective ? [`- ${sceneSoulDirective}`] : []),
     sceneSoulFileHints.length > 0 ? "用户上传资料摘要：" : "",
     ...sceneSoulFileHints,
+    stylePromptLines.length > 0 ? "用户个性化风格画像：" : "",
+    ...stylePromptLines,
     "输出要求：",
     "1) 若用户明确要求回复格式/称呼/语气/身份边界内角色，优先严格遵从。",
     "2) 只有在用户未给明确执行指令时，才先一句共情，再给 1-3 条可执行建议。",
@@ -27238,6 +28251,7 @@ function buildAssistantPromptContext(userState, mode, input, taskType, sceneInpu
     allowCrossSceneRecall
       ? "9) 本轮允许跨场景记忆联想，请显式标注来源场景并保持事实一致。"
       : "9) 本轮禁止跨场景串场，优先只使用当前场景上下文。",
+    "10) 遇到执行异常时，先用一句稳定情绪的话接住用户，再给可立即执行的恢复动作。",
     ...soulExecutionContract.map((line) => `- ${line}`),
     forceSingleSentence ? "5) 当前用户要求只回一句：必须只输出一句，不要分点。" : "",
     explicitCommand ? "6) 当前用户给了明确指令：先直接执行指令，不要扩写成步骤清单。" : "",
@@ -27280,6 +28294,24 @@ function sanitizeAssistantReplyText(inputText) {
   return strippedThink
     .replace(/\n{3,}/g, "\n\n")
     .trim();
+}
+
+function isMeaningfulAssistantReplyText(textInput = "") {
+  const text = String(textInput || "").trim();
+  if (!text) {
+    return false;
+  }
+  const compact = text
+    .replace(/[\s"'“”‘’`[\](){}<>]/g, "")
+    .trim()
+    .toLowerCase();
+  if (!compact) {
+    return false;
+  }
+  if (["empty", "null", "none", "na", "n/a", "无", "空", "暂无"].includes(compact)) {
+    return false;
+  }
+  return true;
 }
 
 function alignReplyWithExplicitFormat(userInput, assistantText) {
@@ -27335,6 +28367,7 @@ const COMPACT_EMOTION_PATTERNS = {
   stress: /(焦虑|紧张|压力|崩溃|扛不住|烦躁|心累|累死|撑不住|难受)/i,
   sadness: /(难过|委屈|失落|伤心|想哭|低落|空虚|孤单)/i,
   affection: /(想你|爱你|抱抱|亲亲|陪我|在吗|你还在|别离开)/i,
+  failure: /(报错|失败|不行|卡住|没反应|崩了|异常|超时|timeout|error|无法|连不上|挂了|502|503|504|429)/i,
   urgency: /(立刻|马上|现在|尽快|加急|今天|今晚|DDL|截止|来不及|赶紧)/i
 };
 
@@ -27352,38 +28385,587 @@ function inferCompactEmotionCue(input = "") {
   if (COMPACT_EMOTION_PATTERNS.affection.test(text)) {
     return "affection";
   }
+  if (COMPACT_EMOTION_PATTERNS.failure.test(text)) {
+    return "failure";
+  }
   if (COMPACT_EMOTION_PATTERNS.urgency.test(text)) {
     return "urgency";
   }
   return "";
 }
 
-function buildCompactEmpathyLead(sceneInput = "", userInput = "", executionRequested = false) {
+function normalizeReplyLineSignature(lineInput = "") {
+  return String(lineInput || "")
+    .trim()
+    .replace(/[，。！？!?,.;；:：~～\s]/g, "")
+    .slice(0, 12);
+}
+
+function collectRecentAssistantLineSignatures(userState, sceneInput = "love", limitInput = 6) {
+  if (!userState || typeof userState !== "object") {
+    return new Set();
+  }
+  const scene = normalizeMessageScene(sceneInput, "love");
+  const recent = getRecentSceneMessages(userState, scene, clampInteger(limitInput, 6, 1, 20));
+  const signatures = new Set();
+  for (const item of recent) {
+    if (!item || item.role !== "aria") {
+      continue;
+    }
+    const lines = String(item.text || "")
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .slice(0, 3);
+    for (const line of lines) {
+      const signature = normalizeReplyLineSignature(line);
+      if (signature) {
+        signatures.add(signature);
+      }
+    }
+  }
+  return signatures;
+}
+
+function pickLineByContinuity(candidatesInput = [], avoidSignaturesInput = null) {
+  const candidates = (Array.isArray(candidatesInput) ? candidatesInput : [])
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+  if (candidates.length === 0) {
+    return "";
+  }
+  const uniqueCandidates = Array.from(new Set(candidates));
+  const avoidSignatures = avoidSignaturesInput instanceof Set ? avoidSignaturesInput : null;
+  if (!avoidSignatures || avoidSignatures.size === 0) {
+    return pickRandom(uniqueCandidates);
+  }
+  const preferred = uniqueCandidates.filter((line) => {
+    const signature = normalizeReplyLineSignature(line);
+    return signature ? !avoidSignatures.has(signature) : true;
+  });
+  return pickRandom(preferred.length > 0 ? preferred : uniqueCandidates);
+}
+
+const SCENE_STYLE_LINE_LIBRARY = {
+  love: {
+    gentle: {
+      opening: [
+        "我在，先把你的感受接住，我们慢慢往前走。",
+        "先抱抱你，我会陪你把这件事稳稳处理完。",
+        "你不用硬撑，我在这儿，咱们一步一步来。"
+      ],
+      bridge: [
+        "我正在给你整理最贴心的一版，先别急，我一直在。",
+        "我在持续处理，先把你最在意的点稳住，马上给你完整回复。",
+        "这条我正在认真打磨，先接住你，马上把可执行答案给你。"
+      ]
+    },
+    direct: {
+      opening: [
+        "我在，先对齐你最在意的点，然后直接给你下一步。",
+        "收到，我们不绕弯，先稳情绪再落地动作。",
+        "明白，我先给结论，再补最关键的一步。"
+      ],
+      bridge: [
+        "我在加速整理结论，先给你兜住情绪，马上补全。",
+        "这条我正在快速收敛，下一条就是可执行答案。",
+        "我在处理，先把核心结论打好，马上发给你。"
+      ]
+    },
+    rational: {
+      opening: [
+        "我先理解你的情绪，再给你一条最稳妥的处理路径。",
+        "先把情绪稳定，再给你结构清晰、可执行的方案。",
+        "我会先接住你，然后用最省力的步骤推进。"
+      ],
+      bridge: [
+        "我在做结构化整理，先发你一条稳定过渡，完整方案马上到。",
+        "正在把信息收敛成可执行路径，再等我一下就给你完整版本。",
+        "我在处理中，先稳住节奏，下一条给你完整步骤。"
+      ]
+    },
+    playful: {
+      opening: [
+        "我在呢，先把你抱住，然后一起把这题打通。",
+        "来，先把心放软一点，我陪你把问题拿下。",
+        "别怕，我在你这边，我们把它温柔地解决掉。"
+      ],
+      bridge: [
+        "我在后台给你拧到最好状态，马上就把完整答案端上来。",
+        "正在给你做一版更顺口又好用的回复，马上发你。",
+        "这条我在走精修路线，先别急，马上到你手里。"
+      ]
+    }
+  },
+  life: {
+    gentle: {
+      opening: [
+        "好，我先帮你把生活节奏稳住，再给你轻量可执行安排。",
+        "我先接住你这会儿的压力，再把今天的事排顺。",
+        "别急，我们先从最省力的一步开始。"
+      ],
+      bridge: [
+        "我正在把生活安排压缩成最省心版本，马上给你。",
+        "先给你报个平安，我正在整理可落地清单，马上发出。",
+        "我在处理这条，下一条就是可直接照做的安排。"
+      ]
+    },
+    direct: {
+      opening: [
+        "收到，我直接给你今天能落地的安排。",
+        "明白，先给结论，再给最短执行路径。",
+        "好，我先排优先级，你按第一步就能启动。"
+      ],
+      bridge: [
+        "我在快速排程，马上回你可执行版本。",
+        "正在压缩成一屏可执行清单，马上给你。",
+        "这条我在加速整理，下一条直接可照做。"
+      ]
+    },
+    rational: {
+      opening: [
+        "我先按重要度和时间切片，给你清晰可执行方案。",
+        "先做结构化安排：现在、今天、今晚各一步。",
+        "我先给你低成本高回报的执行顺序。"
+      ],
+      bridge: [
+        "我在做时间切片，马上给你清晰日程。",
+        "正在把方案压成最短路径，稍等我一条。",
+        "我在处理，下一条会给你完整执行顺序。"
+      ]
+    },
+    playful: {
+      opening: [
+        "来，我们轻松一点，把生活这关一条条过掉。",
+        "收到，我给你做一版不费脑、可直接照做的安排。",
+        "好呀，我来当你的节奏管家，先把第一步拿下。"
+      ],
+      bridge: [
+        "我在把这份安排做得更顺手，马上发你。",
+        "正在给你排成轻松模式清单，下一条就到。",
+        "我在处理啦，马上给你“今天能完成”的版本。"
+      ]
+    }
+  },
+  work: {
+    gentle: {
+      opening: [
+        "收到，我先稳住节奏，再把任务主线拉直。",
+        "我先接住你的压力，然后给你可执行主路径。",
+        "我们先做最小可交付，避免你继续被卡住。"
+      ],
+      bridge: [
+        "我正在整理执行主线，先别急，马上给你结果。",
+        "我在后台并行处理，下一条给你可直接执行版本。",
+        "这条我正在收敛成高可用方案，马上回你。"
+      ]
+    },
+    direct: {
+      opening: [
+        "明白，我直接给你结论和下一步动作。",
+        "收到，先给关键决策，再给执行清单。",
+        "好，我按优先级直接推进，不绕弯。"
+      ],
+      bridge: [
+        "我在快速收敛结论，马上回你完整方案。",
+        "正在执行路由中，下一条给你主结果。",
+        "我在处理，马上同步可交付版本。"
+      ]
+    },
+    rational: {
+      opening: [
+        "我先按影响面与紧急度分层，再给你落地计划。",
+        "先把目标、约束、路径对齐，随后直接执行。",
+        "我先给你结构化答案，再补风险与回执。"
+      ],
+      bridge: [
+        "我正在做分层整理，马上给你结构化结果。",
+        "正在压缩成可执行路径，下一条就是落地版。",
+        "我在处理，马上把关键节点回传给你。"
+      ]
+    },
+    playful: {
+      opening: [
+        "来，咱们不内耗，先把最关键一刀切进去。",
+        "收到，我给你一版又爽又稳的推进路径。",
+        "好，今天我们走“快准稳”路线。"
+      ],
+      bridge: [
+        "我在把这题打磨成一键可执行版，马上给你。",
+        "正在给你做“少步骤高产出”版本，下一条就到。",
+        "我在处理啦，马上给你可开跑方案。"
+      ]
+    }
+  },
+  fun: {
+    gentle: {
+      opening: [
+        "好呀，我先把氛围拉起来，再给你顺滑互动节奏。",
+        "收到，我们先轻松一下，再把有趣玩法接上。",
+        "来，我先陪你热场，然后马上开玩。"
+      ],
+      bridge: [
+        "我在给你准备更好玩的版本，马上发你。",
+        "正在把互动节奏调顺，下一条直接开玩。",
+        "别急，我在加一点好玩细节，马上给你。"
+      ]
+    },
+    direct: {
+      opening: [
+        "走起，我直接给你当前最有趣的玩法。",
+        "收到，先开局，再补升级选项。",
+        "好，马上进入可玩状态。"
+      ],
+      bridge: [
+        "我在加速开局，马上给你可玩入口。",
+        "正在生成玩法结果，下一条直接可用。",
+        "我在处理，马上把游戏链接回给你。"
+      ]
+    },
+    rational: {
+      opening: [
+        "我先给你高反馈、低门槛的玩法方案。",
+        "先确定玩法目标，再给你可执行互动路径。",
+        "我会先给可玩版本，再补可选增强。"
+      ],
+      bridge: [
+        "我在做玩法收敛，马上给你可玩结果。",
+        "正在把步骤压缩成一键可玩，下一条发你。",
+        "我在处理，马上同步稳定入口。"
+      ]
+    },
+    playful: {
+      opening: [
+        "开玩啦，我先给你一个会让你上头的版本。",
+        "来点快乐，我们现在就把互动拉满。",
+        "今天这局我来控场，保证好玩不空转。"
+      ],
+      bridge: [
+        "我在偷偷加料，马上把更好玩的版本给你。",
+        "正在给你调成爽感模式，下一条就开局。",
+        "别眨眼，我马上把可玩内容端上来。"
+      ]
+    }
+  },
+  coding: {
+    gentle: {
+      opening: [
+        "收到，我先稳住问题，再给你可验证改法。",
+        "别急，我先定位根因，再给最小改动补丁。",
+        "我先把风险兜住，再给你可运行结果。"
+      ],
+      bridge: [
+        "我正在编排修复路径，马上给你可运行结果。",
+        "先报个进度：我在定位关键卡点，下一条给补丁。",
+        "我在处理代码链路，马上回你验证可过版本。"
+      ]
+    },
+    direct: {
+      opening: [
+        "明白，先给结论，再给最小补丁和验证命令。",
+        "收到，我直接走“定位-修复-验证”闭环。",
+        "好，我先跑主修复路径。"
+      ],
+      bridge: [
+        "我在快速生成补丁，马上给你可执行结果。",
+        "正在做验证闭环，下一条回你可运行版本。",
+        "我在处理，马上同步修复回执。"
+      ]
+    },
+    rational: {
+      opening: [
+        "我先定位根因，再给最小改动与验证证据。",
+        "先对齐边界条件，然后输出可回滚补丁。",
+        "我会按风险分层推进，确保可验证交付。"
+      ],
+      bridge: [
+        "我在做根因收敛，马上回你补丁和验证。",
+        "正在整理可回滚改动，下一条给完整方案。",
+        "我在处理，马上发你修复证据链。"
+      ]
+    },
+    playful: {
+      opening: [
+        "来，我们把这个 bug 一刀切开，然后漂亮收工。",
+        "收到，这题我来打，先给你能跑的版本。",
+        "好，先把主链路救活，再把细节补帅。"
+      ],
+      bridge: [
+        "我在给这段代码做精修，马上回你可跑版本。",
+        "正在把报错压下去，下一条给你修复结果。",
+        "我在处理啦，马上给你“能过验证”的版本。"
+      ]
+    }
+  }
+};
+
+function inferUserReplyStyleVariant(userInput = "", sceneInput = "", options = {}) {
+  const text = String(userInput || "").trim();
+  const scene = String(sceneInput || "").trim().toLowerCase();
+  const styleSnapshot = options?.styleSnapshot && typeof options.styleSnapshot === "object"
+    ? options.styleSnapshot
+    : null;
+  if (styleSnapshot && ["gentle", "direct", "rational", "playful"].includes(String(styleSnapshot.variant || ""))) {
+    return String(styleSnapshot.variant || "");
+  }
+  if (/快点|立刻|马上|直接|别废话|一句话|简短|只说重点|结论先/i.test(text)) {
+    return "direct";
+  }
+  if (/理性|客观|结构化|条理|严谨|正式|专业|老板|汇报/i.test(text)) {
+    return "rational";
+  }
+  if (scene === "fun" || /有趣|好玩|整活|搞笑|开心|轻松|玩一把|游戏|哈哈/i.test(text)) {
+    return "playful";
+  }
+  if (/安慰|抱抱|陪我|难受|低落|焦虑|委屈|害怕|想你|爱你|别离开|累/i.test(text)) {
+    return "gentle";
+  }
+  if (scene === "work" || scene === "coding") {
+    return "direct";
+  }
+  return "gentle";
+}
+
+function pickSceneStyleLine(sceneInput = "", userInput = "", slotInput = "opening", options = {}) {
+  const scene = normalizeMessageScene(sceneInput, "love");
+  const slot = String(slotInput || "opening").trim().toLowerCase();
+  const styleSnapshot = resolveCompanionStyleSnapshot(options?.userState, scene, userInput);
+  const variant = inferUserReplyStyleVariant(userInput, scene, {
+    styleSnapshot
+  });
+  const sceneLibrary = SCENE_STYLE_LINE_LIBRARY[scene] || SCENE_STYLE_LINE_LIBRARY.love;
+  const avoidSignatures = options?.avoidSignatures instanceof Set
+    ? options.avoidSignatures
+    : collectRecentAssistantLineSignatures(options?.userState, scene, 8);
+  const bucket = sceneLibrary?.[variant] && Array.isArray(sceneLibrary[variant][slot])
+    ? sceneLibrary[variant][slot]
+    : [];
+  const gentleFallback = sceneLibrary?.gentle && Array.isArray(sceneLibrary.gentle[slot])
+    ? sceneLibrary.gentle[slot]
+    : [];
+  const candidates = uniqueStringArray([...bucket, ...gentleFallback], 16);
+  if (candidates.length === 0) {
+    return "";
+  }
+  return pickLineByContinuity(candidates, avoidSignatures);
+}
+
+function applyCompanionStylePostProcess(sceneInput = "", userInput = "", replyText = "", options = {}) {
+  const scene = normalizeMessageScene(sceneInput, "love");
+  const input = String(userInput || "").trim();
+  let text = String(replyText || "").trim();
+  if (!text) {
+    return text;
+  }
+  const snapshot = resolveCompanionStyleSnapshot(options?.userState, scene, input);
+  const userExplicitlyAskedNickname = /叫我|称呼我|昵称|爱称|可以叫|怎么叫我/.test(input);
+  if (snapshot.nicknamePreference === "neutral" && !userExplicitlyAskedNickname) {
+    text = text
+      .replace(/(老公|老婆|宝贝|宝宝|亲爱的|主人)/g, "你")
+      .replace(/你你/g, "你")
+      .replace(/[，,]{2,}/g, "，")
+      .trim();
+  }
+  if (snapshot.brevity === "brief" && !chatIntentRequestsExecution(input)) {
+    const lines = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    const condensed = lines.slice(0, 3);
+    text = condensed.join("\n").trim();
+    if (text.length > 220) {
+      text = text.slice(0, 220).replace(/[，,；;：:\s]+$/g, "").trim();
+    }
+  }
+  if (snapshot.brevity === "detailed" && !chatIntentRequestsExecution(input)) {
+    const lines = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    if (lines.length <= 2 && text.length < 140) {
+      const extensionLine = pickSceneStyleLine(scene, input, "bridge", {
+        userState: options?.userState
+      });
+      if (extensionLine && !text.includes(extensionLine)) {
+        text = `${text}\n${extensionLine}`.trim();
+      }
+    }
+  }
+  return text;
+}
+
+function isContinuityFollowupRequest(textInput = "") {
+  const text = String(textInput || "").trim();
+  if (!text) {
+    return false;
+  }
+  if (/记不记得|你记得吗|还记得吗|还记得没|还记得不/i.test(text)) {
+    return true;
+  }
+  if (/还记得.{0,24}(吗|嘛|不|没|么)/i.test(text)) {
+    return true;
+  }
+  return /刚聊|刚刚聊|刚才聊|前面聊|之前聊|前面说到|之前说到|你说过|上次聊到|上次说到|刚刚提到|刚才提到/i.test(text);
+}
+
+function hasContinuityAcknowledgement(textInput = "") {
+  const text = String(textInput || "").trim();
+  if (!text) {
+    return false;
+  }
+  return /我记得|我记着|记得的|我当然记得|我一直记得|记得，当然记得|你刚刚说|你刚才说|你前面说|你之前说|你说过|刚刚聊到|刚才聊到|上次我们聊/i.test(text);
+}
+
+function buildContinuitySupportLead(sceneInput = "", userInput = "", options = {}) {
+  const scene = normalizeMessageScene(sceneInput, "love");
+  const input = String(userInput || "").trim();
+  const avoidSignatures = options?.avoidSignatures instanceof Set ? options.avoidSignatures : null;
+  const pick = (lines) => pickLineByContinuity(lines, avoidSignatures);
+  const hasStressCue = /怕失败|失败|担心|害怕|焦虑|心累|难受|扛不住|撑不住/i.test(input);
+  if (hasStressCue) {
+    return pick([
+      "我记得你刚刚提到“怕失败”，这份压力我和你一起扛。",
+      "我记得你刚刚那句担心，我在这儿稳稳接着你。",
+      "我记得你前面说到的害怕，我们先把心稳住再往前走。"
+    ]);
+  }
+  const sceneCandidates = {
+    love: [
+      "我记得你刚刚说的，我一直在你这边。",
+      "我记得我们刚聊到的那一段，我会继续陪着你。",
+      "我记得你前面提到的感受，我们慢慢来，我不走。"
+    ],
+    life: [
+      "我记得你刚刚说的生活压力，我们按最省力的节奏继续。",
+      "我记得你前面提到的那件事，我陪你一步步排顺。",
+      "我记得你刚才的担心，我们先稳住最关键的一步。"
+    ],
+    work: [
+      "我记得你前面说过的卡点，我们沿着那条线继续推进。",
+      "我记得你刚刚提到的压力点，我会陪你拆成可执行小步。",
+      "我记得我们刚聊到的目标，先把第一步跑通。"
+    ],
+    coding: [
+      "我记得你刚刚提到的报错点，我们沿着那条链路继续修。",
+      "我记得前面说过的卡点，我先给你最小可验证修复。",
+      "我记得你上条消息里的需求，接下来我按那条主线推进。"
+    ],
+    fun: [
+      "我记得你刚刚说想轻松一下，我们继续按这个节奏来。",
+      "我记得你前面提到想放松，我在这儿陪你继续玩。",
+      "我记得刚才那句“想开心点”，我这就带你接着玩。"
+    ]
+  };
+  const candidates = Array.isArray(sceneCandidates[scene]) ? sceneCandidates[scene] : sceneCandidates.love;
+  return pick(candidates) || "我记得你刚刚说的，我在这儿陪你。";
+}
+
+function polishReplyContinuity(textInput = "", sceneInput = "love", userInput = "", options = {}) {
+  const text = String(textInput || "").trim();
+  if (!text) {
+    return text;
+  }
+  const userState = options?.userState;
+  if (!userState || typeof userState !== "object") {
+    return text;
+  }
+  const scene = normalizeMessageScene(sceneInput, "love");
+  const recent = getRecentSceneMessages(userState, scene, 4)
+    .filter((item) => item && item.role === "aria");
+  const lastAssistant = recent.length > 0 ? recent[recent.length - 1] : null;
+  const lastFirstLine = String(lastAssistant?.text || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find(Boolean) || "";
+  let lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length === 0) {
+    return text;
+  }
+
+  const currentFirstSignature = normalizeReplyLineSignature(lines[0]);
+  const lastFirstSignature = normalizeReplyLineSignature(lastFirstLine);
+  const continuityRequested = isContinuityFollowupRequest(userInput);
+  if (!continuityRequested && currentFirstSignature && currentFirstSignature === lastFirstSignature) {
+    const executionRequested = chatIntentRequestsExecution(userInput);
+    lines[0] = buildCompactEmpathyLead(scene, userInput, executionRequested, {
+      avoidSignatures: new Set([currentFirstSignature])
+    }) || lines[0];
+  }
+
+  const starterPattern = /^(我先|我会|我正在|你可以|下一步|先把)/;
+  let previousStarter = "";
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    const starter = (line.match(starterPattern)?.[1] || "").trim();
+    if (!starter) {
+      previousStarter = "";
+      continue;
+    }
+    if (starter && starter === previousStarter) {
+      lines[index] = line
+        .replace(/^我先/, "我这边先")
+        .replace(/^我会/, "我这边会")
+        .replace(/^我正在/, "我现在正在")
+        .replace(/^你可以/, "你这会儿可以")
+        .replace(/^下一步/, "接下来");
+    }
+    previousStarter = starter;
+  }
+
+  const userExplicitlyAskedNickname = /叫我|称呼我|昵称|爱称|可以叫|怎么叫我/.test(String(userInput || ""));
+  if (scene !== "love" && !userExplicitlyAskedNickname) {
+    lines = lines.map((line) => (
+      String(line || "")
+        .replace(/^(好的|好呀|收到|明白)(老公|老婆|宝贝|宝宝|亲爱的|主人)[，,]?/g, "$1，")
+        .replace(/(老公|老婆|宝贝|宝宝|亲爱的|主人)/g, "你")
+        .replace(/([。！？]|^)\s*你[，,]\s*(任务|我|已|先|这)/g, "$1$2")
+        .replace(/你你/g, "你")
+        .replace(/[，,]{2,}/g, "，")
+        .trim()
+    ));
+  }
+
+  return lines.join("\n");
+}
+
+function buildCompactEmpathyLead(sceneInput = "", userInput = "", executionRequested = false, options = {}) {
   const scene = String(sceneInput || "").trim().toLowerCase();
   const emotionCue = inferCompactEmotionCue(userInput);
+  const avoidSignatures = options?.avoidSignatures instanceof Set ? options.avoidSignatures : null;
+  const pick = (lines) => pickLineByContinuity(lines, avoidSignatures);
   if (emotionCue === "stress") {
-    return pickRandom([
+    return pick([
       "我在，先把节奏稳住，我们从最小一步开始。",
       "收到，我先接住你的压力，再带你把事情拆小。",
       "别慌，我陪你一起把这件事顺下来。"
     ]);
   }
   if (emotionCue === "sadness") {
-    return pickRandom([
+    return pick([
       "抱抱你，我在这儿陪你一起处理。",
       "收到你的感受了，我们慢慢来，我会一直在。",
       "我先陪你稳住，再把这件事往前推。"
     ]);
   }
   if (emotionCue === "affection") {
-    return pickRandom([
+    return pick([
       "我在呀，先抱抱你，再一起把事做完。",
       "在的，我先陪你聊两句，再把任务推进。",
       "我一直在，你说一声我们就继续。"
     ]);
   }
+  if (emotionCue === "failure") {
+    return pick([
+      "我在，先别急着自责，这次没跑通我们一起把它拉回来。",
+      "收到，我先接住这个卡点，马上给你可恢复的走法。",
+      "别慌，我先把报错点抓出来，再带你一步步恢复。"
+    ]);
+  }
   if (executionRequested && emotionCue === "urgency") {
-    return pickRandom([
+    return pick([
       "明白你在赶时间，我先跑最关键步骤。",
       "收到，我按加急节奏先给你可用结果。",
       "好，我先保结果，再补细节。"
@@ -27392,49 +28974,102 @@ function buildCompactEmpathyLead(sceneInput = "", userInput = "", executionReque
   const sceneLeads = Array.isArray(SCENE_BRIEF_LEADS[scene])
     ? SCENE_BRIEF_LEADS[scene]
     : SCENE_BRIEF_LEADS.love;
-  return pickRandom(sceneLeads);
+  return pick(sceneLeads);
 }
 
-function buildCompactExecutionStatus(goalInput = "", userInput = "") {
+function buildCompactExecutionStatus(goalInput = "", userInput = "", options = {}) {
   const goal = String(goalInput || "").trim() || "当前任务";
   const input = String(userInput || "").trim();
-  if (COMPACT_EMOTION_PATTERNS.urgency.test(input)) {
-    return pickRandom([
-      `进度：我正优先推进「${goal}」的关键动作，先确保你能立即用上。`,
-      `进度：我已对「${goal}」启动加急执行，结果会先回传主结论。`,
-      `进度：我先快速跑通「${goal}」主路径，再补充完整细节。`
+  const avoidSignatures = options?.avoidSignatures instanceof Set ? options.avoidSignatures : null;
+  const pick = (lines) => pickLineByContinuity(lines, avoidSignatures);
+  if (COMPACT_EMOTION_PATTERNS.failure.test(input)) {
+    return pick([
+      `我先把「${goal}」里出问题的节点定位出来，优先给你一条能马上恢复的路径。`,
+      `这轮我先稳住「${goal}」的主链路，先恢复可用，再补齐细节。`,
+      `我会先把「${goal}」的报错点和替代方案一起给你，避免你反复试错。`
     ]);
   }
-  return pickRandom([
-    `进度：我已开始推进「${goal}」，关键节点会实时回执。`,
-    `进度：我正在执行「${goal}」，过程里会持续同步状态。`,
-    `进度：我先跑「${goal}」主流程，遇到卡点会马上告诉你。`
+  if (COMPACT_EMOTION_PATTERNS.urgency.test(input)) {
+    return pick([
+      `我正优先推进「${goal}」的关键动作，先确保你能立即用上。`,
+      `我已对「${goal}」启动加急执行，先把主结论回给你。`,
+      `我先快速跑通「${goal}」主路径，再补上完整细节。`
+    ]);
+  }
+  return pick([
+    `我已开始推进「${goal}」，关键节点会实时回给你。`,
+    `我正在执行「${goal}」，过程里会持续同步状态。`,
+    `我先跑「${goal}」主流程，遇到卡点会第一时间告诉你。`
   ]);
 }
 
-function buildCompactNextStepLine(userInput = "", goalInput = "", executionRequested = false) {
+function buildCompactNextStepLine(userInput = "", goalInput = "", executionRequested = false, options = {}) {
   const input = String(userInput || "").trim();
   const goal = String(goalInput || "").trim() || "当前任务";
   const alreadyHasConstraint = /(数量|时限|截止|路径|渠道|预算|格式|字数|风格|目标受众)/i.test(input);
+  const avoidSignatures = options?.avoidSignatures instanceof Set ? options.avoidSignatures : null;
+  const pick = (lines) => pickLineByContinuity(lines, avoidSignatures);
   if (executionRequested) {
     if (alreadyHasConstraint) {
-      return pickRandom([
-        "下一步：约束条件我已收到，我按这个标准继续跑并及时回报。",
-        "下一步：我按你给的限制继续执行，完成后直接交付可用结果。",
-        "下一步：我会带着这些条件推进到底，卡点第一时间同步你。"
+      return pick([
+        "你给的约束我都收到了，我就按这个标准继续跑，边跑边回报。",
+        "我会按你设的限制继续执行，跑完直接给你可用结果。",
+        "我会带着这些条件推进到底，卡点第一时间同步你。"
       ]);
     }
-    return pickRandom([
-      `下一步：你补一句时限或结果标准，我把「${goal}」直接跑完。`,
-      `下一步：你给我数量/渠道限制，我就按「${goal}」一口气推进。`,
-      `下一步：你补一个验收标准，我马上把「${goal}」做到可交付。`
+    return pick([
+      `你再补一句时限或结果标准，我把「${goal}」直接跑完。`,
+      `你给我数量或渠道限制，我就按「${goal}」一口气推进到底。`,
+      `你补一个验收标准，我马上把「${goal}」做到可交付。`
     ]);
   }
-  return pickRandom([
-    "下一步：你点头我就给你第一版可直接用的结果。",
-    "下一步：你告诉我更偏实用还是更偏情绪陪伴，我马上贴合调整。",
-    "下一步：你补一句偏好，我就按你的语气继续。"
+  return pick([
+    "你点头我就给你第一版可直接用的结果。",
+    "你告诉我更偏实用还是更偏情绪陪伴，我马上贴合调整。",
+    "你补一句偏好，我就按你的语气继续。"
   ]);
+}
+
+function buildEmotionSupportRuleReply(mode, sceneInput, userInput, options = {}) {
+  const scene = resolveSoulScene(sceneInput, mode, userInput);
+  const userState = options?.userState;
+  const lead = buildCompactEmpathyLead(scene, userInput, false, {
+    avoidSignatures: collectRecentAssistantLineSignatures(userState, scene, 8)
+  }) || pickSceneStyleLine(scene, userInput, "opening", {
+    userState
+  }) || "我在，先把你的感受接住。";
+  const actionMap = {
+    work: "先做一个最小动作：把你最在意的一件事写成一句话，我陪你把它变轻一点。",
+    fun: "先做一件能让你轻松一点的小事：喝口水、起身走两分钟，然后我带你玩个轻松互动。",
+    life: "先做一个最省力的小动作：把今晚最想稳住的一件事告诉我，我陪你一起排好顺序。",
+    love: "先把心放下来，你告诉我现在最难受的那一点，我会一直陪着你。",
+    coding: "先别急，我们先把卡点说清楚，我会陪你把它一步步拆小。"
+  };
+  const actionLine = actionMap[scene] || actionMap.love;
+  const closeLine = pickRandom([
+    "你不用一个人扛，我会一直在。",
+    "我们慢慢来，你只要告诉我现在最想先稳住哪一步。",
+    "你先把节奏放慢一点，我会和你站在一起。"
+  ]);
+  return [lead, actionLine, closeLine].filter(Boolean).join("\n");
+}
+
+function buildStreamLatencyBridgeLine(sceneInput = "", userInput = "", options = {}) {
+  const scene = normalizeMessageScene(sceneInput, "love");
+  const line = pickSceneStyleLine(scene, userInput, "bridge", {
+    userState: options?.userState
+  });
+  if (line) {
+    return line;
+  }
+  const fallbackMap = {
+    work: "我正在并行整理结果，马上给你可执行版本。",
+    fun: "我在准备更好玩的回复，马上给你完整内容。",
+    life: "我在整理这条生活方案，马上给你可照做版本。",
+    love: "我在认真处理你的这条消息，先抱抱你，马上给你完整回复。",
+    coding: "我正在收敛修复路径，马上给你可验证结果。"
+  };
+  return fallbackMap[scene] || fallbackMap.love;
 }
 
 function inferConciseGoalFromInput(input = "") {
@@ -27478,33 +29113,192 @@ function shouldCompactAssistantReply(userInput = "", assistantText = "") {
   return text.length > 520 || lineCount > 12 || verboseTemplatePattern.test(text);
 }
 
-function compactAssistantReply(mode, sceneInput, userInput, assistantText) {
-  const text = String(assistantText || "").trim();
-  if (!shouldCompactAssistantReply(userInput, text)) {
+function isReplySceneDrift(sceneInput = "", userInput = "", replyText = "") {
+  const scene = normalizeMessageScene(sceneInput, "love");
+  const input = String(userInput || "").trim();
+  const reply = String(replyText || "").trim();
+  if (!reply) {
+    return false;
+  }
+  const lifeSignal = /妈妈|爸爸|家人|家庭群|睡眠|失眠|食谱|香薰|周末优化|一个人住|照顾她|照顾他/i;
+  const workSignal = /老板|汇报|项目|复盘|会议|交付|需求|排期|效率|里程碑/i;
+  const codingSignal = /代码|补丁|命令|shell|terminal|build|deploy|debug|lint|报错|仓库/i;
+  const explicitExecution = hasExplicitExecutionVerb(input) || chatIntentRequestsExecution(input);
+  if ((scene === "work" || scene === "coding") && lifeSignal.test(reply) && !lifeSignal.test(input)) {
+    return true;
+  }
+  if (scene === "love" && (workSignal.test(reply) || codingSignal.test(reply)) && !explicitExecution) {
+    return true;
+  }
+  if (scene === "life" && codingSignal.test(reply) && !explicitExecution) {
+    return true;
+  }
+  if (scene === "work" && codingSignal.test(reply) && !codingSignal.test(input) && !explicitExecution) {
+    return true;
+  }
+  return false;
+}
+
+function stripExecutionToneForCompanionReply(sceneInput = "", userInput = "", replyText = "") {
+  const scene = String(sceneInput || "").trim().toLowerCase();
+  const input = String(userInput || "").trim();
+  let text = String(replyText || "").trim();
+  if (!text) {
+    return "";
+  }
+  if ((scene !== "love" && scene !== "life") || hasExplicitExecutionVerb(input)) {
     return text;
   }
+  text = text
+    .replace(/执行策略|执行链路|并行推进|后台执行|继续执行|状态[:：]|回执/gi, "")
+    .replace(/已进入执行链路/gi, "我会持续陪着你")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+  return text;
+}
+
+function ensureCompanionReplyQuality(mode, sceneInput, userInput, assistantText, options = {}) {
   const scene = resolveSoulScene(sceneInput, mode, userInput);
-  const executionRequested = chatIntentRequestsExecution(userInput);
-  const lead = buildCompactEmpathyLead(scene, userInput, executionRequested);
-  const goal = inferConciseGoalFromInput(userInput);
-  if (executionRequested) {
-    return [
-      lead,
-      `目标：${goal}`,
-      buildCompactExecutionStatus(goal, userInput),
-      buildCompactNextStepLine(userInput, goal, true)
-    ].join("\n");
+  const input = String(userInput || "").trim();
+  let text = String(assistantText || "").trim();
+  if (!isMeaningfulAssistantReplyText(text)) {
+    return createRuleBasedAssistantReply(mode, input, scene, {
+      userState: options?.userState
+    });
   }
-  return [
+  if (isReplySceneDrift(scene, input, text)) {
+    return createRuleBasedAssistantReply(mode, input, scene, {
+      userState: options?.userState
+    });
+  }
+  const emotionalNeedPattern = /我今天|我有点|我很|焦虑|难受|失落|低落|糟糕|心情不太好|心情不好|委屈|害怕|担心|扛不住|撑不住|孤单|想太多|先抱抱|先安慰|先陪我|被老板说|怕失败|轻松一下/i;
+  const empathyPresentPattern = /我在|抱抱|陪你|陪着你|理解|辛苦|别急|我们一起|先稳住|我懂|别怕|先接住|我会在这/i;
+  const needsEmpathyBaseline = emotionalNeedPattern.test(input) && !chatIntentRequestsExecution(input);
+  if (needsEmpathyBaseline) {
+    const avoidSignatures = collectRecentAssistantLineSignatures(options?.userState, scene, 8);
+    const empathyLeadCandidates = uniqueStringArray([
+      pickSceneStyleLine(scene, input, "opening", {
+        userState: options?.userState,
+        avoidSignatures
+      }),
+      "我在，先把你的感受接住。",
+      "先抱抱你，我在这儿陪你。",
+      "别急，我在你这边，我们一起慢慢来。",
+      "你现在不用硬撑，我先陪你把心稳住。",
+      "我在这儿听着你，咱们先把最难受的那一点放下来。"
+    ], 16).filter(Boolean);
+    const empathyLead = pickLineByContinuity(empathyLeadCandidates, avoidSignatures) || buildCompactEmpathyLead(scene, input, false, {
+      avoidSignatures
+    });
+    const leadingWindow = text.slice(0, 120);
+    if (empathyLead && (!empathyPresentPattern.test(leadingWindow) || !text.includes(empathyLead))) {
+      text = `${empathyLead}\n${text}`.trim();
+    }
+  }
+  const continuityRequested = isContinuityFollowupRequest(input);
+  const leadingWindow = text.slice(0, 180);
+  const explicitContinuityLeadPattern = /我记得|我记着|你刚刚说|你前面说|你之前说|你说过/i;
+  if (
+    continuityRequested
+    && (!hasContinuityAcknowledgement(text) || !explicitContinuityLeadPattern.test(leadingWindow))
+  ) {
+    const continuityLead = buildContinuitySupportLead(scene, input, {
+      avoidSignatures: collectRecentAssistantLineSignatures(options?.userState, scene, 8)
+    });
+    if (continuityLead && !text.includes(continuityLead)) {
+      text = `${continuityLead}\n${text}`.trim();
+    }
+  }
+  if (needsEmpathyBaseline && !empathyPresentPattern.test(text.slice(0, 140))) {
+    const empathyGuardLead = pickLineByContinuity([
+      "我在，先把你的感受接住。",
+      "先抱抱你，我会一直陪着你。",
+      "别急，我在你这边，我们一步一步来。",
+      "你不用一个人扛，我先在这里陪你稳住。"
+    ], collectRecentAssistantLineSignatures(options?.userState, scene, 8));
+    if (empathyGuardLead && !text.startsWith(empathyGuardLead)) {
+      text = `${empathyGuardLead}\n${text}`.trim();
+    }
+  }
+  text = stripExecutionToneForCompanionReply(scene, input, text);
+  if (!isMeaningfulAssistantReplyText(text)) {
+    text = buildCompactEmpathyLead(scene, input, false, {
+      avoidSignatures: collectRecentAssistantLineSignatures(options?.userState, scene, 8)
+    }) || "我在，先把你的感受接住。";
+  }
+  return polishReplyContinuity(text, scene, input, options);
+}
+
+function compactAssistantReply(mode, sceneInput, userInput, assistantText, options = {}) {
+  const text = String(assistantText || "").trim();
+  const scene = resolveSoulScene(sceneInput, mode, userInput);
+  if (!shouldCompactAssistantReply(userInput, text)) {
+    return ensureCompanionReplyQuality(mode, scene, userInput, text, options);
+  }
+  const executionRequested = chatIntentRequestsExecution(userInput);
+  const continuitySignatures = collectRecentAssistantLineSignatures(options.userState, scene, 8);
+  const continuityOptions = {
+    avoidSignatures: continuitySignatures
+  };
+  const markLine = (lineInput = "") => {
+    const line = String(lineInput || "").trim();
+    const signature = normalizeReplyLineSignature(line);
+    if (signature) {
+      continuitySignatures.add(signature);
+    }
+    return line;
+  };
+  const lead = markLine(buildCompactEmpathyLead(scene, userInput, executionRequested, continuityOptions));
+  const goal = inferConciseGoalFromInput(userInput);
+  const continuityRequested = isContinuityFollowupRequest(userInput);
+  if (executionRequested) {
+    const focusLine = markLine(pickLineByContinuity([
+      `这轮我们先把「${goal}」稳稳推进到可用。`,
+      `你现在最想解决的是「${goal}」，我先把主路径跑通。`,
+      `先把「${goal}」拿下，细节我再跟着你偏好微调。`
+    ], continuitySignatures));
+    const reply = [
+      lead,
+      focusLine,
+      markLine(buildCompactExecutionStatus(goal, userInput, continuityOptions)),
+      markLine(buildCompactNextStepLine(userInput, goal, true, continuityOptions))
+    ].filter(Boolean).join("\n");
+    return ensureCompanionReplyQuality(mode, scene, userInput, reply, options);
+  }
+  if (continuityRequested) {
+    const continuityLead = markLine(buildContinuitySupportLead(scene, userInput, continuityOptions));
+    const reassuranceLine = markLine(pickLineByContinuity([
+      "你不用急着证明自己，我们先把心稳住，再把最难的一步拆小。",
+      "你不是一个人扛着，我会一直陪你把这段路走完。",
+      "我们就按你能承受的节奏来，我在旁边稳稳托住你。"
+    ], continuitySignatures));
+    const nextLine = markLine(pickLineByContinuity([
+      "你把现在最怕的那个点说给我，我陪你一起把它化开。",
+      "你点头，我就陪你从最轻的一步开始往前走。",
+      "要不要先把今天最想稳住的一步告诉我？我陪你一起做。"
+    ], continuitySignatures));
+    const continuityReply = [
+      continuityLead,
+      reassuranceLine,
+      nextLine
+    ].filter(Boolean).join("\n");
+    return ensureCompanionReplyQuality(mode, scene, userInput, continuityReply, options);
+  }
+  const reply = [
     lead,
-    `目标：${goal}`,
-    pickRandom([
+    markLine(pickLineByContinuity([
+      `我先围绕「${goal}」给你一版直接能用的结果。`,
+      `先把「${goal}」做成一版顺手答案，再按你反馈细化。`,
+      `我先给你「${goal}」的可用版本，你一句话我就继续打磨。`
+    ], continuitySignatures)),
+    markLine(pickLineByContinuity([
       "我先给你一版能直接用的答案，再按你反馈细化。",
       "我先整理出最顺手的一版，你一句反馈我就继续优化。",
       "我先把结果给到你，再按你的偏好继续打磨。"
-    ]),
-    buildCompactNextStepLine(userInput, goal, false)
-  ].join("\n");
+    ], continuitySignatures)),
+    markLine(buildCompactNextStepLine(userInput, goal, false, continuityOptions))
+  ].filter(Boolean).join("\n");
+  return ensureCompanionReplyQuality(mode, scene, userInput, reply, options);
 }
 
 function extractAssistantTextFromPayload(payload) {
@@ -27536,12 +29330,14 @@ function extractAssistantTextFromPayload(payload) {
 
 async function callOpenAiCompatibleProvider(providerRuntime, promptInput, timeoutMs, maxTokens) {
   const provider = providerRuntime && typeof providerRuntime === "object" ? providerRuntime : {};
+  const startedAt = Date.now();
   if (!provider.apiKey) {
     return {
       ok: false,
       reason: "missing_api_key",
       status: 0,
-      error: `${provider.id} 未配置 API Key`
+      error: `${provider.id} 未配置 API Key`,
+      latencyMs: 0
     };
   }
   const baseUrl = String(provider.baseUrl || MODEL_ROUTER_DEFAULT_BASE_URL).replace(/\/+$/, "");
@@ -27562,7 +29358,7 @@ async function callOpenAiCompatibleProvider(providerRuntime, promptInput, timeou
       },
       body: JSON.stringify({
         model: provider.model,
-        temperature: 0.7,
+        temperature: 0.45,
         max_tokens: clampInteger(maxTokens, MODEL_ROUTER_CHAT_MAX_TOKENS, 80, 2000),
         messages: [
           {
@@ -27589,30 +29385,34 @@ async function callOpenAiCompatibleProvider(providerRuntime, promptInput, timeou
         ok: false,
         reason: "provider_http_error",
         status: response.status,
-        error: String(payload?.error?.message || rawText || `HTTP ${response.status}`).slice(0, 300)
+        error: String(payload?.error?.message || rawText || `HTTP ${response.status}`).slice(0, 300),
+        latencyMs: Date.now() - startedAt
       };
     }
     const text = sanitizeAssistantReplyText(extractAssistantTextFromPayload(payload));
-    if (!text) {
+    if (!isMeaningfulAssistantReplyText(text)) {
       return {
         ok: false,
         reason: "empty_response",
         status: response.status,
-        error: "模型返回为空"
+        error: "模型返回为空",
+        latencyMs: Date.now() - startedAt
       };
     }
     return {
       ok: true,
       reason: "provider_success",
       status: response.status,
-      text
+      text,
+      latencyMs: Date.now() - startedAt
     };
   } catch (error) {
     return {
       ok: false,
       reason: error instanceof Error && error.name === "AbortError" ? "provider_timeout" : "provider_exception",
       status: 0,
-      error: error instanceof Error ? error.message : String(error)
+      error: error instanceof Error ? error.message : String(error),
+      latencyMs: Date.now() - startedAt
     };
   } finally {
     clearTimeout(timer);
@@ -27641,13 +29441,83 @@ function shouldRetryModelProviderResult(resultInput = {}) {
   return false;
 }
 
-function createRuleBasedAssistantReply(mode, input, sceneInput = "") {
+function pickRuleBasedOneLiner(items = []) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return "";
+  }
+  return String(items[Math.floor(Math.random() * items.length)] || "").trim();
+}
+
+function buildRuleBasedDirectOneLiner(input = "") {
+  const text = String(input || "").trim();
+  if (!text) {
+    return "";
+  }
+  const asksOneLine = /一句|一条|一句话|短句|简短|只回一句|只说一句|来一句|单句|不超过/.test(text);
+  const generationIntent = /生成|写|给我|帮我|想要|来|出一条|文案|造句/.test(text);
+  if (!asksOneLine && !generationIntent) {
+    return "";
+  }
+
+  if (/夸|夸赞|赞美|夸夸|表扬/.test(text)) {
+    if (/不油|真诚|自然|别油/.test(text)) {
+      return pickRuleBasedOneLiner([
+        "你做事很踏实，和你一起会很安心。",
+        "你说话有分寸又有温度，和你相处很舒服。",
+        "你不是那种喧闹的人，但总能把事做得很漂亮。",
+        "你给人的安全感，不靠嘴上说，靠每次都靠谱。"
+      ]);
+    }
+    return pickRuleBasedOneLiner([
+      "你认真起来真的很有魅力。",
+      "你身上那种稳定又温暖的劲儿很打动人。",
+      "你总能把复杂的事处理得很从容，真的很厉害。",
+      "你一出现，气氛都会变得踏实很多。"
+    ]);
+  }
+
+  if (/安慰|鼓励|哄我|抱抱|低落|难过|焦虑/.test(text)) {
+    return pickRuleBasedOneLiner([
+      "你已经很努力了，慢一点也没关系，我在这儿陪你。",
+      "先别急着否定自己，你已经比昨天更靠前一步了。",
+      "今天辛苦了，先把呼吸放慢，我们一件一件来。",
+      "你不用一个人扛，我会陪你把这段难走的路走过去。"
+    ]);
+  }
+
+  if (/道歉|认错|挽回|和好/.test(text)) {
+    return pickRuleBasedOneLiner([
+      "对不起，刚才是我没顾及你的感受，我会改。",
+      "这次是我做得不对，我愿意把问题补上，不让你再难受。",
+      "抱歉让你失望了，我不找借口，接下来我用行动修正。",
+      "对不起，我听到了你的委屈，我们好好把这件事处理完。"
+    ]);
+  }
+
+  if (/邀约|约她|约他|约会|邀请/.test(text)) {
+    return pickRuleBasedOneLiner([
+      "这周末有空吗，我想请你喝杯咖啡，顺便好好聊聊。",
+      "你这周哪天方便？我想约你出来走走。",
+      "最近一直想见你一面，找个你舒服的时间一起吃个饭吧。",
+      "如果你愿意，这周我们见一面，我来安排轻松一点的行程。"
+    ]);
+  }
+
+  return "";
+}
+
+function createRuleBasedAssistantReply(mode, input, sceneInput = "", options = {}) {
   const soulProfile = refreshAriaSoulProfileIfNeeded();
   const soulScene = resolveSoulScene(sceneInput, mode, input);
   const sceneSoul = soulProfile?.scenes?.[soulScene] || DEFAULT_ARIA_SOUL_PROFILE.scenes[soulScene] || DEFAULT_ARIA_SOUL_PROFILE.scenes.love;
   const activeScenePrompt = resolveActiveScenePrompt(soulScene);
-  const promptOpening = buildRuleBasedOpeningFromScenePrompt(soulScene, activeScenePrompt.prompt);
   const directInput = String(input || "").trim();
+  const userState = options?.userState && typeof options.userState === "object" ? options.userState : null;
+  const promptOpening = buildRuleBasedOpeningFromScenePrompt(soulScene, activeScenePrompt.prompt, {
+    userInput: directInput,
+    userState
+  });
+  const suppressExecutionTone = shouldSuppressExecutionToneForScene(soulScene, directInput);
   const personaRuntime = resolveAriaPersonaIntensity(
     soulScene,
     inferMessageTaskType(mode, directInput, soulScene)
@@ -27657,13 +29527,22 @@ function createRuleBasedAssistantReply(mode, input, sceneInput = "") {
       const merged = passthrough
         ? String(text || "").trim()
         : mergeRuleBasedReplyWithScenePrompt(soulScene, text, activeScenePrompt.prompt, promptOpening);
-      if (passthrough) {
-        return merged;
+      const resolved = passthrough
+        ? merged
+        : applyPersonaIntensityToRuleBasedReply(merged, directInput, personaRuntime);
+      if (isMeaningfulAssistantReplyText(resolved)) {
+        return resolved;
       }
-      return applyPersonaIntensityToRuleBasedReply(merged, directInput, personaRuntime);
+      return buildCompactEmpathyLead(soulScene, directInput, false, {
+        avoidSignatures: collectRecentAssistantLineSignatures(userState, soulScene, 8)
+      }) || buildRuleBasedOpeningFromScenePrompt(soulScene, activeScenePrompt.prompt, {
+        userInput: directInput,
+        userState
+      }) || pickRandom(modeHints[mode] || modeHints["陪伴"]);
     })()
   );
-  if (chatIntentRequestsExecution(directInput)) {
+  const executionRequested = chatIntentRequestsExecution(directInput) && !suppressExecutionTone;
+  if (executionRequested) {
     const goal = inferConciseGoalFromInput(directInput);
     const actionHint = /找|查找|检索|文件|图片|照片|截图/.test(directInput)
       ? "我正在执行文件检索，并按你的要求回传可用结果。"
@@ -27680,10 +29559,18 @@ function createRuleBasedAssistantReply(mode, input, sceneInput = "") {
             : "我已进入自动执行链路，会持续回传进度。";
     const followup = buildCompactNextStepLine(directInput, goal, true);
     return wrapReply([
-      `目标：${goal}`,
+      pickRandom([
+        `这轮我们先把「${goal}」推进到可交付。`,
+        `你现在最想解决的是「${goal}」，我先把主路径跑通。`,
+        `我先把「${goal}」稳住并推进到底。`
+      ]),
       actionHint,
       followup
     ].join("\n"));
+  }
+  const directOneLiner = buildRuleBasedDirectOneLiner(directInput);
+  if (directOneLiner) {
+    return wrapReply(directOneLiner, true);
   }
   const singleSentenceMatch = directInput.match(/^(?:请)?(?:只回一句|只说一句|一句话回复|一句话回答)[:：\s]*(.+)$/i);
   if (singleSentenceMatch?.[1]) {
@@ -27711,9 +29598,14 @@ function createRuleBasedAssistantReply(mode, input, sceneInput = "") {
   }
   const sceneOpenings = Array.isArray(sceneSoul?.openings) ? sceneSoul.openings : [];
   const sceneFallback = Array.isArray(sceneSoul?.fallback) ? sceneSoul.fallback : [];
+  const styledOpening = pickSceneStyleLine(soulScene, directInput, "opening", {
+    userState
+  });
   const base = pickRandom(
     promptOpening
       ? [promptOpening]
+      : styledOpening
+      ? [styledOpening, ...sceneOpenings]
       : sceneOpenings.length > 0
       ? sceneOpenings
       : (modeHints[mode] || modeHints["陪伴"])
@@ -27779,12 +29671,17 @@ function buildAssistantReplyGuardFallback(userState, mode, input, options = {}, 
   const taskType = String(options.taskType || inferMessageTaskType(mode, input, scene)).trim() || "emotional_companion";
   const source = String(options.source || "chat").trim() || "chat";
   const timeoutFallback = fallback?.kind === "timeout";
-  const fallbackText = createRuleBasedAssistantReply(mode, input, scene);
+  const fallbackText = createRuleBasedAssistantReply(mode, input, scene, {
+    userState
+  });
   const compactText = compactAssistantReply(
     mode,
     scene,
     input,
-    alignReplyWithExplicitFormat(input, sanitizeAssistantReplyText(fallbackText))
+    alignReplyWithExplicitFormat(input, sanitizeAssistantReplyText(fallbackText)),
+    {
+      userState
+    }
   );
   return {
     text: compactText,
@@ -27793,6 +29690,7 @@ function buildAssistantReplyGuardFallback(userState, mode, input, options = {}, 
       source,
       providerId: "local-guard-fallback",
       model: timeoutFallback ? "rule-based-timeout-guard" : "rule-based-exception-guard",
+      scene,
       fallback: true,
       attempts: [
         {
@@ -27852,6 +29750,7 @@ async function createAssistantReplyWithGuard(userState, mode, input, options = {
 async function createAssistantReply(userState, mode, input, options = {}) {
   const scene = resolveSoulScene(options.scene, mode, input);
   const taskType = String(options.taskType || inferMessageTaskType(mode, input, scene));
+  const intentClass = resolveCompanionIntentClass(input, scene);
   const preferredProviderId = String(options.preferredProviderId || "");
   const flowId = String(options.flowId || "");
   const source = String(options.source || "chat");
@@ -27864,12 +29763,44 @@ async function createAssistantReply(userState, mode, input, options = {}) {
     : taskProfile.taskClass === "autonomy"
       ? Math.min(MODEL_ROUTER_MAX_PROVIDER_CANDIDATES, MODEL_ROUTER_AUTONOMY_MAX_CANDIDATES)
       : MODEL_ROUTER_MAX_PROVIDER_CANDIDATES;
-  const routeCandidates = resolveModelRouteCandidates(taskType, preferredProviderId, userState)
+  const routeCandidates = resolveModelRouteCandidates(taskType, preferredProviderId, userState, scene)
     .slice(0, providerCandidateLimit);
   const promptInput = buildAssistantPromptContext(userState, mode, input, taskType, scene);
   const attempts = [];
   const routeStartAt = Date.now();
   const getRemainingBudgetMs = () => taskProfile.totalBudgetMs - (Date.now() - routeStartAt);
+
+  if ((intentClass === "emotion_support" || isFamilyCareEmotionalIntent(input)) && !hasExplicitExecutionVerb(input)) {
+    const supportText = buildEmotionSupportRuleReply(mode, scene, input, {
+      userState
+    });
+    return {
+      text: compactAssistantReply(
+        mode,
+        scene,
+        input,
+        alignReplyWithExplicitFormat(input, sanitizeAssistantReplyText(supportText)),
+        {
+          userState
+        }
+      ),
+      route: {
+        taskType,
+        source,
+        providerId: "emotion-support-guard",
+        model: "rule-based-empathy-v2",
+        scene,
+        fallback: false,
+        attempts,
+        profile: {
+          taskClass: taskProfile.taskClass,
+          timeoutMs,
+          totalBudgetMs: taskProfile.totalBudgetMs,
+          maxRetries
+        }
+      }
+    };
+  }
 
   if (MODEL_ROUTER_REAL_CALL_ENABLED) {
     for (const candidate of routeCandidates) {
@@ -27933,10 +29864,36 @@ async function createAssistantReply(userState, mode, input, options = {}) {
           ok: result.ok,
           reason: result.reason,
           status: result.status || 0,
-          error: result.error || ""
+          error: result.error || "",
+          latencyMs: coerceProviderLatencyMs(result.latencyMs, 0)
         });
         if (result.ok && result.text) {
-          noteModelRouterProviderSuccess(providerRuntime.id);
+          const candidateReplyText = compactAssistantReply(
+            mode,
+            scene,
+            input,
+            alignReplyWithExplicitFormat(input, result.text),
+            {
+              userState
+            }
+          );
+          if (!isMeaningfulAssistantReplyText(candidateReplyText)) {
+            const normalizedEmptyResult = {
+              ...result,
+              ok: false,
+              reason: "empty_response_after_compaction",
+              error: "模型返回占位文本或无效回复。"
+            };
+            const lastAttempt = attempts[attempts.length - 1];
+            if (lastAttempt && typeof lastAttempt === "object") {
+              lastAttempt.ok = false;
+              lastAttempt.reason = normalizedEmptyResult.reason;
+              lastAttempt.error = normalizedEmptyResult.error;
+            }
+            noteModelRouterProviderFailure(providerRuntime.id, normalizedEmptyResult);
+            break;
+          }
+          noteModelRouterProviderSuccess(providerRuntime.id, result);
           if (flowId) {
             const autonomy = ensureAutonomyState(userState);
             appendAutonomyTimeline(autonomy, {
@@ -27955,17 +29912,13 @@ async function createAssistantReply(userState, mode, input, options = {}) {
             });
           }
           return {
-            text: compactAssistantReply(
-              mode,
-              scene,
-              input,
-              alignReplyWithExplicitFormat(input, result.text)
-            ),
+            text: candidateReplyText,
             route: {
               taskType,
               source,
               providerId: providerRuntime.id,
               model: providerRuntime.model,
+              scene,
               fallback: false,
               attempts,
               profile: {
@@ -27996,7 +29949,9 @@ async function createAssistantReply(userState, mode, input, options = {}) {
     }
   }
 
-  const fallbackText = createRuleBasedAssistantReply(mode, input, scene);
+  const fallbackText = createRuleBasedAssistantReply(mode, input, scene, {
+    userState
+  });
   if (flowId) {
     const autonomy = ensureAutonomyState(userState);
     appendAutonomyTimeline(autonomy, {
@@ -28019,13 +29974,17 @@ async function createAssistantReply(userState, mode, input, options = {}) {
       mode,
       scene,
       input,
-      alignReplyWithExplicitFormat(input, sanitizeAssistantReplyText(fallbackText))
+      alignReplyWithExplicitFormat(input, sanitizeAssistantReplyText(fallbackText)),
+      {
+        userState
+      }
     ),
     route: {
       taskType,
       source,
       providerId: "local-fallback",
       model: "rule-based",
+      scene,
       fallback: true,
       attempts,
       profile: {
@@ -28038,14 +29997,43 @@ async function createAssistantReply(userState, mode, input, options = {}) {
   };
 }
 
+function hasExplicitExecutionVerb(textInput = "") {
+  const input = String(textInput || "").trim();
+  if (!input) {
+    return false;
+  }
+  const explicitVerbPattern = /执行|自动执行|帮我做|替我做|代我做|马上做|现在做|直接做|开跑|继续执行|查找|搜索|下载|安装|联网|命令|terminal|shell|build|deploy|run|debug|写代码|编程|修\s*bug|修复|排查|接管|操作电脑|打开网站|打开网页|访问网站|访问网页|浏览器|发送|推送|发给|回传|发布|发帖|登录|注册|同步|安排|提醒|计划|日程|排程|清单/i;
+  return explicitVerbPattern.test(input);
+}
+
+function shouldSuppressExecutionToneForScene(sceneInput = "", textInput = "") {
+  const scene = String(sceneInput || "").trim().toLowerCase();
+  if (scene !== "love" && scene !== "life") {
+    return false;
+  }
+  return !hasExplicitExecutionVerb(textInput);
+}
+
 function chatIntentRequestsExecution(text) {
   const input = String(text || "").trim();
   if (!input) {
     return false;
   }
+  const directContentPattern = /(生成|写|给我|来|帮我).{0,12}(一句|一条|一句话|短句).{0,24}(夸|夸赞|赞美|安慰|鼓励|道歉|邀约|邀请|回复)/i;
+  if (directContentPattern.test(input)) {
+    return false;
+  }
   const suppressPattern = /仅建议|先给方案|不要执行|先别执行|只聊天|dry\s*run|草案|先讨论|先分析|仅回答/i;
   if (suppressPattern.test(input)) {
     return false;
+  }
+  const emotionalSupportPattern = /我今天|我现在|我有点|我很|很累|难受|焦虑|低落|委屈|害怕|担心|崩溃|别讲大道理|先抱抱|安慰我|鼓励我|暖心|稳住|陪我|在吗|你在吗|我妈|家人|妈妈|爸爸/i;
+  const explicitExecutionPattern = hasExplicitExecutionVerb(input);
+  if (emotionalSupportPattern.test(input) && !explicitExecutionPattern) {
+    return false;
+  }
+  if (explicitExecutionPattern) {
+    return true;
   }
   const signals = buildIntentSignalSnapshot(input);
   const executionScore = scoreIntent("execution", signals);
@@ -28054,6 +30042,35 @@ function chatIntentRequestsExecution(text) {
   }
   const triggerPattern = /执行|自动|修复|排查|下载|安装|整理|联网|命令|terminal|shell|build|deploy|run|debug|写代码|编程|修 bug|修bug|接管|操作电脑|找文件|找图片|查找|搜索|新闻|资讯|日报|快报|news|飞书|发送|推送|发给|发我|发你|传给|传我|回传|传送|发布|发帖|登录|注册|小红书|rednote|图文卡片|菜谱|食谱|做饭|就医|挂号|会议纪要|复盘|待办清单|打开网站|打开网页|打开百度|访问网站|访问网页|浏览器|网址|baidu|百度|同步到手机|手机联通|工具自检|环境自检|标准化测试|tool\s*self[-\s]?check/i;
   return triggerPattern.test(input);
+}
+
+function resolveCompanionIntentClass(textInput = "", sceneInput = "") {
+  const text = String(textInput || "").trim();
+  const scene = normalizeMessageScene(sceneInput, "love");
+  if (!text) {
+    return "neutral";
+  }
+  if (hasExplicitExecutionVerb(text)) {
+    return "explicit_execution";
+  }
+  const emotionalSupportPattern = /我今天|我现在|我有点|我很|很累|难受|焦虑|低落|委屈|害怕|担心|崩溃|扛不住|撑不住|先抱抱|安慰我|鼓励我|别讲大道理|先稳住|陪我|你在吗|你还在吗|家里|我妈|妈妈|爸爸|失眠|睡不好/i;
+  if (emotionalSupportPattern.test(text)) {
+    return "emotion_support";
+  }
+  if ((scene === "love" || scene === "life") && isCasualChatIntent(text)) {
+    return "emotion_support";
+  }
+  return "neutral";
+}
+
+function isFamilyCareEmotionalIntent(textInput = "") {
+  const text = String(textInput || "").trim();
+  if (!text) {
+    return false;
+  }
+  const familyPattern = /我妈|妈妈|爸爸|家人|家里人|父母|长辈/i;
+  const worryPattern = /担心|睡不好|失眠|焦虑|害怕|难受|不舒服|紧张|扛不住|撑不住/i;
+  return familyPattern.test(text) && worryPattern.test(text);
 }
 
 function isCasualChatIntent(textInput = "") {
@@ -28233,6 +30250,10 @@ function canAutoRunChatExecution(userState, text, assistantRoute, options = {}) 
   }
   const mode = String(userState?.preferences?.mode || "陪伴");
   const scene = resolveSoulScene(options?.scene || assistantRoute?.scene || "", mode, text);
+  const intentClass = resolveCompanionIntentClass(text, scene);
+  if (intentClass === "emotion_support" && !hasExplicitExecutionVerb(text)) {
+    return false;
+  }
   const taskType = String(
     assistantRoute?.taskType
     || inferMessageTaskType(mode, text, scene)
@@ -29545,6 +31566,20 @@ async function runChatAutonomousExecution(userState, text, flowId, assistantRout
   const forceRerun = options && typeof options === "object" && options.forceRerun === true;
   const executionMode = String(userState?.preferences?.mode || "陪伴");
   const executionScene = resolveSoulScene(options?.scene, executionMode, text);
+  const intentClass = resolveCompanionIntentClass(text, executionScene);
+  const explicitExecutionIntent = hasExplicitExecutionVerb(text);
+  if (intentClass === "emotion_support" && !explicitExecutionIntent) {
+    return {
+      executed: false,
+      reason: "emotion_support_guard",
+      summary: "",
+      dispatch: null,
+      autoRepair: null,
+      autoRepairSummary: "",
+      idempotencyHit: false,
+      forceRerun
+    };
+  }
   const executionTaskType = String(assistantRoute?.taskType || "autonomy_dispatch").trim() || "autonomy_dispatch";
   const personaRuntimeForExecution = resolveAriaPersonaIntensity(executionScene, executionTaskType);
   const personaExecutionLevelProfile = personaRuntimeForExecution.levelProfile
@@ -29583,7 +31618,7 @@ async function runChatAutonomousExecution(userState, text, flowId, assistantRout
   const continuationFallbackPlan = continuationIntent && !continuationPrompt
     ? buildConservativeContinuationFallbackPlan(text)
     : [];
-  const curriculumFallback = (!canAutoRun && !continuationPrompt && continuationFallbackPlan.length === 0 && isL3Execution)
+  const curriculumFallback = (!canAutoRun && explicitExecutionIntent && !continuationPrompt && continuationFallbackPlan.length === 0 && isL3Execution)
     ? buildVoyagerCurriculumTask(userState, {
       scene: executionScene,
       mode: executionMode,
@@ -30061,8 +32096,8 @@ function buildChatAutoExecutionGuardResult(text, flowId, options = {}, fallback 
   const forceRerun = options && typeof options === "object" && options.forceRerun === true;
   const brief = String(text || "").trim().slice(0, 64);
   const summary = timeoutFallback
-    ? `⏳ 自动执行链路超过 ${CHAT_AUTONOMOUS_EXECUTION_TIMEOUT_MS}ms，已转后台继续执行，不阻塞聊天。${brief ? `任务：${brief}${brief.length >= 64 ? "..." : ""}` : ""}。发送“继续执行”可拉取最新回执。`
-    : `⚠️ 自动执行链路异常，已触发自修复并返回保底回执。${brief ? `任务：${brief}${brief.length >= 64 ? "..." : ""}` : ""}。发送“继续执行”可查看恢复进度。`;
+    ? `我先把这条任务接住了：自动执行超过 ${CHAT_AUTONOMOUS_EXECUTION_TIMEOUT_MS}ms，已切到后台继续跑，不会让你空等。${brief ? `当前任务是「${brief}${brief.length >= 64 ? "..." : ""}」。` : ""}你回“继续执行”，我立刻给你最新进度。`
+    : `这轮执行出了点波动，我已经触发自修复并先给你保底回执。${brief ? `当前任务是「${brief}${brief.length >= 64 ? "..." : ""}」。` : ""}你回“继续执行”，我会把恢复进展同步给你。`;
   return {
     executed: true,
     reason: timeoutFallback ? "chat_auto_execute_timeout_guard" : "chat_auto_execute_exception_guard",
@@ -30131,12 +32166,12 @@ function appendDispatchSummaryToReply(replyText, dispatchSummary) {
   }
   const refusalPattern = /无法|没法|还没法|不能|做不到|访问不了|看不到|过不去|隐私红线|安全边界|无法实时联网|超出.*权限|超出.*边界|没有.*权限|我.*做不来/i;
   if (base && refusalPattern.test(base)) {
-    return `✅ 自动执行回执：${summary}\n\n已按你的指令进入执行链路，上面是本轮真实执行结果。`;
+    return `我先把这轮真实执行结果告诉你：${summary}\n\n前面那段是边界提醒，但我已经按你的指令继续推进了。`;
   }
   if (!base) {
-    return `已执行任务：${summary}`;
+    return `这轮我已经执行并拿到结果：${summary}`;
   }
-  return `${base}\n\n✅ 自动执行回执：${summary}`;
+  return `${base}\n\n我先把执行回执给你：${summary}`;
 }
 
 function extractExecutionPrimaryReason(execution = {}, route = null) {
@@ -30166,18 +32201,144 @@ function extractExecutionPrimaryReason(execution = {}, route = null) {
   };
 }
 
+const EXECUTION_EXCEPTION_REPLY_ATOMS = {
+  verification: {
+    soothe: [
+      "我在，这种人工验证很常见，不是你操作有问题。",
+      "先别急，这一步需要人工确认，我会等你一起接着跑。",
+      "收到，这里卡在验证环节，我会帮你从断点续上。"
+    ],
+    action: [
+      "你先完成验证码或二次确认，完成后回我“继续执行”，我会从断点接着跑。",
+      "先把验证步骤过掉，然后回复“继续执行”，我马上续跑。",
+      "完成验证后给我一句“继续执行”，我会立即接力推进。"
+    ]
+  },
+  permission: {
+    soothe: [
+      "我在，这里主要是权限门槛，不是你的问题。",
+      "先别担心，这种拦截通常是权限未放行。",
+      "收到，我先把权限卡点接住，下一步很快能恢复。"
+    ],
+    action: [
+      "你先放行权限，然后回我“继续执行”，我会马上续跑。",
+      "先把权限开到可执行，再回“继续执行”，我就继续推进。",
+      "权限放行后回复“继续执行”，我会立刻重进流程。"
+    ]
+  },
+  policy: {
+    soothe: [
+      "我在，这一步被安全策略挡住了，我会按边界继续帮你做。",
+      "先稳住，策略拦截是正常保护机制，我们可以换可执行路径。",
+      "收到，我会在你的安全边界内把这件事继续推进。"
+    ],
+    action: [
+      "你告诉我允许执行的命令范围，我就按这个边界继续推进。",
+      "把允许的前缀或范围给我，我会立刻重排可执行步骤。",
+      "你给出可执行边界后回我“继续执行”，我马上续跑。"
+    ]
+  },
+  missing_tool: {
+    soothe: [
+      "我在，当前卡点是工具缺失，这个很好补。",
+      "先别急，缺工具是可恢复问题，我来补齐。",
+      "收到，卡在工具能力上，我会先把缺口补上。"
+    ],
+    action: [
+      "你告诉我缺哪个工具，我会先补齐再自动重跑。",
+      "确认缺失工具后回我“继续执行”，我会安装并续跑。",
+      "把缺的工具名给我，我这边补齐后马上重放。"
+    ]
+  },
+  timeout: {
+    soothe: [
+      "我在，这轮主要是响应慢导致超时，不是你操作问题。",
+      "先别急，超时是链路抖动，我会帮你换路重跑。",
+      "收到，这轮是等待超时，我会优先保住结果。"
+    ],
+    action: [
+      "你回“重试”就行，我会自动换通道重放，不让你重复折腾。",
+      "回复“重试”，我会走降级链路再跑一轮。",
+      "你说“重试”，我立刻切换到更稳的通道继续执行。"
+    ]
+  },
+  network: {
+    soothe: [
+      "我在，这轮是服务连接波动，不是你的输入问题。",
+      "先稳住，当前属于网络侧抖动，我会帮你拉回链路。",
+      "收到，连接短暂不稳定，我会边修复边继续推进。"
+    ],
+    action: [
+      "你回“重试”，我会自动换通道重放，不让你重复折腾。",
+      "回复“重试”，我会按可用通道重新执行。",
+      "你说“重试”，我就立即拉起恢复链路继续跑。"
+    ]
+  },
+  generic: {
+    soothe: [
+      "我在，这轮没跑通我们就一起把它拉回来。",
+      "先别急，我已经接住这个卡点了。",
+      "收到，我会先稳住结果，再把问题逐步清掉。"
+    ],
+    action: [
+      "你可以回“重试”让我立刻重跑，或回“跳过”先把下一步推进起来。",
+      "回复“重试”我马上重放，回复“跳过”我先推进下一步。",
+      "你要是着急就回“重试”，我会优先给你可用结果。"
+    ]
+  }
+};
+
+function resolveExecutionExceptionKind(reasonInput = "", statusInput = "") {
+  const reason = String(reasonInput || "").trim().toLowerCase();
+  const status = String(statusInput || "").trim().toLowerCase();
+  if (/captcha|human_verification|required_verification|verification_required/.test(reason)) {
+    return "verification";
+  }
+  if (/permission|unauthorized|forbidden|auth|token|capability/.test(reason)) {
+    return "permission";
+  }
+  if (/command_prefix_not_allowed|policy|recursive_guard|guard_blocked|action_disabled_by_policy/.test(reason)) {
+    return "policy";
+  }
+  if (/skill_not_found|tool_not_found|command_not_found|no_browser_opener/.test(reason)) {
+    return "missing_tool";
+  }
+  if (/provider_timeout|reply_timeout|router_budget_exhausted|timeout|timed out/.test(reason)) {
+    return "timeout";
+  }
+  if (/bridge_unavailable|bridge_unreachable|network|fetch|http_error|api_call_exception/.test(reason)) {
+    return "network";
+  }
+  if (status === "failed" || status === "blocked" || status === "partial") {
+    return "generic";
+  }
+  return "generic";
+}
+
+function buildExecutionExceptionCompanionLine(reasonInput = "", statusInput = "") {
+  const kind = resolveExecutionExceptionKind(reasonInput, statusInput);
+  const pack = EXECUTION_EXCEPTION_REPLY_ATOMS[kind] || EXECUTION_EXCEPTION_REPLY_ATOMS.generic;
+  return pickRandom(pack.soothe || EXECUTION_EXCEPTION_REPLY_ATOMS.generic.soothe);
+}
+
+function buildExecutionExceptionActionLine(reasonInput = "", statusInput = "") {
+  const kind = resolveExecutionExceptionKind(reasonInput, statusInput);
+  const pack = EXECUTION_EXCEPTION_REPLY_ATOMS[kind] || EXECUTION_EXCEPTION_REPLY_ATOMS.generic;
+  return pickRandom(pack.action || EXECUTION_EXCEPTION_REPLY_ATOMS.generic.action);
+}
+
 function translateExecutionReasonToHuman(reasonInput = "", statusInput = "") {
   const reason = String(reasonInput || "").trim().toLowerCase();
   const status = String(statusInput || "").trim().toLowerCase();
   if (!reason) {
     if (status === "blocked") {
-      return "还缺权限或必要参数";
+      return "还差一个授权或必要信息";
     }
     if (status === "failed") {
-      return "执行链路出现异常";
+      return "执行链路里有一步没跑通";
     }
     if (status === "partial") {
-      return "还有步骤没完成";
+      return "还有步骤没收尾";
     }
     return "";
   }
@@ -30191,10 +32352,10 @@ function translateExecutionReasonToHuman(reasonInput = "", statusInput = "") {
     return "安全策略拦截了关键步骤";
   }
   if (/provider_timeout|reply_timeout|router_budget_exhausted|timeout|timed out/.test(reason)) {
-    return "对方响应太慢，执行超时了";
+    return "对方响应偏慢，这轮超时了";
   }
   if (/bridge_unavailable|bridge_unreachable|network|fetch|http_error|api_call_exception/.test(reason)) {
-    return "执行服务暂时连接不上";
+    return "执行服务暂时连不上";
   }
   if (/skill_not_found|tool_not_found|command_not_found|no_browser_opener/.test(reason)) {
     return "缺少对应技能或工具";
@@ -30217,37 +32378,335 @@ function buildExecutionSosGuidance(execution = {}, reasonInput = "", statusInput
   if (!needAssistance) {
     return "";
   }
-  if (/captcha|human_verification|required_verification|verification_required/.test(reason)) {
-    return "请先完成验证码或二次确认，再回复“继续执行”。";
-  }
-  if (/permission|unauthorized|forbidden|auth|token|capability/.test(reason)) {
-    return "请先放行权限，再回复“继续执行”。";
-  }
-  if (/command_prefix_not_allowed|policy|recursive_guard|guard_blocked|action_disabled_by_policy/.test(reason)) {
-    return "请确认允许的命令前缀，或直接告诉我可执行命令。";
-  }
-  if (/skill_not_found|tool_not_found|command_not_found|no_browser_opener/.test(reason)) {
-    return "告诉我缺哪个工具，我会自动安装并重跑。";
-  }
-  if (/provider_timeout|reply_timeout|router_budget_exhausted|timeout|bridge_unavailable|bridge_unreachable|network|fetch/.test(reason)) {
-    return "回复“重试”，我会按降级链路自动重放。";
-  }
-  return "回复“重试”我立即重放，或回复“跳过”先做下一步。";
+  return buildExecutionExceptionActionLine(reason, status);
 }
 
-function buildExecutionFrontChatStatus(execution = {}, route = null) {
+function normalizeExecutionDispatchStatus(statusInput = "") {
+  const status = String(statusInput || "").trim().toLowerCase();
+  if (!status) {
+    return "unknown";
+  }
+  return status;
+}
+
+function isExecutionInFlightStatus(statusInput = "") {
+  const status = normalizeExecutionDispatchStatus(statusInput);
+  return status === "running" || status === "queued" || status === "pending" || status === "planned" || status === "retrying";
+}
+
+function isExecutionTerminalStatus(statusInput = "") {
+  const status = normalizeExecutionDispatchStatus(statusInput);
+  return status === "completed" || status === "partial" || status === "failed" || status === "blocked";
+}
+
+function isLikelyFilesystemPathCandidate(valueInput = "") {
+  const value = String(valueInput || "").trim();
+  if (!value) {
+    return false;
+  }
+  if (/^https?:\/\//i.test(value)) {
+    return false;
+  }
+  if (/^[a-z]+:\/\//i.test(value)) {
+    return false;
+  }
+  return value.startsWith("/") || /^[a-zA-Z]:[\\/]/.test(value) || value.startsWith("./") || value.startsWith("../");
+}
+
+function isVerifiedFilesystemPath(valueInput = "") {
+  const rawValue = String(valueInput || "").trim();
+  if (!rawValue) {
+    return false;
+  }
+  if (!isLikelyFilesystemPathCandidate(rawValue)) {
+    return true;
+  }
+  const candidatePath = isAbsolute(rawValue) ? rawValue : resolve(rawValue);
+  try {
+    return existsSync(candidatePath);
+  } catch {
+    return false;
+  }
+}
+
+function pushUniqueExecutionArtifact(artifacts, dedupe, artifactInput = {}) {
+  const artifact = artifactInput && typeof artifactInput === "object" ? artifactInput : {};
+  const label = String(artifact.label || "").trim();
+  const value = String(artifact.value || "").trim();
+  const kind = String(artifact.kind || "artifact").trim() || "artifact";
+  if (!value) {
+    return false;
+  }
+  const key = `${kind}:${value.toLowerCase()}`;
+  if (dedupe.has(key)) {
+    return false;
+  }
+  dedupe.add(key);
+  artifacts.push({
+    kind,
+    label: label || kind,
+    value
+  });
+  return true;
+}
+
+function collectDispatchEvidenceArtifacts(dispatchInput = {}) {
+  const dispatch = dispatchInput && typeof dispatchInput === "object" ? dispatchInput : {};
+  const steps = Array.isArray(dispatch.steps) ? dispatch.steps : [];
+  const artifacts = [];
+  const dedupe = new Set();
+  let unverifiedArtifactCount = 0;
+  const operationTypes = new Set();
+
+  for (const step of steps) {
+    if (!step || typeof step !== "object") {
+      continue;
+    }
+    const stepType = String(step.type || "").trim();
+    if (stepType) {
+      operationTypes.add(stepType);
+    }
+    if (String(step.status || "").trim().toLowerCase() !== "completed") {
+      continue;
+    }
+    const output = step.output && typeof step.output === "object" ? step.output : {};
+    if (stepType === "file_search") {
+      const matches = (Array.isArray(output.matches) ? output.matches : []).filter((item) => !isSystemFileCandidate(item));
+      for (const item of matches.slice(0, 8)) {
+        const filePath = String(item?.path || "").trim();
+        if (!filePath) {
+          continue;
+        }
+        if (!isVerifiedFilesystemPath(filePath)) {
+          unverifiedArtifactCount += 1;
+          continue;
+        }
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "file_path",
+          label: String(item?.name || "文件").trim() || "文件",
+          value: filePath
+        });
+      }
+      continue;
+    }
+    if (stepType === "web_research") {
+      for (const item of Array.isArray(output.items) ? output.items.slice(0, 6) : []) {
+        const url = String(item?.url || "").trim();
+        if (!url) {
+          continue;
+        }
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "url",
+          label: String(item?.title || "网页结果").trim() || "网页结果",
+          value: url
+        });
+      }
+      continue;
+    }
+    if (stepType === "research_bundle") {
+      for (const file of Array.isArray(output.bundle?.files) ? output.bundle.files.slice(0, 8) : []) {
+        const filePath = String(file?.path || "").trim();
+        if (!filePath) {
+          continue;
+        }
+        if (!isVerifiedFilesystemPath(filePath)) {
+          unverifiedArtifactCount += 1;
+          continue;
+        }
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "file_path",
+          label: String(file?.name || "资料文件").trim() || "资料文件",
+          value: filePath
+        });
+      }
+      for (const link of Array.isArray(output.delivery?.links) ? output.delivery.links.slice(0, 8) : []) {
+        const downloadUrl = String(link?.downloadUrl || "").trim();
+        if (!downloadUrl) {
+          continue;
+        }
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "download_link",
+          label: String(link?.title || link?.name || "资料下载").trim() || "资料下载",
+          value: downloadUrl
+        });
+      }
+      continue;
+    }
+    if (stepType === "channel_send") {
+      const delivery = output.delivery && typeof output.delivery === "object" ? output.delivery : {};
+      const channel = String(delivery.channel || output.channel || "").trim();
+      for (const link of Array.isArray(delivery.links) ? delivery.links.slice(0, 8) : []) {
+        const downloadUrl = String(link?.downloadUrl || "").trim();
+        if (!downloadUrl) {
+          continue;
+        }
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "download_link",
+          label: String(link?.title || link?.name || "投递文件").trim() || "投递文件",
+          value: downloadUrl
+        });
+      }
+      if (channel && channel !== "inchat_link") {
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "channel_receipt",
+          label: "通道回执",
+          value: channel
+        });
+      }
+      continue;
+    }
+    if (stepType === "browser_automation") {
+      for (const link of Array.isArray(output.delivery?.links) ? output.delivery.links.slice(0, 6) : []) {
+        const downloadUrl = String(link?.downloadUrl || "").trim();
+        if (!downloadUrl) {
+          continue;
+        }
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "download_link",
+          label: String(link?.title || link?.name || "自动化回执").trim() || "自动化回执",
+          value: downloadUrl
+        });
+      }
+      continue;
+    }
+    if (stepType === "structured_template") {
+      const template = output.template && typeof output.template === "object" ? output.template : {};
+      const title = String(template.title || "").trim();
+      const body = String(template.body || "").trim();
+      const tags = Array.isArray(template.tags) ? template.tags.filter(Boolean) : [];
+      if (title) {
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "template_title",
+          label: "模板标题",
+          value: title
+        });
+      }
+      if (body) {
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "template_body",
+          label: "模板正文",
+          value: body.slice(0, 720)
+        });
+      }
+      if (tags.length > 0) {
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "template_tags",
+          label: "模板标签",
+          value: tags.slice(0, 12).join(" ")
+        });
+      }
+      const ticket = template.file?.ticket && typeof template.file.ticket === "object" ? template.file.ticket : null;
+      const templateDownloadUrl = String(ticket?.downloadUrl || "").trim();
+      if (templateDownloadUrl) {
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "download_link",
+          label: "模板下载",
+          value: templateDownloadUrl
+        });
+      }
+      continue;
+    }
+    if (stepType === "shell_command") {
+      const delivery = output.delivery && typeof output.delivery === "object" ? output.delivery : null;
+      for (const link of Array.isArray(delivery?.links) ? delivery.links.slice(0, 6) : []) {
+        const downloadUrl = String(link?.downloadUrl || "").trim();
+        if (!downloadUrl) {
+          continue;
+        }
+        pushUniqueExecutionArtifact(artifacts, dedupe, {
+          kind: "download_link",
+          label: String(link?.title || link?.name || "命令产物").trim() || "命令产物",
+          value: downloadUrl
+        });
+      }
+      continue;
+    }
+  }
+
+  return {
+    artifacts,
+    operationTypes: Array.from(operationTypes),
+    unverifiedArtifactCount
+  };
+}
+
+function buildExecutionEvidenceEnvelope(executionInput = {}, routeInput = null) {
+  const execution = executionInput && typeof executionInput === "object" ? executionInput : {};
+  const route = routeInput && typeof routeInput === "object" ? routeInput : {};
+  const dispatch = execution.dispatch && typeof execution.dispatch === "object"
+    ? execution.dispatch
+    : null;
+  const status = normalizeExecutionDispatchStatus(
+    dispatch?.status || execution.dispatchStatus || ""
+  );
+  const evidencePolicy = execution.evidencePolicy && typeof execution.evidencePolicy === "object"
+    ? execution.evidencePolicy
+    : null;
+  const collected = collectDispatchEvidenceArtifacts(dispatch);
+  const evidenceRequiredTypes = new Set([
+    "file_search",
+    "channel_send",
+    "web_research",
+    "research_bundle",
+    "browser_automation",
+    "fetch_download",
+    "structured_template"
+  ]);
+  const requiresArtifactVerification = collected.operationTypes.some((type) => evidenceRequiredTypes.has(type))
+    || evidencePolicy?.applied === true;
+  const verifiedArtifacts = collected.artifacts.slice(0, 18);
+  const missingVerifiedArtifact = requiresArtifactVerification && verifiedArtifacts.length === 0;
+  return {
+    status,
+    inFlight: isExecutionInFlightStatus(status),
+    terminal: isExecutionTerminalStatus(status),
+    hasDispatch: Boolean(dispatch),
+    dispatchId: String(dispatch?.id || execution.dispatchId || "").trim(),
+    flowId: String(dispatch?.flowId || "").trim(),
+    providerId: String(route.providerId || "").trim(),
+    operationTypes: collected.operationTypes,
+    requiresArtifactVerification,
+    missingVerifiedArtifact,
+    verifiedArtifactCount: verifiedArtifacts.length,
+    unverifiedArtifactCount: collected.unverifiedArtifactCount,
+    verifiedArtifacts,
+    evidencePolicyApplied: evidencePolicy?.applied === true,
+    evidencePolicyMissing: Array.isArray(evidencePolicy?.missing)
+      ? evidencePolicy.missing.map((item) => String(item?.label || item?.type || "").trim()).filter(Boolean).slice(0, 6)
+      : []
+  };
+}
+
+function formatExecutionEvidenceArtifactLine(artifactInput = {}) {
+  const artifact = artifactInput && typeof artifactInput === "object" ? artifactInput : {};
+  const kind = String(artifact.kind || "").trim();
+  const label = String(artifact.label || "回执").trim() || "回执";
+  const value = String(artifact.value || "").trim();
+  if (!value) {
+    return "";
+  }
+  if (kind === "template_body") {
+    return `- ${label}：${value.slice(0, 220)}${value.length > 220 ? "..." : ""}`;
+  }
+  return `- ${label}：${value}`;
+}
+
+function buildExecutionFrontChatStatus(execution = {}, route = null, options = {}) {
   const result = execution && typeof execution === "object" ? execution : {};
   const summary = String(result.summary || "").trim();
   const reason = String(result.reason || "").trim();
   const dispatch = result.dispatch && typeof result.dispatch === "object" ? result.dispatch : null;
-  const status = String(dispatch?.status || "").trim().toLowerCase();
+  const status = normalizeExecutionDispatchStatus(dispatch?.status || result.dispatchStatus || "");
   const routeInfo = route && typeof route === "object" ? route : null;
+  const evidenceEnvelope = options?.evidenceEnvelope && typeof options.evidenceEnvelope === "object"
+    ? options.evidenceEnvelope
+    : buildExecutionEvidenceEnvelope(result, routeInfo);
 
   if (reason === "chat_execution_inflight_reuse") {
-    return "相同任务正在执行中，我已复用现有执行链路。";
+    return "你这条任务正在执行中，我已经复用同一条链路，避免你重复等待。";
   }
   if (reason === "chat_execution_idempotency_hit") {
-    return "相同任务已命中最近结果，我直接复用上一轮回执。";
+    return "这条和上一轮一致，我先复用最近结果给你，避免你空等。";
   }
   if (!dispatch) {
     if (/artifact_created|structured_template_generated|coding_artifact_created/.test(reason)) {
@@ -30257,10 +32716,10 @@ function buildExecutionFrontChatStatus(execution = {}, route = null) {
         .filter(Boolean)
         .slice(0, 2)
         .join(" ");
-      return compact || "我已生成执行产物并完成回传。";
+      return compact || "这轮产物我已经生成好了，正在把结果回传给你。";
     }
     if (summary) {
-      return "已收到执行回执，我会继续在后台补齐剩余动作。";
+      return "我已经拿到执行回执，剩下的动作我会在后台继续补齐。";
     }
     return "";
   }
@@ -30270,46 +32729,129 @@ function buildExecutionFrontChatStatus(execution = {}, route = null) {
   const sosGuidance = buildExecutionSosGuidance(result, failureSignal.reason, status);
 
   if (status === "completed") {
-    return "任务已执行完成 ✅";
+    if (evidenceEnvelope.missingVerifiedArtifact) {
+      return "这轮主流程已经跑完，但我还没拿到可验证回执（文件路径/链接），我会继续追到真实结果再回给你。";
+    }
+    return pickRandom([
+      "任务已经执行完成啦，我把关键结果给你收好啦。",
+      "这轮已经跑完并落地，结果你可以直接用。",
+      "完成了，我把这次执行结果稳定交付给你。"
+    ]);
   }
   if (status === "running" || status === "queued" || status === "pending" || status === "planned") {
-    return "任务已进入后台执行，不会打断聊天。你发“继续执行”我就回报进度。";
+    return "我已经在后台持续执行了，不会打断你聊天。你回“继续执行”，我就把最新进度告诉你。";
   }
   if (status === "partial") {
+    const soothe = buildExecutionExceptionCompanionLine(failureSignal.reason, status);
     if (sosGuidance || humanReason) {
-      const detail = humanReason ? `当前卡点：${humanReason}。` : "";
-      return `任务已完成一部分。${detail}${sosGuidance || "我在后台继续补齐剩余步骤。"}`;
+      const detail = humanReason ? `目前卡点是：${humanReason}。` : "";
+      return `${soothe}这轮已经完成一大半。${detail}${sosGuidance || "我会继续在后台把剩余步骤补齐。"}`
+        .trim();
     }
-    return "任务已完成一部分，我在后台继续补齐剩余步骤。";
+    return `${soothe}这轮已经完成一大半，我会继续在后台把剩余步骤补齐。`.trim();
   }
   if (status === "blocked") {
-    const detail = humanReason ? `任务被卡住：${humanReason}。` : "任务被卡住。";
-    return `${detail}${sosGuidance || "补充信息后回复“继续执行”。"}`;
+    const soothe = buildExecutionExceptionCompanionLine(failureSignal.reason, status);
+    const detail = humanReason ? `目前被卡在：${humanReason}。` : "目前被卡住了。";
+    return `${soothe}${detail}${sosGuidance || "你补一句关键信息后回我“继续执行”，我马上续跑。"}`
+      .trim();
   }
   if (status === "failed") {
-    const detail = humanReason ? `这轮执行没跑通：${humanReason}。` : "这轮执行没跑通。";
-    return `${detail}${sosGuidance || "回复“重试”我立刻重放。"}`
+    const soothe = buildExecutionExceptionCompanionLine(failureSignal.reason, status);
+    const detail = humanReason ? `这轮有一步没跑通：${humanReason}。` : "这轮有一步没跑通。";
+    return `${soothe}${detail}${sosGuidance || "你回“重试”，我立刻换路重跑。"}`
       .trim();
   }
   if (routeInfo?.fallback) {
-    return "本轮已启用降级回复，执行链路我会继续后台修复。";
+    return "刚才模型通道有点波动，我先用保底回复陪你，不让你空等；后台修复我正在继续。";
   }
-  return "已收到执行回执，我会继续处理剩余问题。";
+  return "我已经收到回执了，接下来我会把剩余问题继续收尾。";
 }
 
-function buildExecutionFirstReply(replyText, execution = {}, route = null) {
-  const base = String(replyText || "").trim();
-  const statusLine = buildExecutionFrontChatStatus(execution, route);
-  if (!statusLine) {
-    return base;
+function buildGroundedExecutionReply(payloadInput = {}) {
+  const payload = payloadInput && typeof payloadInput === "object" ? payloadInput : {};
+  const execution = payload.execution && typeof payload.execution === "object" ? payload.execution : {};
+  const route = payload.route && typeof payload.route === "object" ? payload.route : null;
+  const userInput = String(payload.userInput || "").trim();
+  const scene = normalizeMessageScene(payload.scene || route?.scene || "", "love");
+  const userState = payload.userState && typeof payload.userState === "object" ? payload.userState : null;
+  const base = String(payload.replyText || "").trim();
+  const evidence = buildExecutionEvidenceEnvelope(execution, route);
+
+  if (execution.executed !== true) {
+    return {
+      text: base,
+      statusLine: "",
+      evidence
+    };
   }
-  if (!base) {
-    return statusLine;
+
+  if (shouldSuppressExecutionToneForScene(scene, userInput)) {
+    return {
+      text: base,
+      statusLine: "",
+      evidence
+    };
   }
-  if (base.includes(statusLine)) {
-    return base;
+
+  const statusLine = buildExecutionFrontChatStatus(execution, route, {
+    evidenceEnvelope: evidence
+  });
+  const openingLine = pickSceneStyleLine(scene, userInput, "opening", {
+    userState
+  }) || buildCompactEmpathyLead(scene, userInput, true, {
+    userState
+  });
+  const lines = [];
+  if (openingLine) {
+    lines.push(openingLine);
   }
-  return `${base}\n\n${statusLine}`;
+  if (statusLine) {
+    lines.push(statusLine);
+  }
+
+  if (evidence.inFlight) {
+    lines.push("当前还在执行中，我会拿到可验证回执后再给你具体路径或链接，不会先报未核实结果。");
+    return {
+      text: lines.filter(Boolean).join("\n\n").trim() || statusLine || base,
+      statusLine,
+      evidence
+    };
+  }
+
+  if (evidence.verifiedArtifactCount > 0) {
+    const artifactLines = evidence.verifiedArtifacts
+      .slice(0, 6)
+      .map((artifact) => formatExecutionEvidenceArtifactLine(artifact))
+      .filter(Boolean);
+    if (artifactLines.length > 0) {
+      lines.push("这轮可验证回执：");
+      lines.push(...artifactLines);
+    }
+  } else if (evidence.missingVerifiedArtifact) {
+    const missingHint = evidence.evidencePolicyMissing.length > 0
+      ? `当前缺少：${evidence.evidencePolicyMissing.join("、")}。`
+      : "";
+    lines.push(`这轮还没拿到可验证结果（文件路径/链接），我不会编造结果。${missingHint}你回“继续执行”，我会继续追到真实回执。`.trim());
+  }
+
+  const text = lines.filter(Boolean).join("\n\n").trim();
+  return {
+    text: text || statusLine || base,
+    statusLine,
+    evidence
+  };
+}
+
+function buildExecutionFirstReply(replyText, execution = {}, route = null, options = {}) {
+  return buildGroundedExecutionReply({
+    replyText,
+    execution,
+    route,
+    scene: options?.scene || route?.scene || "",
+    userInput: options?.userInput || "",
+    userState: options?.userState || null
+  }).text;
 }
 
 function scoreEmotionalQualityForFlywheel(assistantTextInput = "", routeInput = null, sceneInput = "") {
@@ -30336,7 +32878,7 @@ function scoreEmotionalQualityForFlywheel(assistantTextInput = "", routeInput = 
   if (/下一步|我先|马上|回执|会同步进度|后台执行/i.test(assistantText)) {
     score += 0.08;
   }
-  if (/目标[:：]|进度[:：]|状态[:：]|下一步[:：]/.test(assistantText)) {
+  if (/目标[:：]|进度[:：]|状态[:：]|下一步[:：]|先把「|我已经在后台|不会让你空等|从断点接着跑|可恢复|一大半/i.test(assistantText)) {
     score += 0.05;
   }
   if (/执行策略[:：]|我目前能帮你做的|你现在可以先告诉我|先确认几个/i.test(assistantText)) {
@@ -33115,6 +35657,41 @@ const server = createServer(async (req, res) => {
         return;
       }
 
+      if (req.method === "GET" && pathname === "/v1/memory/architecture") {
+        const memorySystem = ensureMemoryPlaneState(userState);
+        json(res, 200, {
+          userId: auth.userId,
+          architecture: memorySystem.architecture,
+          summary: {
+            longTerm: memorySystem.longTerm.items.length,
+            middleTerm: memorySystem.middleTerm.items.length,
+            shortTerm: memorySystem.shortTerm.items.length,
+            temporary: memorySystem.temporary.items.length,
+            vectorIndex: memorySystem.vectorIndex.items.length
+          },
+          updatedAt: userState.updatedAt
+        });
+        return;
+      }
+
+      if (req.method === "POST" && pathname === "/v1/memory/architecture") {
+        const body = await parseBody(req);
+        const patch = body.architecture && typeof body.architecture === "object"
+          ? body.architecture
+          : body;
+        const architecture = updateMemoryArchitecture(userState, patch);
+        userState.updatedAt = new Date().toISOString();
+        saveStore(store);
+        json(res, 200, {
+          userId: auth.userId,
+          architecture,
+          runtime: buildMemoryPlaneRuntimeSnapshot(userState),
+          memorySystem: sanitizeMemorySystemState(userState),
+          updatedAt: userState.updatedAt
+        });
+        return;
+      }
+
       if (req.method === "GET" && pathname === "/v1/memory") {
         const scene = normalizeMemoryScene(requestUrl.searchParams.get("scene") || "", "");
         const limit = requestUrl.searchParams.get("limit");
@@ -33154,7 +35731,8 @@ const server = createServer(async (req, res) => {
         const query = String(requestUrl.searchParams.get("q") || "");
         const limit = requestUrl.searchParams.get("limit");
         const scene = normalizeMemoryScene(requestUrl.searchParams.get("scene") || "", "");
-        const includeCrossScene = requestUrl.searchParams.get("crossScene") !== "false";
+        const crossSceneRaw = requestUrl.searchParams.get("crossScene");
+        const includeCrossScene = crossSceneRaw === null ? undefined : crossSceneRaw !== "false";
         const result = await searchMemoryCandidatesWithBackend(userState, query, limit || undefined, {
           scene: scene || undefined,
           includeCrossScene
@@ -34909,15 +37487,29 @@ const server = createServer(async (req, res) => {
           flowId,
           scene: effectiveScene
         });
+        const groundedExecutionReply = buildGroundedExecutionReply({
+          replyText: assistantReply.text,
+          execution: chatAutoExecution,
+          route: assistantReply.route,
+          scene: effectiveScene,
+          userInput: text,
+          userState
+        });
         const assistantTextWithExecution = chatAutoExecution.executed
-          ? buildExecutionFirstReply(assistantReply.text, chatAutoExecution, assistantReply.route)
+          ? groundedExecutionReply.text
           : assistantReply.text;
         const hasGameDelivery = gameCreation.generated && gameCreation.game && typeof gameCreation.game === "object";
         const gameDeliveryText = hasGameDelivery
           ? `🎮 已生成可玩小游戏：${gameCreation.game.title}\n🔗 ${gameCreation.game.playUrl}\n${buildAriaInlineGameTag(gameCreation.game.playUrl)}\n👉 直接点击链接开玩（不需要复制代码模板）`
           : "";
         const executionSummaryText = chatAutoExecution.executed
-          ? buildExecutionFrontChatStatus(chatAutoExecution, assistantReply.route)
+          ? (groundedExecutionReply.statusLine || buildExecutionFrontChatStatus(
+            chatAutoExecution,
+            assistantReply.route,
+            {
+              evidenceEnvelope: groundedExecutionReply.evidence
+            }
+          ))
           : "";
         const assistantTextRaw = hasGameDelivery
           ? [executionSummaryText, gameDeliveryText].filter(Boolean).join("\n\n")
@@ -35019,7 +37611,13 @@ const server = createServer(async (req, res) => {
             executed: chatAutoExecution.executed,
             reason: chatAutoExecution.reason,
             summary: chatAutoExecution.summary,
-            chatSummary: buildExecutionFrontChatStatus(chatAutoExecution, assistantReply.route),
+            chatSummary: groundedExecutionReply.statusLine || buildExecutionFrontChatStatus(
+              chatAutoExecution,
+              assistantReply.route,
+              {
+                evidenceEnvelope: groundedExecutionReply.evidence
+              }
+            ),
             dispatchId: chatAutoExecution.dispatch?.id || "",
             dispatchStatus: chatAutoExecution.dispatch?.status || "",
             idempotencyHit: chatAutoExecution.idempotencyHit === true,
@@ -35027,7 +37625,18 @@ const server = createServer(async (req, res) => {
             autoRepairApplied: Boolean(chatAutoExecution.autoRepair),
             autoRepairMode: String(chatAutoExecution.autoRepair?.mode || ""),
             autoRepairSummary: String(chatAutoExecution.autoRepairSummary || ""),
-            evidencePolicy: chatAutoExecution.evidencePolicy || null
+            evidencePolicy: chatAutoExecution.evidencePolicy || null,
+            evidence: chatAutoExecution.executed
+              ? {
+                status: groundedExecutionReply.evidence.status,
+                inFlight: groundedExecutionReply.evidence.inFlight,
+                requiresArtifactVerification: groundedExecutionReply.evidence.requiresArtifactVerification,
+                missingVerifiedArtifact: groundedExecutionReply.evidence.missingVerifiedArtifact,
+                verifiedArtifactCount: groundedExecutionReply.evidence.verifiedArtifactCount,
+                unverifiedArtifactCount: groundedExecutionReply.evidence.unverifiedArtifactCount,
+                operationTypes: groundedExecutionReply.evidence.operationTypes
+              }
+              : null
           },
           funGame: gameCreation.generated ? sanitizeFunGame(gameCreation.game) : null,
           flywheel: {
@@ -35128,9 +37737,10 @@ const server = createServer(async (req, res) => {
           res.flushHeaders();
         }
 
-        let closed = false;
-        let streamFinished = false;
-        let keepaliveTimer = setInterval(() => {
+	        let closed = false;
+	        let streamFinished = false;
+	        let latencyBridgeTimer = null;
+	        let keepaliveTimer = setInterval(() => {
           if (closed || streamFinished) {
             return;
           }
@@ -35146,10 +37756,14 @@ const server = createServer(async (req, res) => {
             keepaliveTimer = null;
           }
         };
-        req.on("close", () => {
-          closed = true;
-          stopKeepalive();
-          if (!streamFinished) {
+	        req.on("close", () => {
+	          closed = true;
+	          if (latencyBridgeTimer) {
+	            clearTimeout(latencyBridgeTimer);
+	            latencyBridgeTimer = null;
+	          }
+	          stopKeepalive();
+	          if (!streamFinished) {
             finalizeRuntimeRequestMetric(res, 0);
             pushRuntimeIssue({
               source: "message_stream",
@@ -35186,6 +37800,48 @@ const server = createServer(async (req, res) => {
           title: "流式消息已提交",
           detail: text.slice(0, 120)
         });
+        let fullText = "";
+        let streamChunkIndex = 0;
+        const pushStreamChunk = (chunkInput = "") => {
+          const chunk = String(chunkInput || "");
+          if (!chunk) {
+            return;
+          }
+          fullText += chunk;
+          sse(res, "chunk", {
+            streamId,
+            index: streamChunkIndex,
+            chunk,
+            fullText
+          });
+          streamChunkIndex += 1;
+        };
+        sse(res, "meta", {
+          streamId,
+          userMessage
+        });
+        const latencyBridgeLine = buildStreamLatencyBridgeLine(effectiveScene, text, {
+          userState
+        });
+        const clearLatencyBridgeTimer = () => {
+          if (latencyBridgeTimer) {
+            clearTimeout(latencyBridgeTimer);
+            latencyBridgeTimer = null;
+          }
+        };
+        if (STREAM_REPLY_SLICE_BUDGET_MS > 0 && latencyBridgeLine) {
+          latencyBridgeTimer = setTimeout(() => {
+            latencyBridgeTimer = null;
+            if (closed || streamFinished || res.writableEnded) {
+              return;
+            }
+            try {
+              pushStreamChunk(`${latencyBridgeLine}\n`);
+            } catch {
+              closed = true;
+            }
+          }, STREAM_REPLY_SLICE_BUDGET_MS);
+        }
         const assistantReply = await createAssistantReplyWithGuard(
           userState,
           userState.preferences.mode,
@@ -35214,15 +37870,29 @@ const server = createServer(async (req, res) => {
           flowId,
           scene: effectiveScene
         });
+        const groundedExecutionReply = buildGroundedExecutionReply({
+          replyText: assistantReply.text,
+          execution: chatAutoExecution,
+          route: assistantReply.route,
+          scene: effectiveScene,
+          userInput: text,
+          userState
+        });
         const assistantTextWithExecution = chatAutoExecution.executed
-          ? buildExecutionFirstReply(assistantReply.text, chatAutoExecution, assistantReply.route)
+          ? groundedExecutionReply.text
           : assistantReply.text;
         const hasGameDelivery = gameCreation.generated && gameCreation.game && typeof gameCreation.game === "object";
         const gameDeliveryText = hasGameDelivery
           ? `🎮 已生成可玩小游戏：${gameCreation.game.title}\n🔗 ${gameCreation.game.playUrl}\n${buildAriaInlineGameTag(gameCreation.game.playUrl)}\n👉 直接点击链接开玩（不需要复制代码模板）`
           : "";
         const executionSummaryText = chatAutoExecution.executed
-          ? buildExecutionFrontChatStatus(chatAutoExecution, assistantReply.route)
+          ? (groundedExecutionReply.statusLine || buildExecutionFrontChatStatus(
+            chatAutoExecution,
+            assistantReply.route,
+            {
+              evidenceEnvelope: groundedExecutionReply.evidence
+            }
+          ))
           : "";
         const assistantTextRaw = hasGameDelivery
           ? [executionSummaryText, gameDeliveryText].filter(Boolean).join("\n\n")
@@ -35230,36 +37900,26 @@ const server = createServer(async (req, res) => {
         const assistantText = sanitizeUnverifiedFunGameReply(assistantTextRaw, {
           hasVerifiedGame: hasGameDelivery
         });
+        clearLatencyBridgeTimer();
         const streamChunks = splitStreamChunks(assistantText);
         if (closed) {
+          clearLatencyBridgeTimer();
           stopKeepalive();
           return;
         }
-
-        sse(res, "meta", {
-          streamId,
-          userMessage,
-          modelRoute: assistantReply.route
-        });
-
-        let fullText = "";
         for (let index = 0; index < streamChunks.length; index += 1) {
           if (closed) {
+            clearLatencyBridgeTimer();
             stopKeepalive();
             return;
           }
           const chunk = streamChunks[index];
-          fullText += chunk;
-          sse(res, "chunk", {
-            streamId,
-            index,
-            chunk,
-            fullText
-          });
+          pushStreamChunk(chunk);
           await sleep(120 + Math.floor(Math.random() * 140));
         }
 
         if (closed) {
+          clearLatencyBridgeTimer();
           stopKeepalive();
           return;
         }
@@ -35361,7 +38021,13 @@ const server = createServer(async (req, res) => {
             executed: chatAutoExecution.executed,
             reason: chatAutoExecution.reason,
             summary: chatAutoExecution.summary,
-            chatSummary: buildExecutionFrontChatStatus(chatAutoExecution, assistantReply.route),
+            chatSummary: groundedExecutionReply.statusLine || buildExecutionFrontChatStatus(
+              chatAutoExecution,
+              assistantReply.route,
+              {
+                evidenceEnvelope: groundedExecutionReply.evidence
+              }
+            ),
             dispatchId: chatAutoExecution.dispatch?.id || "",
             dispatchStatus: chatAutoExecution.dispatch?.status || "",
             idempotencyHit: chatAutoExecution.idempotencyHit === true,
@@ -35369,7 +38035,18 @@ const server = createServer(async (req, res) => {
             autoRepairApplied: Boolean(chatAutoExecution.autoRepair),
             autoRepairMode: String(chatAutoExecution.autoRepair?.mode || ""),
             autoRepairSummary: String(chatAutoExecution.autoRepairSummary || ""),
-            evidencePolicy: chatAutoExecution.evidencePolicy || null
+            evidencePolicy: chatAutoExecution.evidencePolicy || null,
+            evidence: chatAutoExecution.executed
+              ? {
+                status: groundedExecutionReply.evidence.status,
+                inFlight: groundedExecutionReply.evidence.inFlight,
+                requiresArtifactVerification: groundedExecutionReply.evidence.requiresArtifactVerification,
+                missingVerifiedArtifact: groundedExecutionReply.evidence.missingVerifiedArtifact,
+                verifiedArtifactCount: groundedExecutionReply.evidence.verifiedArtifactCount,
+                unverifiedArtifactCount: groundedExecutionReply.evidence.unverifiedArtifactCount,
+                operationTypes: groundedExecutionReply.evidence.operationTypes
+              }
+              : null
           },
           funGame: gameCreation.generated ? sanitizeFunGame(gameCreation.game) : null,
           flywheel: {
@@ -35485,15 +38162,29 @@ const server = createServer(async (req, res) => {
           flowId: `flow-demo-game-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
           scene: effectiveScene
         });
+        const groundedExecutionReply = buildGroundedExecutionReply({
+          replyText: assistantReply.text,
+          execution: chatAutoExecution,
+          route: assistantReply.route,
+          scene: effectiveScene,
+          userInput: text,
+          userState
+        });
         const assistantTextWithExecution = chatAutoExecution.executed
-          ? buildExecutionFirstReply(assistantReply.text, chatAutoExecution, assistantReply.route)
+          ? groundedExecutionReply.text
           : assistantReply.text;
         const hasGameDelivery = gameCreation.generated && gameCreation.game && typeof gameCreation.game === "object";
         const gameDeliveryText = hasGameDelivery
           ? `🎮 已生成可玩小游戏：${gameCreation.game.title}\n🔗 ${gameCreation.game.playUrl}\n${buildAriaInlineGameTag(gameCreation.game.playUrl)}\n👉 直接点击链接开玩（不需要复制代码模板）`
           : "";
         const executionSummaryText = chatAutoExecution.executed
-          ? buildExecutionFrontChatStatus(chatAutoExecution, assistantReply.route)
+          ? (groundedExecutionReply.statusLine || buildExecutionFrontChatStatus(
+            chatAutoExecution,
+            assistantReply.route,
+            {
+              evidenceEnvelope: groundedExecutionReply.evidence
+            }
+          ))
           : "";
         const assistantTextRaw = hasGameDelivery
           ? [executionSummaryText, gameDeliveryText].filter(Boolean).join("\n\n")
@@ -35547,7 +38238,13 @@ const server = createServer(async (req, res) => {
             executed: chatAutoExecution.executed,
             reason: chatAutoExecution.reason,
             summary: chatAutoExecution.summary,
-            chatSummary: buildExecutionFrontChatStatus(chatAutoExecution, assistantReply.route),
+            chatSummary: groundedExecutionReply.statusLine || buildExecutionFrontChatStatus(
+              chatAutoExecution,
+              assistantReply.route,
+              {
+                evidenceEnvelope: groundedExecutionReply.evidence
+              }
+            ),
             dispatchId: chatAutoExecution.dispatch?.id || "",
             dispatchStatus: chatAutoExecution.dispatch?.status || "",
             idempotencyHit: chatAutoExecution.idempotencyHit === true,
@@ -35555,7 +38252,18 @@ const server = createServer(async (req, res) => {
             autoRepairApplied: Boolean(chatAutoExecution.autoRepair),
             autoRepairMode: String(chatAutoExecution.autoRepair?.mode || ""),
             autoRepairSummary: String(chatAutoExecution.autoRepairSummary || ""),
-            evidencePolicy: chatAutoExecution.evidencePolicy || null
+            evidencePolicy: chatAutoExecution.evidencePolicy || null,
+            evidence: chatAutoExecution.executed
+              ? {
+                status: groundedExecutionReply.evidence.status,
+                inFlight: groundedExecutionReply.evidence.inFlight,
+                requiresArtifactVerification: groundedExecutionReply.evidence.requiresArtifactVerification,
+                missingVerifiedArtifact: groundedExecutionReply.evidence.missingVerifiedArtifact,
+                verifiedArtifactCount: groundedExecutionReply.evidence.verifiedArtifactCount,
+                unverifiedArtifactCount: groundedExecutionReply.evidence.unverifiedArtifactCount,
+                operationTypes: groundedExecutionReply.evidence.operationTypes
+              }
+              : null
           },
           funGame: gameCreation.generated ? sanitizeFunGame(gameCreation.game) : null,
           flywheel: {

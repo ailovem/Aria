@@ -1,5 +1,5 @@
 {
-  "version": "2026.3.3",
+  "version": "2026.3.8",
   "routingMode": "task-first",
   "providers": [
     {
@@ -189,16 +189,301 @@
       "apiKeyEnv": "",
       "openclawProvider": "qwen3-max-iflow",
       "disabled": false
+    },
+    {
+      "id": "cn-aliyun-qwen-plus",
+      "vendor": "openai-compatible",
+      "model": "qwen-plus",
+      "roles": [
+        "chat",
+        "planning",
+        "emotion",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_CN_ALIYUN_QWEN_PLUS_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "cn-deepseek-chat",
+      "vendor": "openai-compatible",
+      "model": "deepseek-chat",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://api.deepseek.com/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_CN_DEEPSEEK_CHAT_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "cn-zhipu-glm-4-plus",
+      "vendor": "openai-compatible",
+      "model": "glm-4-plus",
+      "roles": [
+        "chat",
+        "planning",
+        "emotion",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://open.bigmodel.cn/api/paas/v4",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_CN_ZHIPU_GLM_4_PLUS_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "cn-siliconflow-deepseek-v3",
+      "vendor": "openai-compatible",
+      "model": "deepseek-ai/DeepSeek-V3",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://api.siliconflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_CN_SILICONFLOW_DEEPSEEK_V3_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "cn-siliconflow-qwen",
+      "vendor": "openai-compatible",
+      "model": "Qwen/Qwen2.5-72B-Instruct",
+      "roles": [
+        "chat",
+        "planning",
+        "emotion",
+        "coding",
+        "tool-use"
+      ],
+      "baseUrl": "https://api.siliconflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_CN_SILICONFLOW_QWEN_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-glm-4-7",
+      "model": "glm-4.7",
+      "roles": [
+        "chat",
+        "planning",
+        "emotion",
+        "memory_digest"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-rome-30ba3b",
+      "model": "iFlow-ROME-30BA3B",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-qwen3-coder-plus",
+      "model": "Qwen3-Coder-Plus",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-qwen3-max",
+      "model": "Qwen3-Max",
+      "roles": [
+        "chat",
+        "planning",
+        "emotion",
+        "tool-use"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-qwen3-vl-plus",
+      "model": "Qwen3-VL-Plus",
+      "roles": [
+        "chat",
+        "planning",
+        "tool-use"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-kimi-k2-instruct-0905",
+      "model": "Kimi-K2-Instruct-0905",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use",
+        "emotion"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-qwen3-max-preview",
+      "model": "Qwen3-Max-Preview",
+      "roles": [
+        "chat",
+        "planning",
+        "emotion",
+        "tool-use"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-kimi-k2",
+      "model": "Kimi-K2",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use",
+        "emotion"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-deepseek-v3-2-exp",
+      "model": "DeepSeek-V3.2-Exp",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-deepseek-r1",
+      "model": "DeepSeek-R1",
+      "roles": [
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-deepseek-v3-671b",
+      "model": "DeepSeek-V3-671B",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-qwen3-32b",
+      "model": "Qwen3-32B",
+      "roles": [
+        "chat",
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
+    },
+    {
+      "id": "iflow-qwen3-235b-a22b-thinking",
+      "model": "Qwen3-235B-A22B-Thinking",
+      "roles": [
+        "planning",
+        "coding",
+        "tool-use"
+      ],
+      "vendor": "openai-compatible",
+      "baseUrl": "https://apis.iflow.cn/v1",
+      "apiKeyEnv": "ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY",
+      "openclawProvider": "",
+      "disabled": false
     }
   ],
   "taskRoutes": {
     "emotional_companion": [
+      "iflow-kimi-k2-instruct-0905",
+      "iflow-qwen3-max",
+      "iflow-glm-4-7",
+      "cn-aliyun-qwen-plus",
+      "cn-zhipu-glm-4-plus",
+      "cn-siliconflow-qwen",
       "nvidia-minimax-m21",
       "nvidia-kimi-k2-thinking",
       "companion-primary",
       "companion-fallback"
     ],
     "coding_execution": [
+      "iflow-qwen3-coder-plus",
+      "iflow-deepseek-v3-2-exp",
+      "iflow-rome-30ba3b",
+      "iflow-kimi-k2",
+      "cn-deepseek-chat",
+      "cn-siliconflow-deepseek-v3",
+      "cn-aliyun-qwen-plus",
       "nvidia-kimi-k2-thinking",
       "code-specialist",
       "nvidia-minimax-m21",
@@ -206,6 +491,12 @@
       "companion-fallback"
     ],
     "work_planning": [
+      "iflow-qwen3-max",
+      "iflow-glm-4-7",
+      "iflow-qwen3-235b-a22b-thinking",
+      "cn-aliyun-qwen-plus",
+      "cn-zhipu-glm-4-plus",
+      "cn-deepseek-chat",
       "nvidia-minimax-m21",
       "nvidia-kimi-k2-thinking",
       "code-specialist",
@@ -213,12 +504,23 @@
       "companion-fallback"
     ],
     "autonomy_dispatch": [
+      "iflow-qwen3-coder-plus",
+      "iflow-kimi-k2",
+      "iflow-deepseek-v3-2-exp",
+      "cn-deepseek-chat",
+      "cn-siliconflow-deepseek-v3",
+      "cn-aliyun-qwen-plus",
       "nvidia-minimax-m21",
       "nvidia-kimi-k2-thinking",
       "code-specialist",
       "companion-fallback"
     ],
     "memory_digest": [
+      "iflow-glm-4-7",
+      "iflow-qwen3-max",
+      "cn-aliyun-qwen-plus",
+      "cn-siliconflow-qwen",
+      "cn-deepseek-chat",
       "nvidia-minimax-m21",
       "nvidia-kimi-k2-thinking",
       "companion-fallback",

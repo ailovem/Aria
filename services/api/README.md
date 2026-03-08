@@ -66,10 +66,12 @@ Data persistence:
 - `GET /v1/aria-kernel/model/fallback/status`
 - `GET /v1/aria-kernel/progress/protocol`
 - `GET /v1/memory`
+- `GET /v1/memory/architecture`
+- `POST /v1/memory/architecture`
 - `GET /v1/memory/runtime`
 - `GET /v1/memory/backend/check`
 - `GET /v1/memory/search?q=<query>&limit=6&scene=work|fun|life|love&crossScene=true|false`
-- `POST /v1/memory` (supports `scene`, `tier=long_term|short_term|temporary`, `tags`)
+- `POST /v1/memory` (supports `scene`, `tier=long_term|mid_term|short_term|temporary`, `tags`)
 - `DELETE /v1/memory/:id`
 - `POST /v1/preferences`
 - `POST /v1/message`
@@ -252,6 +254,19 @@ Model router env (real model routing, with local fallback):
 - `ARIA_MODEL_PROVIDER_<PROVIDER_ID>_BASE_URL`
 - `ARIA_MODEL_PROVIDER_<PROVIDER_ID>_API_KEY`
 - `ARIA_MODEL_PROVIDER_<PROVIDER_ID>_MODEL`
+- `ARIA_MODEL_PROVIDER_IFLOW_SHARED_API_KEY` (shared key for iFlow provider presets)
+
+Domestic provider quick preset:
+
+- example file: `services/api/model-providers.env.example`
+- copy to `.runtime/secrets/model-providers.env` (recommended)
+- supported preset IDs in `model-routing.policy.json`:
+  - `cn-aliyun-qwen-plus` (DashScope compatible endpoint)
+  - `cn-deepseek-chat`
+  - `cn-zhipu-glm-4-plus`
+  - `cn-siliconflow-deepseek-v3`
+  - `cn-siliconflow-qwen`
+  - `iflow-*` series (Qwen3/DeepSeek/Kimi/GLM/iFlow-ROME presets)
 
 ## Minimal payload examples
 
@@ -273,6 +288,8 @@ Memory search response now includes:
 Memory plane runtime snapshot:
 
 - `GET /v1/memory/runtime` returns vector backend runtime + scene counters + memory jobs/stats
+- `GET /v1/memory/architecture` returns current 3+1 memory architecture and tier counters
+- `POST /v1/memory/architecture` updates architecture mode/tier limits/reasoning strategy online
 - `GET /v1/memory/backend/check` returns environment-aware self-check + repair suggestions (小白模式)
 - `GET /v1/system/config` also includes `memoryPlaneRuntime`
 
@@ -283,6 +300,22 @@ Vector backend env (Qdrant priority, interface unchanged):
 - `ARIA_QDRANT_API_KEY` (optional)
 - `ARIA_QDRANT_COLLECTION` (default `aria_memory`)
 - `ARIA_QDRANT_TIMEOUT_MS` (default `6000`)
+
+Memory architecture env (3+1 defaults):
+
+- `ARIA_MEMORY_ARCH_MODE` (`three_plus_one` or `classic`, default `three_plus_one`)
+- `ARIA_MEMORY_MID_TERM_LIMIT` (default `420`)
+- `ARIA_MEMORY_REASONING_TOPK` (default `8`)
+
+Update memory architecture online:
+
+```bash
+curl -X POST \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"mode":"three_plus_one","midTerm":{"enabled":true,"maxItems":480},"realtimeReasoning":{"topK":10,"includeCrossScene":true,"hybridSearch":true}}' \
+  http://127.0.0.1:8787/v1/memory/architecture
+```
 
 Create memory:
 
