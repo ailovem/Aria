@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>鹿鸣健康·数字父母 | 产品开发文档</title>
+    <style>
+      :root {
+        --bg: #f5f0e8;
+        --panel: #fffdfa;
+        --panel-soft: #f8f4ee;
+        --text-main: #1f1f1f;
+        --text-subtle: #5f5a53;
+        --line: #dfd5c8;
+        --primary: #165dff;
+        --warm: #c25700;
+        --rose: #b7374f;
+        --ok: #177245;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+        color: var(--text-main);
+        background:
+          radial-gradient(circle at 8% 10%, rgba(194, 87, 0, 0.15), transparent 28%),
+          radial-gradient(circle at 90% 12%, rgba(22, 93, 255, 0.12), transparent 24%),
+          radial-gradient(circle at 82% 88%, rgba(183, 55, 79, 0.1), transparent 26%),
+          var(--bg);
+        line-height: 1.7;
+      }
+      .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 32px 18px 76px;
+      }
+      .top {
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: rgba(255, 253, 250, 0.9);
+        padding: 26px 24px 22px;
+      }
+      .eyebrow {
+        margin: 0;
+        color: var(--warm);
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+      h1 {
+        margin: 10px 0 8px;
+        font-size: clamp(28px, 4.5vw, 42px);
+        line-height: 1.2;
+        letter-spacing: -0.02em;
+      }
+      .sub {
+        margin: 0;
+        color: var(--text-subtle);
+        font-size: 15px;
+      }
+      .badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .badge {
+        border-radius: 999px;
+        padding: 5px 12px;
+        border: 1px solid var(--line);
+        font-size: 12px;
+        color: var(--text-subtle);
+        background: #fff;
+      }
+      .toc {
+        margin-top: 16px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .toc a,
+      .back {
+        text-decoration: none;
+        color: var(--primary);
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .grid {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: 1.3fr 1fr;
+        gap: 14px;
+      }
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        background: var(--panel);
+        padding: 18px;
+      }
+      .panel h2,
+      .panel h3 {
+        margin: 0 0 10px;
+        line-height: 1.4;
+      }
+      .panel h2 {
+        font-size: 22px;
+      }
+      .panel h3 {
+        font-size: 17px;
+      }
+      .panel p {
+        margin: 0;
+        color: #3f3a34;
+      }
+      .list {
+        margin: 10px 0 0;
+        padding-left: 18px;
+        color: #3f3a34;
+      }
+      .list li + li {
+        margin-top: 8px;
+      }
+      .module-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 10px;
+      }
+      .module {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 12px;
+        background: var(--panel-soft);
+      }
+      .module strong {
+        color: #1d2f57;
+      }
+      .milestone {
+        margin-top: 10px;
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .milestone th,
+      .milestone td {
+        border: 1px solid var(--line);
+        padding: 10px 10px;
+        text-align: left;
+        vertical-align: top;
+        font-size: 14px;
+      }
+      .milestone th {
+        background: #f0ebe3;
+      }
+      .kv-table {
+        margin-top: 10px;
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .kv-table th,
+      .kv-table td {
+        border: 1px solid var(--line);
+        padding: 9px 10px;
+        text-align: left;
+        vertical-align: top;
+        font-size: 14px;
+      }
+      .kv-table th {
+        width: 190px;
+        background: #f7f2eb;
+        color: #4e463e;
+      }
+      .fusion-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 10px;
+      }
+      .fusion-card {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: var(--panel-soft);
+        padding: 12px;
+      }
+      .fusion-card strong {
+        color: #253a5d;
+      }
+      .source-note {
+        margin-top: 10px;
+        font-size: 13px;
+        color: var(--text-subtle);
+      }
+      .risk {
+        border-left: 4px solid var(--rose);
+        padding-left: 10px;
+        margin-top: 10px;
+        color: #4b2f38;
+      }
+      .ok {
+        border-left: 4px solid var(--ok);
+        padding-left: 10px;
+        margin-top: 10px;
+        color: #174a2f;
+      }
+      .foot {
+        margin-top: 20px;
+        font-size: 13px;
+        color: var(--text-subtle);
+        text-align: center;
+      }
+      @media (max-width: 900px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .module-grid {
+          grid-template-columns: 1fr;
+        }
+        .fusion-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="top">
+        <p class="eyebrow">Aria 官网认证展示页</p>
+        <h1>鹿鸣健康·数字父母<br />产品开发文档（临时认证版）</h1>
+        <p class="sub">
+          更新日期：2026-03-08 ｜ 用途：资质认证、合作沟通、试点落地评审
+        </p>
+        <div class="badges">
+          <span class="badge">AI 数字父母</span>
+          <span class="badge">临终关怀支持</span>
+          <span class="badge">老年心理健康</span>
+          <span class="badge">数字康养服务</span>
+          <span class="badge">Aria 官网入口页</span>
+        </div>
+        <div class="toc">
+          <a href="#overview">项目概览</a>
+          <a href="#angles">三大视角</a>
+          <a href="#architecture">功能架构</a>
+          <a href="#roadmap">实施路线</a>
+          <a href="#metrics">指标体系</a>
+          <a href="#compliance">合规边界</a>
+          <a href="#fusion">既有平台融合</a>
+          <a href="#certificates">证书备案</a>
+        </div>
+      </header>
+
+      <section id="overview" class="grid">
+        <article class="panel">
+          <h2>1. 项目概览</h2>
+          <p>
+            鹿鸣健康·数字父母是基于 Aria 能力框架打造的数字康养产品方向，面向银发家庭提供“可陪伴、可记录、可协同、可持续”的 AI 服务能力，
+            目标是构建兼具情绪支持与服务执行的家庭级健康支持入口。
+          </p>
+          <ul class="list">
+            <li>产品形态：官网入口页 + 认证文档页 + 后续可对接 App/小程序。</li>
+            <li>服务对象：老年用户、异地子女、照护者、心理支持与康养服务方。</li>
+            <li>核心价值：以低门槛数字化方式，补足“陪伴空白、协同空白、记录空白”。</li>
+            <li>融合方向：承接“医药险融合 + 本地健康服务”既有业务基础，延展至数字康养与 AI 陪伴服务。</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h2>2. 创立主体与发起人</h2>
+          <p>
+            本项目由 <strong>北京蓝色壹路技术有限公司</strong> 发起，发起人
+            <strong>董道宽</strong>，具备数十年医药健康行业从业与产业协同经验。
+          </p>
+          <p class="ok">
+            组织定位：以“医疗健康行业经验 + AI 工程化能力”双轮驱动，推动数字康养产品化落地。
+          </p>
+          <a class="back" href="/">← 返回 Aria 官网首页</a>
+        </article>
+      </section>
+
+      <section id="angles" class="grid">
+        <article class="panel">
+          <h2>3. 视角一：AI 数字父母</h2>
+          <ul class="list">
+            <li>建立“家庭记忆体”：沉淀个人经历、偏好、价值观与沟通语气。</li>
+            <li>构建“日常陪伴体”：日历提醒、健康问候、节律引导、语音互动。</li>
+            <li>形成“家属协同体”：异地子女可获得摘要回执，提升陪护共识。</li>
+          </ul>
+          <p class="ok">交付目标：让长者“有人记得、有人回应、有人持续陪伴”。</p>
+        </article>
+        <article class="panel">
+          <h2>4. 视角二：临终关怀支持</h2>
+          <ul class="list">
+            <li>提供心愿记录、人生回顾、家庭留言等数字化留痕模块。</li>
+            <li>支持家属沟通流程，输出阶段性沟通提示与情绪缓冲建议。</li>
+            <li>在敏感阶段默认开启“人工参与优先”机制，避免冷硬自动化响应。</li>
+          </ul>
+          <p class="risk">
+            合规边界：本产品不替代临床诊疗与精神科治疗，不输出医学诊断结论；高风险场景需转接专业机构。
+          </p>
+        </article>
+      </section>
+
+      <section class="grid">
+        <article class="panel">
+          <h2>5. 视角三：老年心理健康与数字康养</h2>
+          <ul class="list">
+            <li>情绪状态识别：基于互动行为与文本语义给出趋势信号。</li>
+            <li>认知与社交激活：通过轻任务、回忆引导、亲友互动提升活跃度。</li>
+            <li>风险预警协同：出现持续低落、孤立或睡眠异常时触发家属通知链路。</li>
+            <li>康养连接能力：可对接社区服务、康养机构和志愿者组织。</li>
+          </ul>
+          <p class="ok">业务目标：形成“评估-干预-追踪-复盘”的长期康养闭环。</p>
+        </article>
+        <article id="architecture" class="panel">
+          <h2>6. 功能架构（MVP 到规模化）</h2>
+          <div class="module-grid">
+            <div class="module">
+              <strong>感知层</strong>
+              <p>文本/语音交互、用户画像、情绪趋势与风险信号采集。</p>
+            </div>
+            <div class="module">
+              <strong>认知层</strong>
+              <p>数字父母记忆体、个体化关怀策略、家庭协同决策逻辑。</p>
+            </div>
+            <div class="module">
+              <strong>服务层</strong>
+              <p>陪伴会话、提醒执行、关怀任务编排、回执与报告输出。</p>
+            </div>
+            <div class="module">
+              <strong>治理层</strong>
+              <p>权限隔离、审计日志、敏感词与高风险场景分级处置。</p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <section id="roadmap" class="panel">
+        <h2>7. 实施路线（建议）</h2>
+        <table class="milestone">
+          <thead>
+            <tr>
+              <th>阶段</th>
+              <th>周期</th>
+              <th>目标</th>
+              <th>关键交付</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>P0</td>
+              <td>2-4 周</td>
+              <td>认证材料准备与展示上线</td>
+              <td>官网入口、产品文档页、演示话术、合规边界声明</td>
+            </tr>
+            <tr>
+              <td>P1</td>
+              <td>4-8 周</td>
+              <td>MVP 验证</td>
+              <td>数字父母原型、家属协同通知、基础风险提醒</td>
+            </tr>
+            <tr>
+              <td>P2</td>
+              <td>8-16 周</td>
+              <td>试点落地</td>
+              <td>社区/机构试点、用户分层运营、服务质量看板</td>
+            </tr>
+            <tr>
+              <td>P3</td>
+              <td>16+ 周</td>
+              <td>规模化运营</td>
+              <td>多区域复制、机构协作接口、标准化交付手册</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section id="metrics" class="grid">
+        <article class="panel">
+          <h2>8. 认证与运营指标（建议）</h2>
+          <ul class="list">
+            <li>陪伴有效性：7 日留存、30 日活跃率、会话完成率。</li>
+            <li>家庭协同性：家属回执查看率、跨成员任务完成率。</li>
+            <li>心理健康支持：负向情绪持续时长下降比例、干预触达率。</li>
+            <li>康养服务效率：服务响应时长、任务闭环时长、复盘完成率。</li>
+          </ul>
+        </article>
+        <article id="compliance" class="panel">
+          <h2>9. 合规与伦理边界</h2>
+          <ul class="list">
+            <li>隐私最小化：仅采集服务必要数据，默认最小权限。</li>
+            <li>知情同意：关键功能前置告知，支持撤回与删除。</li>
+            <li>人机协同：临终关怀与高风险心理场景优先触发人工介入。</li>
+            <li>可追溯：关键决策链路可审计、可复盘、可解释。</li>
+          </ul>
+        </article>
+      </section>
+
+      <section id="fusion" class="grid">
+        <article class="panel">
+          <h2>10. 既有平台内容融合（参考链接）</h2>
+          <p>
+            结合
+            <strong>鹿鸣本地健康服务平台</strong>
+            公开内容（“基于零售药店场景下的医药险融合应用服务平台，为消费者提供综合保险、健康管理、医药电商、跨境医疗等一站式本地健康服务”），
+            当前认证版文档已融合“医药险融合 + 本地健康服务 + 数字康养延展”路径，保持对外叙述连续性。
+          </p>
+          <div class="fusion-grid">
+            <div class="fusion-card">
+              <strong>在线服务</strong>
+              <p>承接药品信息、线上健康服务入口，作为家庭健康交互基础层。</p>
+            </div>
+            <div class="fusion-card">
+              <strong>喝酒吧</strong>
+              <p>定位为健康饮酒科普与行为引导内容专区，归入轻健康管理模块。</p>
+            </div>
+            <div class="fusion-card">
+              <strong>养老业务</strong>
+              <p>对接长者健康管理、慢病协同、照护服务与机构合作场景。</p>
+            </div>
+            <div class="fusion-card">
+              <strong>药店保险合作</strong>
+              <p>保留医药险融合能力，支持药店场景、商保服务与健康支付协同。</p>
+            </div>
+            <div class="fusion-card">
+              <strong>出海业务</strong>
+              <p>面向跨境医疗服务与国际资源协作，保留国际化服务接口。</p>
+            </div>
+            <div class="fusion-card">
+              <strong>平台定位融合</strong>
+              <p>统一表述为“一站式本地健康服务 + AI 数字康养能力”。</p>
+            </div>
+          </div>
+          <p class="source-note">
+            参考来源：<a href="https://app-97vccchi13wh.appmiaoda.com/" target="_blank" rel="noopener noreferrer">鹿鸣本地健康服务平台</a> 公开页面（采集日期：2025年10月）。
+          </p>
+        </article>
+        <article class="panel">
+          <h2>11. 对外联系信息（已同步）</h2>
+          <table class="kv-table">
+            <tbody>
+              <tr>
+                <th>联系地址</th>
+                <td>北京市大兴区兴华大街67号内</td>
+              </tr>
+              <tr>
+                <th>联系电话</th>
+                <td>13521082288</td>
+              </tr>
+              <tr>
+                <th>联系邮箱</th>
+                <td>bjlsyl.cn</td>
+              </tr>
+            </tbody>
+          </table>
+          <p class="risk">
+            说明：源页面展示为“bjlsyl.cn”（非标准邮箱格式）。若用于正式申报，建议补充可直接收件的完整邮箱地址。
+          </p>
+        </article>
+      </section>
+
+      <section class="panel">
+        <h2 id="certificates">12. 证书与备案资料（已纳入认证页）</h2>
+        <table class="kv-table">
+          <tbody>
+            <tr>
+              <th>备案类型</th>
+              <td>药品医疗器械网络信息服务备案</td>
+            </tr>
+            <tr>
+              <th>企业名称</th>
+              <td>北京蓝色壹路技术有限公司</td>
+            </tr>
+            <tr>
+              <th>备案编号</th>
+              <td>(京)网药械信息备字（2021）第00169号</td>
+            </tr>
+            <tr>
+              <th>服务性质</th>
+              <td>非经营性</td>
+            </tr>
+            <tr>
+              <th>法定代表人</th>
+              <td>董道宽</td>
+            </tr>
+            <tr>
+              <th>网站负责人</th>
+              <td>裴晋</td>
+            </tr>
+            <tr>
+              <th>网站名称</th>
+              <td>瓜田科技</td>
+            </tr>
+            <tr>
+              <th>单位地址</th>
+              <td>北京市大兴区兴华大街三段67号院2号楼2至3层235</td>
+            </tr>
+            <tr>
+              <th>网站域名</th>
+              <td>guasweet.com</td>
+            </tr>
+            <tr>
+              <th>备案机关</th>
+              <td>北京市药品监督管理局</td>
+            </tr>
+            <tr>
+              <th>备案日期</th>
+              <td>2022年05月10日</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="ok">
+          以上字段已按你提供截图与公开页面可提取内容融合到认证文档，适合作为官网入口的证书信息展示。
+        </p>
+      </section>
+
+      <section class="panel">
+        <h2>13. 认证材料建议清单</h2>
+        <ul class="list">
+          <li>企业主体材料：营业执照、项目立项说明、知识产权清单。</li>
+          <li>产品材料：功能白皮书、服务流程图、用户隐私与数据策略。</li>
+          <li>运营材料：试点计划、服务质量指标、风险处置预案。</li>
+          <li>团队材料：发起人与核心团队履历、医药健康产业经验说明。</li>
+        </ul>
+        <p class="ok">
+          说明：当前页面为 Aria 官网临时认证展示版，可作为“入口介绍 + 对外说明”使用，后续可按具体认证要求补充附件与盖章文件。
+        </p>
+      </section>
+
+      <p class="foot">
+        鹿鸣健康·数字父母 ｜ 北京蓝色壹路技术有限公司 ｜ 发起人：董道宽 ｜ 2026
+      </p>
+    </main>
+  </body>
+</html>

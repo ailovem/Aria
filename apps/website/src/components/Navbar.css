@@ -34,15 +34,16 @@
 .nav-links {
     display: flex;
     list-style: none;
-    gap: 2.5rem;
+    gap: 1.25rem;
 }
 
 .nav-links a {
     text-decoration: none;
     color: var(--text-secondary);
-    font-size: 0.95rem;
+    font-size: 0.88rem;
     font-weight: 500;
     transition: color 0.3s ease;
+    white-space: nowrap;
 }
 
 .nav-links a:hover {

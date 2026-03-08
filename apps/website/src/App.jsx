@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import useScrollReveal from './hooks/useScrollReveal';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
+import LumingHealthEntry from './components/LumingHealthEntry';
 import QuickStart30s from './components/QuickStart30s';
 import DownloadHub from './components/DownloadHub';
 import CoreValue from './components/CoreValue';
@@ -71,6 +72,7 @@ function App() {
     <>
       <Navbar />
       <Hero />
+      <LumingHealthEntry />
       <QuickStart30s />
       <DownloadHub />
       <CoreValue />
