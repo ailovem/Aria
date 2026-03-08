@@ -179,6 +179,39 @@ const LUMING_ENTRIES = [
 
 const formatSnippet = (value) => String(value || '').replace(/\s+/g, ' ').trim();
 
+// OpenFDA 仅支持英文搜索，常用中文药品名映射到英文通用名
+const DRUG_ZH_TO_EN = {
+    阿司匹林: 'aspirin',
+    布洛芬: 'ibuprofen',
+    对乙酰氨基酚: 'acetaminophen',
+    扑热息痛: 'acetaminophen',
+    泰诺: 'acetaminophen',
+    维生素c: 'ascorbic acid',
+    维生素C: 'ascorbic acid',
+    维他命c: 'ascorbic acid',
+    阿莫西林: 'amoxicillin',
+    头孢: 'cephalexin',
+    头孢氨苄: 'cephalexin',
+    甲硝唑: 'metronidazole',
+    奥美拉唑: 'omeprazole',
+    雷贝拉唑: 'rabeprazole',
+    埃索美拉唑: 'esomeprazole',
+    二甲双胍: 'metformin',
+    阿卡波糖: 'acarbose',
+    格列美脲: 'glimepiride',
+    瑞格列奈: 'repaglinide',
+    辛伐他汀: 'simvastatin',
+    阿托伐他汀: 'atorvastatin',
+    硝苯地平: 'nifedipine',
+    氨氯地平: 'amlodipine',
+    氯沙坦: 'losartan',
+    缬沙坦: 'valsartan',
+    氯雷他定: 'loratadine',
+    西替利嗪: 'cetirizine',
+    地氯雷他定: 'desloratadine',
+    孟鲁司特: 'montelukast',
+};
+
 const normalizeDrugResults = (results) => {
     if (!Array.isArray(results)) return [];
     return results.slice(0, 5).map((item, index) => {
@@ -234,12 +267,16 @@ const LumingHealthEntry = () => {
 
     const handleDrugSearch = async (event) => {
         event.preventDefault();
-        const keyword = formatSnippet(drugKeyword);
+        let keyword = formatSnippet(drugKeyword);
         if (!keyword) {
-            setDrugError('请输入药品英文商品名或通用名，例如 aspirin / ibuprofen。');
+            setDrugError('请输入药品名（支持中文或英文），例如 阿司匹林 / aspirin。');
             setDrugResults([]);
             return;
         }
+        // OpenFDA 不支持中文，将常用中文药品名映射到英文
+        const keyNorm = keyword.replace(/\s+/g, '');
+        const mapped = DRUG_ZH_TO_EN[keyword] || DRUG_ZH_TO_EN[keyNorm] || DRUG_ZH_TO_EN[keyword.toLowerCase?.()] || DRUG_ZH_TO_EN[keyNorm.toLowerCase?.()];
+        if (mapped) keyword = mapped;
 
         setDrugLoading(true);
         setDrugError('');
@@ -266,7 +303,11 @@ const LumingHealthEntry = () => {
                 throw new Error('药品数据解析失败，请稍后重试。');
             }
             if (payload?.error?.message) {
-                throw new Error(payload.error.message);
+                const msg = payload.error.message;
+                if (/search not supported/i.test(msg) || /invalid.*search/i.test(msg)) {
+                    throw new Error('当前关键词暂不支持，请尝试英文名如 aspirin（阿司匹林）、ibuprofen（布洛芬）。');
+                }
+                throw new Error(msg);
             }
             if (DRUG_FDA_PROXY && !response.ok) {
                 throw new Error(payload?.error?.message || `查询失败（HTTP ${response.status}）`);
@@ -414,7 +455,7 @@ const LumingHealthEntry = () => {
                                         type="text"
                                         value={drugKeyword}
                                         onChange={(event) => setDrugKeyword(event.target.value)}
-                                        placeholder="输入药品英文名，例如 aspirin"
+                                        placeholder="输入药品名，如 阿司匹林 或 aspirin"
                                     />
                                     <button type="submit" disabled={drugLoading}>
                                         {drugLoading ? '查询中...' : '立即查询'}
