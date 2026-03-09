@@ -1,7 +1,7 @@
 {
   "meta": {
-    "generatedAt": "2026-03-09T07:48:26.436Z",
-    "generatedAtLabel": "2026/03/09 15:48",
+    "generatedAt": "2026-03-09T09:40:06.111Z",
+    "generatedAtLabel": "2026/03/09 17:40",
     "timezone": "Asia/Shanghai",
     "mode": "live",
     "totalSources": 12,
@@ -108,14 +108,14 @@
     "failedSources": []
   },
   "summary": {
-    "title": "今日 AI 柯南判断：产品上新更快",
-    "overview": "截至 2026/03/09 15:48，本页追踪到 30 条有效情报，其中融资 8 条、产品/应用 22 条、高优先级 1 条，今日新增 0 条，中国相关 3 条。",
-    "insight": "融资主题更偏向 投融资、医疗健康、安全；产品主题更偏向 模型能力、Agent、编码智能；中国线索重点落在 模型能力、Agent、编码智能。",
+    "title": "今天最值得关注的方向：产品更新更密集",
+    "overview": "截至 2026/03/09 17:40，这里共整理出 30 条值得关注的动态，其中融资 8 条、产品/应用 22 条、高优先级 1 条，今日新增 0 条，国内动态 3 条。",
+    "insight": "融资更集中在 投融资、医疗健康、安全；产品更新更集中在 模型能力、Agent、编码智能；国内值得重点留意的是 模型能力、Agent、编码智能。",
     "recommendations": [
-      "今天新增不算拥挤，适合回看近 7~14 天连续上新的团队，确认谁在形成持续加速。",
-      "把“投融资 + 模型能力”列入本周一级跟踪，优先观察哪些团队出现“融资后 30 天内继续发产品”的双信号。",
-      "高优先级条目建议沉淀到 Aria 周报，统一记录融资规模、目标用户、能力差异和可复用接口。",
-      "中国线索已进入主榜，建议单独跟踪 模型能力，重点看哪些能力最适合接入 Aria。"
+      "今天新消息不算多，适合顺手回看近一两周持续上新的团队。",
+      "本周可以重点盯住“投融资 + 模型能力”这条组合，看哪些团队既拿到钱、又持续推新。",
+      "高优先级条目适合顺手记进周报，后面回看会更快看出趋势。",
+      "国内动态已经值得单独盯一下，建议重点关注 模型能力 的进展。"
     ],
     "stats": {
       "totalCount": 30,
@@ -160,7 +160,7 @@
       "category": "product",
       "importance": "high",
       "importanceScore": 64,
-      "reason": "中国信号 · Agent",
+      "reason": "国内动态 · Agent",
       "tags": [
         "Agent",
         "编码智能",
@@ -189,7 +189,7 @@
       "category": "funding",
       "importance": "medium",
       "importanceScore": 52,
-      "reason": "含融资金额 · 投融资",
+      "reason": "披露融资金额 · 投融资",
       "tags": [
         "投融资"
       ],
@@ -216,7 +216,7 @@
       "category": "product",
       "importance": "medium",
       "importanceScore": 52,
-      "reason": "官方产品源 · Agent",
+      "reason": "官方发布 · Agent",
       "tags": [
         "Agent",
         "企业应用",
@@ -245,7 +245,7 @@
       "category": "funding",
       "importance": "medium",
       "importanceScore": 52,
-      "reason": "官方产品源 · 含融资金额 · 投融资",
+      "reason": "官方发布 · 披露融资金额 · 投融资",
       "tags": [
         "投融资"
       ],
@@ -272,7 +272,7 @@
       "category": "funding",
       "importance": "medium",
       "importanceScore": 52,
-      "reason": "官方产品源 · 含融资金额 · 投融资",
+      "reason": "官方发布 · 披露融资金额 · 投融资",
       "tags": [
         "投融资"
       ],
@@ -299,7 +299,7 @@
       "category": "product",
       "importance": "medium",
       "importanceScore": 49,
-      "reason": "官方产品源 · Agent",
+      "reason": "官方发布 · Agent",
       "tags": [
         "Agent",
         "编码智能",
@@ -328,7 +328,7 @@
       "category": "product",
       "importance": "medium",
       "importanceScore": 49,
-      "reason": "官方产品源 · Agent",
+      "reason": "官方发布 · Agent",
       "tags": [
         "Agent",
         "企业应用",
@@ -357,7 +357,7 @@
       "category": "product",
       "importance": "medium",
       "importanceScore": 49,
-      "reason": "官方产品源 · Agent",
+      "reason": "官方发布 · Agent",
       "tags": [
         "Agent",
         "企业应用"
@@ -385,7 +385,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 47,
-      "reason": "官方产品源 · 多模态与视频",
+      "reason": "官方发布 · 多模态与视频",
       "tags": [
         "多模态与视频",
         "模型能力"
@@ -413,7 +413,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 47,
-      "reason": "官方产品源 · 安全",
+      "reason": "官方发布 · 安全",
       "tags": [
         "安全"
       ],
@@ -440,7 +440,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 47,
-      "reason": "官方产品源 · Agent",
+      "reason": "官方发布 · Agent",
       "tags": [
         "Agent",
         "安全",
@@ -469,7 +469,7 @@
       "category": "funding",
       "importance": "watch",
       "importanceScore": 46,
-      "reason": "含融资金额",
+      "reason": "披露融资金额",
       "tags": [
         "AI"
       ],
@@ -553,7 +553,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 46,
-      "reason": "官方产品源 · Agent",
+      "reason": "官方发布 · Agent",
       "tags": [
         "Agent",
         "企业应用"
@@ -581,7 +581,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 46,
-      "reason": "中国信号 · 多模态与视频",
+      "reason": "国内动态 · 多模态与视频",
       "tags": [
         "多模态与视频",
         "模型能力"
@@ -609,7 +609,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 46,
-      "reason": "官方产品源",
+      "reason": "官方发布",
       "tags": [
         "AI"
       ],
@@ -665,7 +665,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 45,
-      "reason": "官方产品源 · 模型能力",
+      "reason": "官方发布 · 模型能力",
       "tags": [
         "模型能力"
       ],
@@ -692,7 +692,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 45,
-      "reason": "官方产品源 · 编码智能",
+      "reason": "官方发布 · 编码智能",
       "tags": [
         "编码智能",
         "安全",
@@ -721,7 +721,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 45,
-      "reason": "官方产品源 · 模型能力",
+      "reason": "官方发布 · 模型能力",
       "tags": [
         "模型能力"
       ],
@@ -748,7 +748,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 45,
-      "reason": "官方产品源 · 编码智能",
+      "reason": "官方发布 · 编码智能",
       "tags": [
         "编码智能",
         "模型能力"
@@ -776,7 +776,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 45,
-      "reason": "官方产品源 · Agent",
+      "reason": "官方发布 · Agent",
       "tags": [
         "Agent",
         "编码智能",
@@ -805,7 +805,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 45,
-      "reason": "官方产品源 · Agent",
+      "reason": "官方发布 · Agent",
       "tags": [
         "Agent",
         "编码智能",
@@ -834,7 +834,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 44,
-      "reason": "官方产品源 · 投融资",
+      "reason": "官方发布 · 投融资",
       "tags": [
         "投融资",
         "模型能力"
@@ -862,7 +862,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 44,
-      "reason": "官方产品源 · Agent",
+      "reason": "官方发布 · Agent",
       "tags": [
         "Agent",
         "企业应用"
@@ -890,7 +890,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 43,
-      "reason": "官方产品源 · 编码智能",
+      "reason": "官方发布 · 编码智能",
       "tags": [
         "编码智能",
         "算力芯片",
@@ -919,7 +919,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 43,
-      "reason": "官方产品源 · 模型能力",
+      "reason": "官方发布 · 模型能力",
       "tags": [
         "模型能力"
       ],
@@ -946,7 +946,7 @@
       "category": "product",
       "importance": "watch",
       "importanceScore": 43,
-      "reason": "官方产品源 · 企业应用",
+      "reason": "官方发布 · 企业应用",
       "tags": [
         "企业应用",
         "模型能力"
@@ -974,7 +974,7 @@
       "category": "funding",
       "importance": "watch",
       "importanceScore": 43,
-      "reason": "中国信号 · 企业应用",
+      "reason": "国内动态 · 企业应用",
       "tags": [
         "企业应用",
         "投融资"

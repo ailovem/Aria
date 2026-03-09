@@ -293,7 +293,7 @@ const THEME_DEFINITIONS = [
   { label: '算力芯片', patterns: [/chip/i, /gpu/i, /compute/i, /inference/i, /semiconductor/i, /芯片/u, /算力/u] },
   { label: '投融资', patterns: [/funding/i, /series/i, /investment/i, /融资/u, /投资/u] },
   { label: '模型能力', patterns: [/model/i, /llm/i, /reasoning/i, /推理/u, /模型/u] },
-  { label: '中国信号', patterns: [/中国/u, /国内/u, /国产/u, /China/i, /Qwen/i, /DeepSeek/i, /智谱/u, /Kimi/i] }
+  { label: '国内动态', patterns: [/中国/u, /国内/u, /国产/u, /China/i, /Qwen/i, /DeepSeek/i, /智谱/u, /Kimi/i] }
 ];
 
 const SOURCE_SCORE = {
@@ -640,16 +640,16 @@ function buildImportance(feed, entry, details, publishedAt) {
   const reasons = [];
 
   if (feed.publisherType === 'official') {
-    reasons.push('官方产品源');
+    reasons.push('官方发布');
   }
   if (details.region === 'china') {
-    reasons.push('中国信号');
+    reasons.push('国内动态');
   }
   if (details.classification === 'funding' && MONEY_PATTERN.test(`${entry.title} ${entry.description}`)) {
-    reasons.push('含融资金额');
+    reasons.push('披露融资金额');
   }
   if (hoursOld <= 24) {
-    reasons.push('24 小时内更新');
+    reasons.push('近 24 小时');
   }
   if (details.themes.length > 0) {
     reasons.push(details.themes[0]);
@@ -781,18 +781,18 @@ function buildRecommendations(stats, fundingThemes, productThemes, chinaThemes) 
   const leadProduct = productThemes[0] || '产品与应用';
   const recommendations = [
     stats.todayCount >= 4
-      ? '今天新增信号偏密集，建议优先看高优先级与官方源，再回看媒体解读，避免被噪音带偏。'
-      : '今天新增不算拥挤，适合回看近 7~14 天连续上新的团队，确认谁在形成持续加速。',
-    `把“${leadFunding} + ${leadProduct}”列入本周一级跟踪，优先观察哪些团队出现“融资后 30 天内继续发产品”的双信号。`,
-    '高优先级条目建议沉淀到 Aria 周报，统一记录融资规模、目标用户、能力差异和可复用接口。'
+      ? '今天新消息不少，建议先看高优先级和官方发布，再回看媒体解读。'
+      : '今天新消息不算多，适合顺手回看近一两周持续上新的团队。',
+    `本周可以重点盯住“${leadFunding} + ${leadProduct}”这条组合，看哪些团队既拿到钱、又持续推新。`,
+    '高优先级条目适合顺手记进周报，后面回看会更快看出趋势。'
   ];
 
   if (stats.chinaCount > 0) {
-    recommendations.push(`中国线索已进入主榜，建议单独跟踪 ${chinaThemes[0] || '国产模型与应用'}，重点看哪些能力最适合接入 Aria。`);
+    recommendations.push(`国内动态已经值得单独盯一下，建议重点关注 ${chinaThemes[0] || '国产模型与应用'} 的进展。`);
   }
 
   if (productThemes.includes('Agent') || productThemes.includes('编码智能')) {
-    recommendations.push('优先评估 Agent、编码智能、多模态三类能力的接入门槛，它们最容易转化为 Aria 的功能升级。');
+    recommendations.push('如果你更关心实际体验，优先看 Agent、编码智能和多模态这三类更新。');
   }
 
   return recommendations.slice(0, 4);
@@ -815,15 +815,15 @@ function buildSummary(items, generatedAt) {
   const productThemes = topThemes(items, (item) => item.category === 'product');
   const chinaThemes = topThemes(items, (item) => item.region === 'china');
   const dominantMode = stats.fundingCount > stats.productCount
-    ? '资本信号更强'
+    ? '融资动作更活跃'
     : stats.productCount > stats.fundingCount
-      ? '产品上新更快'
-      : '资本与产品同步推进';
+      ? '产品更新更密集'
+      : '融资和产品都在同步推进';
 
   return {
-    title: `今日 AI 柯南判断：${dominantMode}`,
-    overview: `截至 ${formatDate(generatedAt)}，本页追踪到 ${stats.totalCount} 条有效情报，其中融资 ${stats.fundingCount} 条、产品/应用 ${stats.productCount} 条、高优先级 ${stats.highCount} 条，今日新增 ${stats.todayCount} 条，中国相关 ${stats.chinaCount} 条。`,
-    insight: `融资主题更偏向 ${fundingThemes.join('、') || '基础设施与应用层'}；产品主题更偏向 ${productThemes.join('、') || '模型能力与创新应用'}；中国线索重点落在 ${chinaThemes.join('、') || '国产模型与落地场景'}。`,
+    title: `今天最值得关注的方向：${dominantMode}`,
+    overview: `截至 ${formatDate(generatedAt)}，这里共整理出 ${stats.totalCount} 条值得关注的动态，其中融资 ${stats.fundingCount} 条、产品/应用 ${stats.productCount} 条、高优先级 ${stats.highCount} 条，今日新增 ${stats.todayCount} 条，国内动态 ${stats.chinaCount} 条。`,
+    insight: `融资更集中在 ${fundingThemes.join('、') || '基础设施与应用层'}；产品更新更集中在 ${productThemes.join('、') || '模型能力与创新应用'}；国内值得重点留意的是 ${chinaThemes.join('、') || '国产模型与落地场景'}。`,
     recommendations: buildRecommendations(stats, fundingThemes, productThemes, chinaThemes),
     stats,
     fundingThemes,

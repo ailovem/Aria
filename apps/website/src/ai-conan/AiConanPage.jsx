@@ -4,7 +4,7 @@ import './AiConanPage.css';
 
 const FILTERS = [
   { key: 'all', label: '全部情报' },
-  { key: 'china', label: '中国信息' },
+  { key: 'china', label: '国内动态' },
   { key: 'funding', label: '融资' },
   { key: 'product', label: '产品/应用' },
   { key: 'high', label: '高优先级' },
@@ -139,8 +139,8 @@ function AiConanPage() {
         <nav className="ai-conan-nav-links">
           <a href="#summary">今日结论</a>
           <a href="#feed">资讯流</a>
-          <a href="#discussion">评论点赞</a>
-          <a href="#sources">来源机制</a>
+          <a href="#discussion">参与讨论</a>
+          <a href="#sources">怎么帮你筛</a>
         </nav>
         <a className="ai-conan-home-link" href="/">返回官网</a>
       </header>
@@ -157,7 +157,7 @@ function AiConanPage() {
                 <span className="text-gradient-aria">创新应用资讯</span>
               </h1>
               <p className="subtitle ai-conan-subtitle">
-                自动探查全球与中国 AI 融资、产品发布与创新应用线索，把英文资讯转成中文可读描述，并给出今日摘要、建议和互动讨论区。
+                帮你从全球和国内 AI 动态里筛出真正值得看的融资、产品和应用更新；英文内容会自动转成中文，读起来更轻松。
               </p>
 
               <div className="ai-conan-actions">
@@ -170,7 +170,7 @@ function AiConanPage() {
               <StatCard
                 label="抓取时间"
                 value={meta?.generatedAtLabel || '加载中'}
-                helper={meta?.mode === 'cache' ? '当前使用缓存快照' : '构建时自动刷新'}
+                helper={meta?.mode === 'cache' ? '暂时使用最近一次结果' : '最近一次更新'}
               />
               <StatCard
                 label="有效情报"
@@ -178,7 +178,7 @@ function AiConanPage() {
                 helper="按重要度排序展示"
               />
               <StatCard
-                label="中国线索"
+                label="国内动态"
                 value={summary?.stats?.chinaCount ?? '--'}
                 helper="国内融资与产品动态"
               />
@@ -214,7 +214,7 @@ function AiConanPage() {
               <article className="glass-panel ai-conan-summary-card">
                 <h3>结论</h3>
                 <p>{summary?.overview || '正在读取最近一次同步结果。'}</p>
-                <p>{summary?.insight || '这里会显示融资、产品和中国信号的趋势判断。'}</p>
+                <p>{summary?.insight || '这里会告诉你今天更值得先看哪一类动态。'}</p>
                 {meta?.cacheReason && <p className="ai-conan-muted">{meta.cacheReason}</p>}
               </article>
 
@@ -248,7 +248,7 @@ function AiConanPage() {
               </div>
 
               <div className="glass-panel ai-conan-theme-panel">
-                <h3>中国重点</h3>
+                <h3>国内关注</h3>
                 <div className="ai-conan-chip-row">
                   {(summary?.chinaThemes?.length ? summary.chinaThemes : ['国产模型', '应用落地']).map((item) => (
                     <Chip key={item} tone="warm">{item}</Chip>
@@ -285,7 +285,7 @@ function AiConanPage() {
                 aria-label="搜索资讯"
                 className="ai-conan-search"
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="搜索公司、赛道、关键词，例如 中国 / Agent / 融资 / OpenAI"
+                placeholder="搜公司、模型、赛道，例如 DeepSeek / Agent / 融资"
                 type="search"
                 value={query}
               />
@@ -374,24 +374,24 @@ function AiConanPage() {
           <div className="container">
             <div className="ai-conan-section-head">
               <div>
-                <span className="ai-conan-eyebrow">来源机制</span>
-                <h2>真实抓取，不是静态占位</h2>
+                <span className="ai-conan-eyebrow">怎么帮你筛</span>
+                <h2>这页怎么帮你省时间</h2>
               </div>
             </div>
 
             <div className="ai-conan-method-grid">
               <article className="glass-panel ai-conan-method-card">
-                <h3>工作方式</h3>
+                <h3>我们做了什么</h3>
                 <ul className="ai-conan-list">
-                  <li>构建前自动抓取 RSS、官方博客和中国公司动态页，生成 `/data/ai-conan-news.json`。</li>
-                  <li>对英文标题和描述自动转成中文，保留原文标题便于核对。</li>
-                  <li>同时识别中国线索，单独统计国内融资、模型发布和创新应用动态。</li>
-                  <li>评论与点赞优先接入 Aria API，自持公开存储；未接通时退回当前浏览器本机模式。</li>
+                  <li>先从官方发布和主流科技媒体里筛掉噪音，只保留更值得看的更新。</li>
+                  <li>英文内容会自动转成中文，同时保留原文标题，方便你快速判断和核对。</li>
+                  <li>国内动态会单独标出来，想看中国公司进展时不用自己再翻一遍。</li>
+                  <li>你可以直接点赞和留言，把自己的判断也留在这里。</li>
                 </ul>
               </article>
 
               <article className="glass-panel ai-conan-method-card">
-                <h3>当前来源</h3>
+                <h3>主要参考来源</h3>
                 <div className="ai-conan-source-list">
                   {(meta?.sourceCatalog || []).map((source) => (
                     <a href={source.url} key={source.id} rel="noreferrer" target="_blank">

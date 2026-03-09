@@ -219,7 +219,7 @@ async function submitRemoteComment(apiBase, threadId, threadTitle, authorName, c
 }
 
 function modeLabel(mode) {
-  return mode === 'shared-api' ? 'Aria API 自持公开互动' : '当前浏览器本机模式';
+  return mode === 'shared-api' ? '留言会同步给其他访问者' : '留言会先保存在当前设备';
 }
 
 function formatCommentTime(value) {
@@ -271,7 +271,7 @@ function AiConanDiscussion({ threadId, threadTitle }) {
       } catch {
         if (!cancelled) {
           setDiscussion(readLocalDiscussion(threadId, threadTitle));
-          setError('共享评论服务暂未接通，已自动切换到本机模式。');
+          setError('网络有点不稳定，先切换到当前设备保存，不影响继续留言。');
         }
       } finally {
         if (!cancelled) {
@@ -299,7 +299,7 @@ function AiConanDiscussion({ threadId, threadTitle }) {
       }
     } catch {
       setDiscussion(toggleLocalLike(threadId, threadTitle));
-      setError('共享点赞服务暂时不可用，已切到本机模式。');
+      setError('点赞同步暂时不可用，已先保存在当前设备。');
     } finally {
       setBusy(false);
     }
@@ -329,8 +329,8 @@ function AiConanDiscussion({ threadId, threadTitle }) {
       <div className="container">
         <div className="ai-conan-section-head">
           <div>
-            <span className="ai-conan-eyebrow">评论与点赞</span>
-            <h2>聊聊今天这份 AI 柯南判断</h2>
+            <span className="ai-conan-eyebrow">参与讨论</span>
+            <h2>说说你怎么看今天这些动态</h2>
           </div>
         </div>
 
@@ -355,18 +355,18 @@ function AiConanDiscussion({ threadId, threadTitle }) {
               <input
                 className="ai-conan-input"
                 onChange={(event) => setAuthorName(event.target.value)}
-                placeholder="你的名字（可选）"
+                placeholder="怎么称呼你（可选）"
                 value={authorName}
               />
               <textarea
                 className="ai-conan-textarea"
                 onChange={(event) => setCommentText(event.target.value)}
-                placeholder="写下你对今天融资信号、产品方向或中国线索的判断…"
+                placeholder="写下你的看法、补充信息，或者你最关注的一条动态…"
                 rows={5}
                 value={commentText}
               />
               <div className="ai-conan-discussion-actions">
-                <span className="ai-conan-muted">{apiBase ? '优先写入 Aria API；不可用时会保底切本机模式。' : '当前评论和点赞保存在本机浏览器。'}</span>
+                <span className="ai-conan-muted">{apiBase ? '你的留言会同步显示给其他访问者。' : '你的留言会先保存在当前设备，稍后也可以继续查看。'}</span>
                 <button className="cta-button" disabled={busy} type="submit">
                   {busy ? '提交中…' : '发表评论'}
                 </button>
@@ -380,12 +380,12 @@ function AiConanDiscussion({ threadId, threadTitle }) {
             <div className="ai-conan-discussion-header">
               <div>
                 <h3>最新评论</h3>
-                <p className="ai-conan-muted">{loading ? '正在加载讨论…' : `${discussion.comments.length} 条可见评论`}</p>
+                <p className="ai-conan-muted">{loading ? '正在加载大家的留言…' : `${discussion.comments.length} 条留言`}</p>
               </div>
             </div>
 
             {discussion.comments.length === 0 && !loading && (
-              <div className="ai-conan-empty ai-conan-empty--compact">还没有评论，你来做第一条判断。</div>
+              <div className="ai-conan-empty ai-conan-empty--compact">还没有人留言，你来开个头吧。</div>
             )}
 
             <div className="ai-conan-comment-list">
