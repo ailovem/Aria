@@ -1,0 +1,391 @@
+.ai-conan-page {
+    min-height: 100vh;
+    background:
+        radial-gradient(circle at top left, rgba(10, 132, 255, 0.12), transparent 30%),
+        radial-gradient(circle at top right, rgba(191, 90, 242, 0.12), transparent 30%),
+        var(--bg-color);
+}
+
+.ai-conan-nav {
+    position: sticky;
+    top: 1rem;
+    z-index: 20;
+    max-width: 1200px;
+    margin: 1rem auto 0;
+    padding: 0.9rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.ai-conan-brand {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    text-decoration: none;
+}
+
+.ai-conan-nav-links {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.ai-conan-nav-links a,
+.ai-conan-home-link,
+.ai-conan-secondary-link,
+.ai-conan-card-link,
+.ai-conan-spotlight-card a,
+.ai-conan-source-list a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color 0.3s ease, opacity 0.3s ease;
+}
+
+.ai-conan-nav-links a:hover,
+.ai-conan-home-link:hover,
+.ai-conan-secondary-link:hover,
+.ai-conan-card-link:hover,
+.ai-conan-spotlight-card a:hover,
+.ai-conan-source-list a:hover {
+    color: var(--text-primary);
+}
+
+.ai-conan-home-link {
+    white-space: nowrap;
+}
+
+.ai-conan-hero {
+    padding-top: 5rem;
+    overflow: hidden;
+}
+
+.ai-conan-hero-inner {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(340px, 0.85fr);
+    gap: 2rem;
+    align-items: center;
+}
+
+.ai-conan-hero-copy h1 {
+    font-size: clamp(2.7rem, 5vw, 5rem);
+    line-height: 0.98;
+    max-width: 9ch;
+}
+
+.ai-conan-subtitle {
+    margin-inline: 0;
+    max-width: 660px;
+}
+
+.ai-conan-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.25rem;
+    color: var(--accent-cyan);
+    font-size: 0.88rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
+
+.ai-conan-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-top: 2rem;
+    align-items: center;
+}
+
+.ai-conan-secondary-link {
+    font-size: 0.95rem;
+}
+
+.ai-conan-stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.ai-conan-stat {
+    padding: 1.4rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.ai-conan-stat span,
+.ai-conan-card-meta,
+.ai-conan-card-head span,
+.ai-conan-search-meta,
+.ai-conan-source-list small,
+.ai-conan-muted {
+    color: var(--text-secondary);
+}
+
+.ai-conan-stat strong {
+    font-size: clamp(1.4rem, 3vw, 2rem);
+}
+
+.ai-conan-stat small {
+    font-size: 0.88rem;
+}
+
+.ai-conan-section-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.ai-conan-section-head h2 {
+    font-size: clamp(2rem, 3vw, 3rem);
+}
+
+.ai-conan-summary-grid,
+.ai-conan-method-grid,
+.ai-conan-spotlight-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.ai-conan-summary-card,
+.ai-conan-method-card,
+.ai-conan-spotlight-card {
+    padding: 1.75rem;
+}
+
+.ai-conan-summary-card h3,
+.ai-conan-method-card h3,
+.ai-conan-theme-panel h3,
+.ai-conan-spotlight-card h3 {
+    margin-bottom: 1rem;
+    font-size: 1.15rem;
+}
+
+.ai-conan-summary-card p + p,
+.ai-conan-spotlight-card p + a {
+    margin-top: 1rem;
+}
+
+.ai-conan-list {
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 0.7rem;
+}
+
+.ai-conan-theme-row {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.ai-conan-theme-panel {
+    padding: 1.5rem;
+}
+
+.ai-conan-chip-row,
+.ai-conan-card-chip-group,
+.ai-conan-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+
+.ai-conan-chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.45rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+}
+
+.ai-conan-chip--accent {
+    background: rgba(10, 132, 255, 0.15);
+    border-color: rgba(10, 132, 255, 0.28);
+}
+
+.ai-conan-chip--warm {
+    background: rgba(255, 159, 10, 0.14);
+    border-color: rgba(255, 159, 10, 0.28);
+}
+
+.ai-conan-chip--warn {
+    background: rgba(255, 55, 95, 0.14);
+    border-color: rgba(255, 55, 95, 0.28);
+}
+
+.ai-conan-chip--muted {
+    color: var(--text-secondary);
+}
+
+.ai-conan-filter {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-secondary);
+    padding: 0.6rem 1rem;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.ai-conan-filter.active,
+.ai-conan-filter:hover {
+    color: var(--text-primary);
+    border-color: rgba(10, 132, 255, 0.25);
+    background: rgba(10, 132, 255, 0.15);
+}
+
+.ai-conan-search-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.ai-conan-search {
+    flex: 1;
+    min-width: 260px;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.03);
+    color: var(--text-primary);
+    padding: 0.95rem 1rem;
+    outline: none;
+}
+
+.ai-conan-search:focus {
+    border-color: rgba(10, 132, 255, 0.4);
+}
+
+.ai-conan-empty {
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.ai-conan-spotlight-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-bottom: 1.5rem;
+}
+
+.ai-conan-spotlight-card h3,
+.ai-conan-card h3 {
+    margin: 1rem 0 0.9rem;
+    font-size: 1.2rem;
+    line-height: 1.35;
+}
+
+.ai-conan-feed-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+}
+
+.ai-conan-card {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.ai-conan-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1rem;
+}
+
+.ai-conan-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+    font-size: 0.92rem;
+}
+
+.ai-conan-card-link {
+    margin-top: auto;
+    color: var(--accent-cyan);
+}
+
+.ai-conan-source-list {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.ai-conan-source-list a {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.9rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ai-conan-source-list a:last-child {
+    border-bottom: none;
+}
+
+.ai-conan-hero-orb-left {
+    width: 360px;
+    height: 360px;
+    top: 120px;
+    left: -80px;
+}
+
+.ai-conan-hero-orb-right {
+    width: 320px;
+    height: 320px;
+    top: 120px;
+    right: -50px;
+}
+
+@media (max-width: 1024px) {
+    .ai-conan-hero-inner,
+    .ai-conan-summary-grid,
+    .ai-conan-theme-row,
+    .ai-conan-method-grid,
+    .ai-conan-spotlight-grid,
+    .ai-conan-feed-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-conan-nav {
+        margin-inline: 1rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .ai-conan-nav {
+        top: 0.5rem;
+        padding: 0.9rem 1rem;
+        align-items: start;
+        flex-direction: column;
+    }
+
+    .ai-conan-nav-links {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .ai-conan-home-link {
+        display: none;
+    }
+
+    .ai-conan-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .ai-conan-card-head,
+    .ai-conan-section-head {
+        flex-direction: column;
+        align-items: start;
+    }
+}

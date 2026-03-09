@@ -5,6 +5,7 @@
 - 展示 Aria 的产品定位与能力架构
 - 提供桌面端下载入口（macOS / Windows / Linux）
 - 说明云端版 / 本地 Docker 版 / 企业版的部署模式
+- 提供 `AI 柯南融资与创新应用资讯` 页面，自动抓取融资与产品动态并生成摘要
 
 ## Quick Start
 
@@ -17,6 +18,7 @@ npm run dev
 默认开发地址：
 
 - `http://localhost:5173`
+- `http://localhost:5173/ai-conan.html`
 
 ## Build
 
@@ -24,6 +26,17 @@ npm run dev
 cd /Users/bear/Desktop/Aria/Aria/apps/website
 npm run build
 npm run preview
+```
+
+说明：`npm run build` 前会自动执行 `npm run sync:ai-conan`，从 RSS / 官方博客源生成：
+
+- `public/data/ai-conan-news.json`
+
+你也可以单独运行：
+
+```bash
+cd /Users/bear/Desktop/Aria/Aria/apps/website
+npm run sync:ai-conan
 ```
 
 ## GitHub Pages + `ailovem.com` 上线

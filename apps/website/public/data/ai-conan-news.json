@@ -1,0 +1,760 @@
+{
+  "meta": {
+    "generatedAt": "2026-03-09T06:41:07.834Z",
+    "generatedAtLabel": "2026/03/09 14:41",
+    "timezone": "Asia/Shanghai",
+    "mode": "live",
+    "totalSources": 8,
+    "successfulSources": 8,
+    "sourceCatalog": [
+      {
+        "id": "openai-news",
+        "label": "OpenAI 官方资讯",
+        "url": "https://openai.com/news/rss.xml",
+        "kind": "product",
+        "publisherType": "official"
+      },
+      {
+        "id": "google-ai-blog",
+        "label": "Google AI 官方博客",
+        "url": "https://blog.google/technology/ai/rss/",
+        "kind": "product",
+        "publisherType": "official"
+      },
+      {
+        "id": "deepmind-blog",
+        "label": "Google DeepMind 官方博客",
+        "url": "https://deepmind.google/discover/blog/feed/",
+        "kind": "product",
+        "publisherType": "official"
+      },
+      {
+        "id": "microsoft-ai-blog",
+        "label": "Microsoft AI 官方博客",
+        "url": "https://blogs.microsoft.com/blog/tag/ai/feed/",
+        "kind": "product",
+        "publisherType": "official"
+      },
+      {
+        "id": "techcrunch-ai",
+        "label": "TechCrunch AI 频道",
+        "url": "https://techcrunch.com/category/artificial-intelligence/feed/",
+        "kind": "mixed",
+        "publisherType": "media"
+      },
+      {
+        "id": "crunchbase-funding",
+        "label": "Crunchbase Funding",
+        "url": "https://news.crunchbase.com/tag/funding/feed/",
+        "kind": "funding",
+        "publisherType": "media"
+      },
+      {
+        "id": "crunchbase-seed",
+        "label": "Crunchbase Seed Funding",
+        "url": "https://news.crunchbase.com/tag/seed-funding/feed/",
+        "kind": "funding",
+        "publisherType": "media"
+      },
+      {
+        "id": "crunchbase-venture",
+        "label": "Crunchbase Venture Capital",
+        "url": "https://news.crunchbase.com/tag/venture-capital/feed/",
+        "kind": "funding",
+        "publisherType": "media"
+      }
+    ],
+    "failedSources": []
+  },
+  "summary": {
+    "title": "今日 AI 柯南判断：产品上新更快",
+    "overview": "截至 2026/03/09 14:41，本页追踪到 30 条有效情报，其中融资 7 条、产品/应用 23 条，高优先级 4 条，今日新增 0 条。",
+    "insight": "融资主题更偏向 投融资、医疗健康、安全；产品主题更偏向 模型能力、Agent、编码智能。",
+    "recommendations": [
+      "今日新增不算拥挤，适合回看近 7~14 天条目，重点确认哪些赛道正在形成连续投资与连续发布。",
+      "把“投融资 + 模型能力”列入本周一级跟踪，优先观察哪些团队出现“融资后 30 天内继续发产品”的双重信号。",
+      "高优先级条目建议沉淀到 Aria 周报，统一记录融资规模、目标用户、能力差异和可复用接口。",
+      "优先评估 Agent、编码智能、多模态这三类能力的接入门槛，它们最容易转化为 Aria 的功能升级。"
+    ],
+    "stats": {
+      "totalCount": 30,
+      "fundingCount": 7,
+      "productCount": 23,
+      "highCount": 4,
+      "todayCount": 0,
+      "officialCount": 25
+    },
+    "fundingThemes": [
+      "投融资",
+      "医疗健康",
+      "安全"
+    ],
+    "productThemes": [
+      "模型能力",
+      "Agent",
+      "编码智能"
+    ]
+  },
+  "items": [
+    {
+      "id": "openai-news-3",
+      "title": "How Balyasny Asset Management built an AI research engine for investing",
+      "link": "https://openai.com/index/balyasny-asset-management",
+      "description": "See how Balyasny built an AI research system with GPT-5.4, rigorous model evaluation, and agent workflows to transform investment analysis at scale.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "high",
+      "importanceScore": 56,
+      "reason": "官方产品源 · Agent",
+      "tags": [
+        "Agent",
+        "企业应用",
+        "投融资"
+      ],
+      "publishedAt": "2026-03-06T07:00:00.000Z",
+      "publishedAtLabel": "2026/03/06 15:00",
+      "isToday": false
+    },
+    {
+      "id": "techcrunch-ai-81",
+      "title": "City Detect, which uses AI to help cities stay safe and clean, raises $13M Series A",
+      "link": "https://techcrunch.com/2026/03/06/city-detect-uses-ai-to-help-cities-stay-safe-and-clean/",
+      "description": "City Detect, a company that helps local governments prevent urban decay, is in at least 17 cities so far, including Dallas and Miami.",
+      "author": "Dominic-Madori Davis",
+      "source": "TechCrunch AI",
+      "sourceLabel": "TechCrunch AI 频道",
+      "sourceUrl": "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "publisherType": "media",
+      "category": "funding",
+      "importance": "high",
+      "importanceScore": 52,
+      "reason": "含融资金额 · 投融资",
+      "tags": [
+        "投融资"
+      ],
+      "publishedAt": "2026-03-06T14:00:00.000Z",
+      "publishedAtLabel": "2026/03/06 22:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-19",
+      "title": "Scaling AI for everyone",
+      "link": "https://openai.com/index/scaling-ai-for-everyone",
+      "description": "Today we’re announcing $110B in new investment at a $730B pre money valuation. This includes $30B from SoftBank, $30B from NVIDIA, and $50B from Amazon.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "funding",
+      "importance": "high",
+      "importanceScore": 52,
+      "reason": "官方产品源 · 含融资金额 · 投融资",
+      "tags": [
+        "投融资"
+      ],
+      "publishedAt": "2026-02-27T05:30:00.000Z",
+      "publishedAtLabel": "2026/02/27 13:30",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-47",
+      "title": "EMEA Youth & Wellbeing Grant",
+      "link": "https://openai.com/index/emea-youth-and-wellbeing-grant",
+      "description": "Apply for the EMEA Youth & Wellbeing Grant, a €500,000 program funding NGOs and researchers advancing youth safety and wellbeing in the age of AI.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "funding",
+      "importance": "high",
+      "importanceScore": 52,
+      "reason": "官方产品源 · 含融资金额 · 投融资",
+      "tags": [
+        "投融资"
+      ],
+      "publishedAt": "2026-01-28T01:00:00.000Z",
+      "publishedAtLabel": "2026/01/28 09:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-2",
+      "title": "Codex Security: now in research preview",
+      "link": "https://openai.com/index/codex-security-now-in-research-preview",
+      "description": "Codex Security is an AI application security agent that analyzes project context to detect, validate, and patch complex vulnerabilities with higher confidence and less noise.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "medium",
+      "importanceScore": 49,
+      "reason": "官方产品源 · Agent",
+      "tags": [
+        "Agent",
+        "编码智能",
+        "安全"
+      ],
+      "publishedAt": "2026-03-06T10:00:00.000Z",
+      "publishedAtLabel": "2026/03/06 18:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-17",
+      "title": "OpenAI and Amazon announce strategic partnership",
+      "link": "https://openai.com/index/amazon-partnership",
+      "description": "OpenAI and Amazon announce a strategic partnership bringing OpenAI’s Frontier platform to AWS, expanding AI infrastructure, custom models, and enterprise AI agents.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "medium",
+      "importanceScore": 49,
+      "reason": "官方产品源 · Agent",
+      "tags": [
+        "Agent",
+        "企业应用",
+        "模型能力"
+      ],
+      "publishedAt": "2026-02-27T05:30:00.000Z",
+      "publishedAtLabel": "2026/02/27 13:30",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-41",
+      "title": "Snowflake and OpenAI partner to bring frontier intelligence to enterprise data",
+      "link": "https://openai.com/index/snowflake-partnership",
+      "description": "OpenAI and Snowflake partner in a $200M agreement to bring frontier intelligence into enterprise data, enabling AI agents and insights directly in Snowflake.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "medium",
+      "importanceScore": 49,
+      "reason": "官方产品源 · Agent",
+      "tags": [
+        "Agent",
+        "企业应用"
+      ],
+      "publishedAt": "2026-02-02T06:00:00.000Z",
+      "publishedAtLabel": "2026/02/02 14:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-1",
+      "title": "How Descript enables multilingual video dubbing at scale",
+      "link": "https://openai.com/index/descript",
+      "description": "Descript uses OpenAI models to scale multilingual video dubbing, optimizing translations for both meaning and timing so dubbed speech sounds natural across languages.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "medium",
+      "importanceScore": 47,
+      "reason": "官方产品源 · 多模态与视频",
+      "tags": [
+        "多模态与视频",
+        "模型能力"
+      ],
+      "publishedAt": "2026-03-06T10:00:00.000Z",
+      "publishedAtLabel": "2026/03/06 18:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-26",
+      "title": "Advancing independent research on AI alignment",
+      "link": "https://openai.com/index/advancing-independent-research-ai-alignment",
+      "description": "OpenAI commits $7.5M to The Alignment Project to fund independent AI alignment research, strengthening global efforts to address AGI safety and security risks.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "medium",
+      "importanceScore": 47,
+      "reason": "官方产品源 · 安全",
+      "tags": [
+        "安全"
+      ],
+      "publishedAt": "2026-02-19T10:00:00.000Z",
+      "publishedAtLabel": "2026/02/19 18:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-50",
+      "title": "Powering tax donations with AI powered personalized recommendations",
+      "link": "https://openai.com/index/trustbank",
+      "description": "TRUSTBANK partnered with Recursive to build Choice AI using OpenAI models, delivering personalized, conversational recommendations that simplify Furusato Nozei gift discovery. A multi-agent system helps donors navigate thousands of options and find gifts that match their preferences.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "medium",
+      "importanceScore": 47,
+      "reason": "官方产品源 · Agent",
+      "tags": [
+        "Agent",
+        "安全",
+        "模型能力"
+      ],
+      "publishedAt": "2026-01-27T00:00:00.000Z",
+      "publishedAtLabel": "2026/01/27 08:00",
+      "isToday": false
+    },
+    {
+      "id": "techcrunch-ai-80",
+      "title": "Google just gave Sundar Pichai a $692M pay package",
+      "link": "https://techcrunch.com/2026/03/07/google-just-gave-sundar-pichai-a-692m-pay-package/",
+      "description": "Most of it is tied to performance, including new stock incentives linked to Waymo and Wing, its drone delivery venture.",
+      "author": "Connie Loizos",
+      "source": "TechCrunch AI",
+      "sourceLabel": "TechCrunch AI 频道",
+      "sourceUrl": "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "publisherType": "media",
+      "category": "funding",
+      "importance": "medium",
+      "importanceScore": 46,
+      "reason": "含融资金额",
+      "tags": [
+        "AI"
+      ],
+      "publishedAt": "2026-03-08T00:20:10.000Z",
+      "publishedAtLabel": "2026/03/08 08:20",
+      "isToday": false
+    },
+    {
+      "id": "crunchbase-seed-83",
+      "title": "Intersection Of Biosecurity And AI Sees Seed-Stage Spike",
+      "link": "https://news.crunchbase.com/venture/biosecurity-ai-seed-funding-valthos-openai/",
+      "description": "While there are plenty of things to worry about these days, the ability of AI to weaponize biology into one of the largest threats facing our world isn’t top of mind for most of us. Seed-stage investors, however, have a different view.",
+      "author": "Joanna Glasner",
+      "source": "Crunchbase Seed Funding",
+      "sourceLabel": "Crunchbase Seed Funding",
+      "sourceUrl": "https://news.crunchbase.com/tag/seed-funding/feed/",
+      "publisherType": "media",
+      "category": "funding",
+      "importance": "medium",
+      "importanceScore": 46,
+      "reason": "安全",
+      "tags": [
+        "安全",
+        "医疗健康",
+        "投融资"
+      ],
+      "publishedAt": "2026-03-04T12:00:21.000Z",
+      "publishedAtLabel": "2026/03/04 20:00",
+      "isToday": false
+    },
+    {
+      "id": "crunchbase-seed-84",
+      "title": "IPOs Are Holding Up In 2026, But SaaS Debuts Aren’t Happening",
+      "link": "https://news.crunchbase.com/public/ipos-up-saas-debuts-down-early-2026/",
+      "description": "While the first couple months of the year brought a steady stream of market entries from companies in sectors such as construction tech, space tech and biotech, new offerings from SaaS companies, long an IPO market staple, are notably absent.",
+      "author": "Joanna Glasner",
+      "source": "Crunchbase Seed Funding",
+      "sourceLabel": "Crunchbase Seed Funding",
+      "sourceUrl": "https://news.crunchbase.com/tag/seed-funding/feed/",
+      "publisherType": "media",
+      "category": "funding",
+      "importance": "medium",
+      "importanceScore": 46,
+      "reason": "医疗健康",
+      "tags": [
+        "医疗健康",
+        "投融资"
+      ],
+      "publishedAt": "2026-02-25T12:00:37.000Z",
+      "publishedAtLabel": "2026/02/25 20:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-24",
+      "title": "OpenAI announces Frontier Alliance Partners",
+      "link": "https://openai.com/index/frontier-alliance-partners",
+      "description": "OpenAI announces Frontier Alliance Partners to help enterprises move from AI pilots to production with secure, scalable agent deployments.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "medium",
+      "importanceScore": 46,
+      "reason": "官方产品源 · Agent",
+      "tags": [
+        "Agent",
+        "企业应用"
+      ],
+      "publishedAt": "2026-02-23T05:30:00.000Z",
+      "publishedAtLabel": "2026/02/23 13:30",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-33",
+      "title": "Bringing ChatGPT to GenAI.mil",
+      "link": "https://openai.com/index/bringing-chatgpt-to-genaimil",
+      "description": "OpenAI for Government announces the deployment of a custom ChatGPT on GenAI.mil, bringing secure, safety-forward AI to U.S. defense teams.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "medium",
+      "importanceScore": 46,
+      "reason": "官方产品源",
+      "tags": [
+        "AI"
+      ],
+      "publishedAt": "2026-02-09T11:00:00.000Z",
+      "publishedAtLabel": "2026/02/09 19:00",
+      "isToday": false
+    },
+    {
+      "id": "crunchbase-seed-85",
+      "title": "The Week’s 10 Biggest Funding Rounds: A Big Week For AI And Drone Delivery",
+      "link": "https://news.crunchbase.com/venture/biggest-funding-rounds-ai-drones-healthcare/",
+      "description": "Venture investors' thirst for AI isn’t close to quenched yet. That’s the takeaway from this week’s lineup of large U.S. funding rounds, which was mostly a mix of AI pure-plays and companies with a heavy focus on the technology.",
+      "author": "Joanna Glasner",
+      "source": "Crunchbase Seed Funding",
+      "sourceLabel": "Crunchbase Seed Funding",
+      "sourceUrl": "https://news.crunchbase.com/tag/seed-funding/feed/",
+      "publisherType": "media",
+      "category": "funding",
+      "importance": "medium",
+      "importanceScore": 46,
+      "reason": "安全",
+      "tags": [
+        "安全",
+        "医疗健康",
+        "算力芯片"
+      ],
+      "publishedAt": "2026-01-23T20:12:36.000Z",
+      "publishedAtLabel": "2026/01/24 04:12",
+      "isToday": false
+    },
+    {
+      "id": "google-ai-blog-54",
+      "title": "How our open-source AI model SpeciesNet is helping to promote wildlife conservation",
+      "link": "https://blog.google/company-news/outreach-and-initiatives/sustainability/speciesnet-open-source-ai-wildlife/",
+      "description": "<img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/specieshero_v2.max-600x600.format-webp.webp\">An overview of SpeciesNet, our open-source AI model that is helping people around the world protect and conserve wildlife.",
+      "author": "",
+      "source": "Google AI Blog",
+      "sourceLabel": "Google AI 官方博客",
+      "sourceUrl": "https://blog.google/technology/ai/rss/",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 45,
+      "reason": "官方产品源 · 模型能力",
+      "tags": [
+        "模型能力"
+      ],
+      "publishedAt": "2026-03-06T18:00:00.000Z",
+      "publishedAtLabel": "2026/03/07 02:00",
+      "isToday": false
+    },
+    {
+      "id": "google-ai-blog-56",
+      "title": "The latest AI news we announced in February",
+      "link": "https://blog.google/innovation-and-ai/products/google-ai-updates-february-2026/",
+      "description": "<img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/Thumbnail_mPCqgRv.max-600x600.format-webp.webp\">Here are Google’s latest AI updates from February 2026",
+      "author": "",
+      "source": "Google AI Blog",
+      "sourceLabel": "Google AI 官方博客",
+      "sourceUrl": "https://blog.google/technology/ai/rss/",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 45,
+      "reason": "官方产品源 · 编码智能",
+      "tags": [
+        "编码智能",
+        "安全",
+        "模型能力"
+      ],
+      "publishedAt": "2026-03-05T16:30:00.000Z",
+      "publishedAtLabel": "2026/03/06 00:30",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-5",
+      "title": "Reasoning models struggle to control their chains of thought, and that’s good",
+      "link": "https://openai.com/index/reasoning-models-chain-of-thought-controllability",
+      "description": "OpenAI introduces CoT-Control and finds reasoning models struggle to control their chains of thought, reinforcing monitorability as an AI safety safeguard.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 45,
+      "reason": "官方产品源 · 模型能力",
+      "tags": [
+        "模型能力"
+      ],
+      "publishedAt": "2026-03-05T10:00:00.000Z",
+      "publishedAtLabel": "2026/03/05 18:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-31",
+      "title": "Introducing GPT-5.3-Codex-Spark",
+      "link": "https://openai.com/index/introducing-gpt-5-3-codex-spark",
+      "description": "Introducing GPT-5.3-Codex-Spark—our first real-time coding model. 15x faster generation, 128k context, now in research preview for ChatGPT Pro users.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 45,
+      "reason": "官方产品源 · 编码智能",
+      "tags": [
+        "编码智能",
+        "模型能力"
+      ],
+      "publishedAt": "2026-02-12T10:00:00.000Z",
+      "publishedAtLabel": "2026/02/12 18:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-38",
+      "title": "GPT-5.3-Codex System Card",
+      "link": "https://openai.com/index/gpt-5-3-codex-system-card",
+      "description": "GPT‑5.3-Codex is the most capable agentic coding model to date, combining the frontier coding performance of GPT‑5.2-Codex with the reasoning and professional knowledge capabilities of GPT‑5.2.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 45,
+      "reason": "官方产品源 · Agent",
+      "tags": [
+        "Agent",
+        "编码智能",
+        "模型能力"
+      ],
+      "publishedAt": "2026-02-05T00:00:00.000Z",
+      "publishedAtLabel": "2026/02/05 08:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-53",
+      "title": "Unrolling the Codex agent loop",
+      "link": "https://openai.com/index/unrolling-the-codex-agent-loop",
+      "description": "A technical deep dive into the Codex agent loop, explaining how Codex CLI orchestrates models, tools, prompts, and performance using the Responses API.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 45,
+      "reason": "官方产品源 · Agent",
+      "tags": [
+        "Agent",
+        "编码智能",
+        "模型能力"
+      ],
+      "publishedAt": "2026-01-23T12:00:00.000Z",
+      "publishedAtLabel": "2026/01/23 20:00",
+      "isToday": false
+    },
+    {
+      "id": "google-ai-blog-59",
+      "title": "Gemini 3.1 Flash-Lite: Built for intelligence at scale",
+      "link": "https://blog.google/innovation-and-ai/models-and-research/gemini-models/gemini-3-1-flash-lite/",
+      "description": "<img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/gemini-3.1_flash_Lite_blog_keyw.max-600x600.format-webp.webp\">Gemini 3.1 Flash-Lite is our fastest and most cost-efficient Gemini 3 series model yet.",
+      "author": "",
+      "source": "Google AI Blog",
+      "sourceLabel": "Google AI 官方博客",
+      "sourceUrl": "https://blog.google/technology/ai/rss/",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 44,
+      "reason": "官方产品源 · 投融资",
+      "tags": [
+        "投融资",
+        "模型能力"
+      ],
+      "publishedAt": "2026-03-03T16:34:00.000Z",
+      "publishedAtLabel": "2026/03/04 00:34",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-18",
+      "title": "Introducing the Stateful Runtime Environment for Agents in Amazon Bedrock",
+      "link": "https://openai.com/index/introducing-the-stateful-runtime-environment-for-agents-in-amazon-bedrock",
+      "description": "Stateful Runtime for Agents in Amazon Bedrock brings persistent orchestration, memory, and secure execution to multi-step AI workflows powered by OpenAI.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 44,
+      "reason": "官方产品源 · Agent",
+      "tags": [
+        "Agent",
+        "企业应用"
+      ],
+      "publishedAt": "2026-02-27T05:30:00.000Z",
+      "publishedAtLabel": "2026/02/27 13:30",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-6",
+      "title": "Introducing GPT-5.4",
+      "link": "https://openai.com/index/introducing-gpt-5-4",
+      "description": "Introducing GPT-5.4, OpenAI’s most most capable and efficient frontier model for professional work, with state-of-the-art coding, computer use, tool search, and 1M-token context.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 43,
+      "reason": "官方产品源 · 编码智能",
+      "tags": [
+        "编码智能",
+        "算力芯片",
+        "模型能力"
+      ],
+      "publishedAt": "2026-03-05T10:00:00.000Z",
+      "publishedAtLabel": "2026/03/05 18:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-9",
+      "title": "Introducing ChatGPT for Excel and new financial data integrations",
+      "link": "https://openai.com/index/chatgpt-for-excel",
+      "description": "OpenAI introduces ChatGPT for Excel and new financial app integrations, powered by GPT-5.4 to accelerate modeling, research, and analysis in regulated environments.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 43,
+      "reason": "官方产品源 · 模型能力",
+      "tags": [
+        "模型能力"
+      ],
+      "publishedAt": "2026-03-05T00:00:00.000Z",
+      "publishedAtLabel": "2026/03/05 08:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-10",
+      "title": "The five AI value models driving business reinvention",
+      "link": "https://openai.com/index/the-five-ai-value-models-driving-business-reinvention",
+      "description": "Five AI value models show how leaders can sequence AI from workforce fluency to process reinvention and build durable business advantage.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 43,
+      "reason": "官方产品源 · 企业应用",
+      "tags": [
+        "企业应用",
+        "模型能力"
+      ],
+      "publishedAt": "2026-03-05T00:00:00.000Z",
+      "publishedAtLabel": "2026/03/05 08:00",
+      "isToday": false
+    },
+    {
+      "id": "google-ai-blog-63",
+      "title": "Build with Nano Banana 2, our best image generation and editing model",
+      "link": "https://blog.google/innovation-and-ai/technology/developers-tools/build-with-nano-banana-2/",
+      "description": "<img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/BuildWith_Hero.max-600x600.format-webp.webp\">Nano Banana 2 (Gemini 3.1 Flash Image) delivers Pro-level intelligence and fidelity for all image applications.",
+      "author": "",
+      "source": "Google AI Blog",
+      "sourceLabel": "Google AI 官方博客",
+      "sourceUrl": "https://blog.google/technology/ai/rss/",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 43,
+      "reason": "官方产品源 · 模型能力",
+      "tags": [
+        "模型能力"
+      ],
+      "publishedAt": "2026-02-26T16:00:00.000Z",
+      "publishedAtLabel": "2026/02/27 00:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-20",
+      "title": "Pacific Northwest National Laboratory and OpenAI partner to accelerate federal permitting",
+      "link": "https://openai.com/index/pacific-northwest-national-laboratory",
+      "description": "OpenAI and Pacific Northwest National Laboratory introduce DraftNEPABench, a new benchmark evaluating how AI coding agents can accelerate federal permitting—showing potential to reduce NEPA drafting time by up to 15% and modernize infrastructure reviews.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 43,
+      "reason": "官方产品源 · Agent",
+      "tags": [
+        "Agent",
+        "编码智能"
+      ],
+      "publishedAt": "2026-02-26T10:00:00.000Z",
+      "publishedAtLabel": "2026/02/26 18:00",
+      "isToday": false
+    },
+    {
+      "id": "openai-news-22",
+      "title": "Disrupting malicious uses of AI | February 2026",
+      "link": "https://openai.com/index/disrupting-malicious-ai-uses",
+      "description": "Our latest threat report examines how malicious actors combine AI models with websites and social platforms—and what it means for detection and defense.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 43,
+      "reason": "官方产品源 · 安全",
+      "tags": [
+        "安全",
+        "模型能力"
+      ],
+      "publishedAt": "2026-02-25T00:00:00.000Z",
+      "publishedAtLabel": "2026/02/25 08:00",
+      "isToday": false
+    }
+  ]
+}

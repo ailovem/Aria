@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "sync:ai-conan": "node scripts/sync-ai-conan-news.mjs",
+    "prebuild": "npm run sync:ai-conan",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

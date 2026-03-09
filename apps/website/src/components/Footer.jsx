@@ -15,6 +15,7 @@ const Footer = () => {
                 </p>
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1rem 1.6rem', fontSize: '0.85rem' }}>
                     <a href="#luming-health" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>鹿鸣健康</a>
+                    <a href="/ai-conan.html" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>AI柯南资讯</a>
                     <a href="#quickstart" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>30秒上手</a>
                     <a href="#download" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>下载中心</a>
                     <a href="#deploy" style={{ color: 'var(--text-secondary)', textDecoration: 'none' }}>部署模式</a>

@@ -22,6 +22,7 @@ const Navbar = () => {
                 <div className="logo text-gradient-aria">Aria.</div>
                 <ul className="nav-links">
                     <li><a href="#luming-health">鹿鸣健康·数字康养</a></li>
+                    <li><a href="/ai-conan.html">AI柯南资讯</a></li>
                     <li><a href="#quickstart">30秒上手</a></li>
                     <li><a href="#download">客户端下载</a></li>
                     <li><a href="#core-value">核心架构</a></li>
