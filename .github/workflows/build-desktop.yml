@@ -54,6 +54,36 @@ jobs:
           brew update
           brew install create-dmg
 
+      - name: Validate macOS signing/notary secrets (tag release)
+        if: steps.app_check.outputs.ready == 'true' && runner.os == 'macOS' && startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          test -n "$APPLE_CERTIFICATE_BASE64" || (echo "Missing secret APPLE_CERTIFICATE_BASE64" && exit 1)
+          test -n "$APPLE_CERTIFICATE_PASSWORD" || (echo "Missing secret APPLE_CERTIFICATE_PASSWORD" && exit 1)
+          test -n "$APPLE_SIGNING_IDENTITY" || (echo "Missing secret APPLE_SIGNING_IDENTITY" && exit 1)
+          test -n "$APPLE_KEYCHAIN_PASSWORD" || (echo "Missing secret APPLE_KEYCHAIN_PASSWORD" && exit 1)
+          test -n "$APPLE_ID" || (echo "Missing secret APPLE_ID" && exit 1)
+          test -n "$APPLE_APP_SPECIFIC_PASSWORD" || (echo "Missing secret APPLE_APP_SPECIFIC_PASSWORD" && exit 1)
+          test -n "$APPLE_TEAM_ID" || (echo "Missing secret APPLE_TEAM_ID" && exit 1)
+
+      - name: Import Apple signing certificate
+        if: steps.app_check.outputs.ready == 'true' && runner.os == 'macOS' && startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          APPLE_CERTIFICATE_BASE64: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
+          APPLE_KEYCHAIN_NAME: aria-signing.keychain-db
+        run: bash scripts/macos-import-signing-cert.sh
+
       - name: Install dependencies
         if: steps.app_check.outputs.ready == 'true'
         shell: bash
@@ -64,10 +94,28 @@ jobs:
         if: steps.app_check.outputs.ready == 'true' && runner.os == 'macOS'
         shell: bash
         working-directory: apps/desktop
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
         run: |
           rustup target add x86_64-apple-darwin
           pnpm run build
           pnpm tauri build --target x86_64-apple-darwin
+
+      - name: Notarize and staple macOS artifacts
+        if: steps.app_check.outputs.ready == 'true' && runner.os == 'macOS' && startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: bash scripts/macos-notarize-and-staple.sh apps/desktop/src-tauri/target
+
+      - name: Verify macOS artifacts with Gatekeeper
+        if: steps.app_check.outputs.ready == 'true' && runner.os == 'macOS' && startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        run: bash scripts/macos-verify-gatekeeper.sh apps/desktop/src-tauri/target
 
       - name: Build Windows installers
         if: steps.app_check.outputs.ready == 'true' && runner.os == 'Windows'

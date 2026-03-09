@@ -168,6 +168,10 @@ ready yet.
 3. Secrets setup in CI (API keys, signing material)
 4. Product legal/compliance policies before release
 
+For macOS public release signing/notarization, use:
+
+- `docs/macos-signing-notarization-prerequisites.md`
+
 If only CocoaPods is missing on macOS, run:
 
 ```bash
