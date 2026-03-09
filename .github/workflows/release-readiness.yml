@@ -1,0 +1,91 @@
+name: Release Readiness
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'apps/desktop/**'
+      - 'apps/website/**'
+      - 'services/api/**'
+      - 'services/bridge/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/release-readiness.yml'
+  push:
+    branches:
+      - main
+    paths:
+      - 'apps/desktop/**'
+      - 'apps/website/**'
+      - 'services/api/**'
+      - 'services/bridge/**'
+      - 'scripts/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.github/workflows/release-readiness.yml'
+
+jobs:
+  readiness:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: macos-14
+    timeout-minutes: 45
+    env:
+      NODE_ENV: production
+      ARIA_AUTH_MODE: external
+      ARIA_ENABLE_GUEST_AUTH: 'false'
+      ARIA_ENABLE_DEMO_ENDPOINTS: 'false'
+      ARIA_TOKEN_SECRET: ${{ secrets.ARIA_TOKEN_SECRET }}
+      ARIA_EXTERNAL_AUTH_SHARED_SECRET: ${{ secrets.ARIA_EXTERNAL_AUTH_SHARED_SECRET }}
+      ARIA_DATA_FILE: runtime-state.json
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apps/desktop/package-lock.json
+            apps/website/package-lock.json
+
+      - name: Install root dependencies
+        run: npm ci
+
+      - name: Install desktop dependencies
+        working-directory: apps/desktop
+        run: npm ci
+
+      - name: Install website dependencies
+        working-directory: apps/website
+        run: npm ci
+
+      - name: Validate release env secrets
+        run: |
+          if [ -z "${ARIA_TOKEN_SECRET:-}" ]; then
+            echo "Missing secret: ARIA_TOKEN_SECRET" >&2
+            exit 1
+          fi
+          if [ -z "${ARIA_EXTERNAL_AUTH_SHARED_SECRET:-}" ]; then
+            echo "Missing secret: ARIA_EXTERNAL_AUTH_SHARED_SECRET" >&2
+            exit 1
+          fi
+          if [ "${#ARIA_TOKEN_SECRET}" -lt 24 ]; then
+            echo "ARIA_TOKEN_SECRET must be at least 24 characters" >&2
+            exit 1
+          fi
+          if [ "${#ARIA_EXTERNAL_AUTH_SHARED_SECRET}" -lt 24 ]; then
+            echo "ARIA_EXTERNAL_AUTH_SHARED_SECRET must be at least 24 characters" >&2
+            exit 1
+          fi
+
+      - name: Run release doctor
+        run: npm run release:doctor
+
+      - name: Run extended UAT
+        run: npm run release:uat
