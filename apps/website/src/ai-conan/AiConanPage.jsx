@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import AiConanDiscussion from './AiConanDiscussion.jsx';
 import './AiConanPage.css';
 
 const FILTERS = [
   { key: 'all', label: '全部情报' },
+  { key: 'china', label: '中国信息' },
   { key: 'funding', label: '融资' },
   { key: 'product', label: '产品/应用' },
   { key: 'high', label: '高优先级' },
@@ -89,6 +91,7 @@ function AiConanPage() {
     return items.filter((item) => {
       const matchFilter = {
         all: true,
+        china: item.region === 'china',
         funding: item.category === 'funding',
         product: item.category === 'product',
         high: item.importance === 'high',
@@ -103,7 +106,16 @@ function AiConanPage() {
         return true;
       }
 
-      const haystack = [item.title, item.description, item.source, item.tags.join(' ')].join(' ').toLowerCase();
+      const haystack = [
+        item.title,
+        item.titleOriginal,
+        item.description,
+        item.descriptionOriginal,
+        item.source,
+        item.regionLabel,
+        item.tags.join(' ')
+      ].join(' ').toLowerCase();
+
       return haystack.includes(normalizedQuery);
     });
   }, [activeFilter, items, query]);
@@ -113,6 +125,13 @@ function AiConanPage() {
     [items],
   );
 
+  const discussionThreadId = useMemo(() => {
+    const day = String(meta?.generatedAt || '').slice(0, 10);
+    return day ? `ai-conan:${day}` : 'ai-conan:latest';
+  }, [meta?.generatedAt]);
+
+  const discussionThreadTitle = summary?.title || 'AI 柯南资讯讨论';
+
   return (
     <div className="ai-conan-page">
       <header className="ai-conan-nav glass-panel">
@@ -120,6 +139,7 @@ function AiConanPage() {
         <nav className="ai-conan-nav-links">
           <a href="#summary">今日结论</a>
           <a href="#feed">资讯流</a>
+          <a href="#discussion">评论点赞</a>
           <a href="#sources">来源机制</a>
         </nav>
         <a className="ai-conan-home-link" href="/">返回官网</a>
@@ -137,7 +157,7 @@ function AiConanPage() {
                 <span className="text-gradient-aria">创新应用资讯</span>
               </h1>
               <p className="subtitle ai-conan-subtitle">
-                自动探查 AI 融资、产品发布与创新应用线索，输出今日摘要、重点判断和建议，不再靠手工刷新闻。
+                自动探查全球与中国 AI 融资、产品发布与创新应用线索，把英文资讯转成中文可读描述，并给出今日摘要、建议和互动讨论区。
               </p>
 
               <div className="ai-conan-actions">
@@ -156,6 +176,11 @@ function AiConanPage() {
                 label="有效情报"
                 value={summary?.stats?.totalCount ?? '--'}
                 helper="按重要度排序展示"
+              />
+              <StatCard
+                label="中国线索"
+                value={summary?.stats?.chinaCount ?? '--'}
+                helper="国内融资与产品动态"
               />
               <StatCard
                 label="今日新增"
@@ -189,7 +214,7 @@ function AiConanPage() {
               <article className="glass-panel ai-conan-summary-card">
                 <h3>结论</h3>
                 <p>{summary?.overview || '正在读取最近一次同步结果。'}</p>
-                <p>{summary?.insight || '这里会显示融资与产品趋势判断。'}</p>
+                <p>{summary?.insight || '这里会显示融资、产品和中国信号的趋势判断。'}</p>
                 {meta?.cacheReason && <p className="ai-conan-muted">{meta.cacheReason}</p>}
               </article>
 
@@ -218,6 +243,15 @@ function AiConanPage() {
                 <div className="ai-conan-chip-row">
                   {(summary?.productThemes?.length ? summary.productThemes : ['模型能力', 'Agent']).map((item) => (
                     <Chip key={item} tone="accent">{item}</Chip>
+                  ))}
+                </div>
+              </div>
+
+              <div className="glass-panel ai-conan-theme-panel">
+                <h3>中国重点</h3>
+                <div className="ai-conan-chip-row">
+                  {(summary?.chinaThemes?.length ? summary.chinaThemes : ['国产模型', '应用落地']).map((item) => (
+                    <Chip key={item} tone="warm">{item}</Chip>
                   ))}
                 </div>
               </div>
@@ -251,7 +285,7 @@ function AiConanPage() {
                 aria-label="搜索资讯"
                 className="ai-conan-search"
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="搜索公司、赛道、关键词，例如 Agent / 融资 / OpenAI"
+                placeholder="搜索公司、赛道、关键词，例如 中国 / Agent / 融资 / OpenAI"
                 type="search"
                 value={query}
               />
@@ -275,6 +309,9 @@ function AiConanPage() {
                       <span>{item.publishedAtLabel}</span>
                     </div>
                     <h3>{item.title}</h3>
+                    {item.titleOriginal && item.titleOriginal !== item.title && (
+                      <p className="ai-conan-original">原文：{item.titleOriginal}</p>
+                    )}
                     <p>{item.reason || item.description}</p>
                     <a href={item.link} rel="noreferrer" target="_blank">查看原文</a>
                   </article>
@@ -298,11 +335,15 @@ function AiConanPage() {
                         {importanceLabel[item.importance]}
                       </Chip>
                       <Chip tone="muted">{sourceTypeLabel[item.publisherType]}</Chip>
+                      <Chip tone={item.region === 'china' ? 'warm' : 'default'}>{item.regionLabel}</Chip>
                     </div>
                     <span>{item.publishedAtLabel}</span>
                   </div>
 
                   <h3>{item.title}</h3>
+                  {item.titleOriginal && item.titleOriginal !== item.title && (
+                    <p className="ai-conan-original">原文：{item.titleOriginal}</p>
+                  )}
                   <p>{item.description || item.reason || '点击查看原文获取完整信息。'}</p>
 
                   <div className="ai-conan-card-meta">
@@ -315,6 +356,7 @@ function AiConanPage() {
                       <Chip key={`${item.id}-${tag}`}>{tag}</Chip>
                     ))}
                     {item.isToday && <Chip tone="accent">今日</Chip>}
+                    {item.translated && <Chip tone="muted">已转中文</Chip>}
                   </div>
 
                   <a className="ai-conan-card-link" href={item.link} rel="noreferrer" target="_blank">
@@ -325,6 +367,8 @@ function AiConanPage() {
             </div>
           </div>
         </section>
+
+        <AiConanDiscussion threadId={discussionThreadId} threadTitle={discussionThreadTitle} />
 
         <section className="section" id="sources">
           <div className="container">
@@ -339,9 +383,10 @@ function AiConanPage() {
               <article className="glass-panel ai-conan-method-card">
                 <h3>工作方式</h3>
                 <ul className="ai-conan-list">
-                  <li>构建前自动抓取 RSS / 官方博客源，生成 `/data/ai-conan-news.json`。</li>
-                  <li>用关键词和来源权重为每条资讯打分，区分融资、产品/应用和高优先级线索。</li>
-                  <li>网络波动时自动回退到最近一次成功快照，避免页面空白。</li>
+                  <li>构建前自动抓取 RSS、官方博客和中国公司动态页，生成 `/data/ai-conan-news.json`。</li>
+                  <li>对英文标题和描述自动转成中文，保留原文标题便于核对。</li>
+                  <li>同时识别中国线索，单独统计国内融资、模型发布和创新应用动态。</li>
+                  <li>评论与点赞优先接入 Aria API，自持公开存储；未接通时退回当前浏览器本机模式。</li>
                 </ul>
               </article>
 
@@ -351,7 +396,9 @@ function AiConanPage() {
                   {(meta?.sourceCatalog || []).map((source) => (
                     <a href={source.url} key={source.id} rel="noreferrer" target="_blank">
                       <span>{source.label}</span>
-                      <small>{source.publisherType === 'official' ? '官方源' : '媒体源'} · {source.kind}</small>
+                      <small>
+                        {source.publisherType === 'official' ? '官方源' : '媒体源'} · {source.kind} · {source.region === 'china' ? '中国' : '全球'}
+                      </small>
                     </a>
                   ))}
                 </div>

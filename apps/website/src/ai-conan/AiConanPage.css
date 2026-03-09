@@ -120,7 +120,9 @@
 .ai-conan-card-head span,
 .ai-conan-search-meta,
 .ai-conan-source-list small,
-.ai-conan-muted {
+.ai-conan-muted,
+.ai-conan-original,
+.ai-conan-comment-head span {
     color: var(--text-secondary);
 }
 
@@ -146,7 +148,8 @@
 
 .ai-conan-summary-grid,
 .ai-conan-method-grid,
-.ai-conan-spotlight-grid {
+.ai-conan-spotlight-grid,
+.ai-conan-discussion-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1.5rem;
@@ -154,14 +157,16 @@
 
 .ai-conan-summary-card,
 .ai-conan-method-card,
-.ai-conan-spotlight-card {
+.ai-conan-spotlight-card,
+.ai-conan-discussion-panel {
     padding: 1.75rem;
 }
 
 .ai-conan-summary-card h3,
 .ai-conan-method-card h3,
 .ai-conan-theme-panel h3,
-.ai-conan-spotlight-card h3 {
+.ai-conan-spotlight-card h3,
+.ai-conan-discussion-panel h3 {
     margin-bottom: 1rem;
     font-size: 1.15rem;
 }
@@ -180,7 +185,7 @@
 .ai-conan-theme-row {
     margin-top: 1.5rem;
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 1.5rem;
 }
 
@@ -252,9 +257,10 @@
     flex-wrap: wrap;
 }
 
-.ai-conan-search {
-    flex: 1;
-    min-width: 260px;
+.ai-conan-search,
+.ai-conan-input,
+.ai-conan-textarea {
+    width: 100%;
     border-radius: 18px;
     border: 1px solid rgba(255, 255, 255, 0.1);
     background: rgba(255, 255, 255, 0.03);
@@ -263,13 +269,24 @@
     outline: none;
 }
 
-.ai-conan-search:focus {
+.ai-conan-search {
+    flex: 1;
+    min-width: 260px;
+}
+
+.ai-conan-search:focus,
+.ai-conan-input:focus,
+.ai-conan-textarea:focus {
     border-color: rgba(10, 132, 255, 0.4);
 }
 
 .ai-conan-empty {
     padding: 1.25rem 1.5rem;
     margin-bottom: 1.5rem;
+}
+
+.ai-conan-empty--compact {
+    margin-bottom: 0;
 }
 
 .ai-conan-spotlight-grid {
@@ -282,6 +299,11 @@
     margin: 1rem 0 0.9rem;
     font-size: 1.2rem;
     line-height: 1.35;
+}
+
+.ai-conan-original {
+    font-size: 0.88rem;
+    line-height: 1.5;
 }
 
 .ai-conan-feed-grid {
@@ -297,7 +319,10 @@
     gap: 1rem;
 }
 
-.ai-conan-card-head {
+.ai-conan-card-head,
+.ai-conan-discussion-header,
+.ai-conan-discussion-actions,
+.ai-conan-comment-head {
     display: flex;
     justify-content: space-between;
     align-items: start;
@@ -333,6 +358,67 @@
     border-bottom: none;
 }
 
+.ai-conan-discussion-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.ai-conan-like-button {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-radius: 999px;
+    padding: 0.7rem 1rem;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+.ai-conan-like-button:hover,
+.ai-conan-like-button.active {
+    border-color: rgba(10, 132, 255, 0.3);
+    background: rgba(10, 132, 255, 0.16);
+}
+
+.ai-conan-comment-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.ai-conan-textarea {
+    resize: vertical;
+    min-height: 140px;
+}
+
+.ai-conan-discussion-actions {
+    align-items: center;
+}
+
+.ai-conan-discussion-error {
+    color: #ff8ca0;
+    font-size: 0.92rem;
+}
+
+.ai-conan-comment-list {
+    display: grid;
+    gap: 0.9rem;
+}
+
+.ai-conan-comment-item {
+    padding: 1rem 1.05rem;
+    border-radius: 18px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.ai-conan-comment-head {
+    margin-bottom: 0.65rem;
+}
+
+.ai-conan-comment-item p {
+    line-height: 1.65;
+}
+
 .ai-conan-hero-orb-left {
     width: 360px;
     height: 360px;
@@ -353,7 +439,8 @@
     .ai-conan-theme-row,
     .ai-conan-method-grid,
     .ai-conan-spotlight-grid,
-    .ai-conan-feed-grid {
+    .ai-conan-feed-grid,
+    .ai-conan-discussion-grid {
         grid-template-columns: 1fr;
     }
 
@@ -384,7 +471,10 @@
     }
 
     .ai-conan-card-head,
-    .ai-conan-section-head {
+    .ai-conan-section-head,
+    .ai-conan-discussion-header,
+    .ai-conan-discussion-actions,
+    .ai-conan-comment-head {
         flex-direction: column;
         align-items: start;
     }

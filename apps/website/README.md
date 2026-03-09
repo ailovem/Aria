@@ -32,11 +32,27 @@ npm run preview
 
 - `public/data/ai-conan-news.json`
 
+`AI 柯南资讯` 页面还支持：
+
+- 英文标题/描述自动转中文
+- 中国 AI 官方源与中文媒体源并行抓取
+- 页面级评论/点赞（优先接 `Aria API`，未配置时退到浏览器本机模式）
+
 你也可以单独运行：
 
 ```bash
 cd /Users/bear/Desktop/Aria/Aria/apps/website
 npm run sync:ai-conan
+```
+
+如需接入共享评论/点赞 API，可在构建时注入：
+
+- `VITE_ARIA_SITE_API_BASE`
+
+示例：
+
+```bash
+VITE_ARIA_SITE_API_BASE="https://api.example.com" npm run build
 ```
 
 ## GitHub Pages + `ailovem.com` 上线

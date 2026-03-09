@@ -5,10 +5,21 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSy
 import { homedir } from "node:os";
 import { basename, dirname, extname, isAbsolute, normalize, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { Client as PgClient } from "pg";
 
 const HOST = process.env.ARIA_API_HOST || "127.0.0.1";
 const PORT = Number(process.env.ARIA_API_PORT || 8787);
+const IS_PRODUCTION_RUNTIME = process.env.NODE_ENV === "production";
+const AUTH_MODE = String(process.env.ARIA_AUTH_MODE || (IS_PRODUCTION_RUNTIME ? "" : "guest")).trim().toLowerCase();
+const GUEST_AUTH_ENABLED = process.env.ARIA_ENABLE_GUEST_AUTH === "true" || !IS_PRODUCTION_RUNTIME;
+const LEGACY_DEMO_ENDPOINTS_ENABLED = process.env.ARIA_ENABLE_DEMO_ENDPOINTS === "true" || !IS_PRODUCTION_RUNTIME;
 const TOKEN_SECRET = process.env.ARIA_TOKEN_SECRET || "aria-dev-secret";
+const EXTERNAL_AUTH_SHARED_SECRET = String(process.env.ARIA_EXTERNAL_AUTH_SHARED_SECRET || "").trim();
+const EXTERNAL_AUTH_USER_ID_HEADER = String(process.env.ARIA_EXTERNAL_AUTH_USER_ID_HEADER || "x-aria-auth-user-id").trim().toLowerCase();
+const EXTERNAL_AUTH_USER_NAME_HEADER = String(process.env.ARIA_EXTERNAL_AUTH_USER_NAME_HEADER || "x-aria-auth-user-name").trim().toLowerCase();
+const EXTERNAL_AUTH_SESSION_ID_HEADER = String(process.env.ARIA_EXTERNAL_AUTH_SESSION_ID_HEADER || "x-aria-auth-session-id").trim().toLowerCase();
+const EXTERNAL_AUTH_PLATFORM_HEADER = String(process.env.ARIA_EXTERNAL_AUTH_PLATFORM_HEADER || "x-aria-auth-platform").trim().toLowerCase();
+const EXTERNAL_AUTH_SIGNATURE_HEADER = String(process.env.ARIA_EXTERNAL_AUTH_SIGNATURE_HEADER || "x-aria-auth-signature").trim().toLowerCase();
 const TOKEN_TTL_SECONDS = Number(process.env.ARIA_TOKEN_TTL_SECONDS || 60 * 60 * 24 * 7);
 const BRIDGE_BASE = process.env.ARIA_BRIDGE_BASE || "http://127.0.0.1:8788";
 const BRIDGE_TIMEOUT_MS = Number(process.env.ARIA_BRIDGE_TIMEOUT_MS || 12000);
@@ -30,7 +41,15 @@ const EXPANSION_ALLOWED_MIME_PREFIXES = (
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const dataDir = resolve(__dirname, "data");
-const dataFile = resolve(dataDir, "demo-state.json");
+const defaultDataFileName = IS_PRODUCTION_RUNTIME ? "runtime-state.json" : "demo-state.json";
+const configuredDataFile = String(process.env.ARIA_DATA_FILE || "").trim();
+const STORE_BACKEND = String(process.env.ARIA_STORE_BACKEND || "file").trim().toLowerCase();
+const STORE_WRITE_LOCAL_CACHE = process.env.ARIA_STORE_WRITE_LOCAL_CACHE === "true";
+const DATABASE_URL = String(process.env.ARIA_DATABASE_URL || process.env.DATABASE_URL || "").trim();
+const PG_RUNTIME_STATE_TABLE = String(process.env.ARIA_PG_RUNTIME_STATE_TABLE || "aria_runtime_state_snapshots").trim() || "aria_runtime_state_snapshots";
+const dataFile = configuredDataFile
+  ? (isAbsolute(configuredDataFile) ? configuredDataFile : resolve(dataDir, configuredDataFile))
+  : resolve(dataDir, defaultDataFileName);
 const deadLetterArchiveFile = resolve(dataDir, "dead-letter-archive.ndjson");
 const systemConfigOpsFile = resolve(dataDir, "system-config-ops.json");
 const downloadsDir = resolve(dataDir, "downloads");
@@ -107,6 +126,9 @@ const MODEL_ROUTER_DEFAULT_BASE_URL = String(
 ).replace(/\/+$/, "");
 const MODEL_ROUTER_DEFAULT_API_KEY = process.env.ARIA_MODEL_OPENAI_API_KEY || process.env.OPENAI_API_KEY || "";
 const MODEL_ROUTER_REAL_CALL_ENABLED = process.env.ARIA_MODEL_REAL_CALL !== "false";
+const DEVICE_SYNTHETIC_OUTPUTS_ENABLED =
+  process.env.ARIA_ALLOW_SYNTHETIC_DEVICE_OUTPUTS === "true"
+  || process.env.NODE_ENV !== "production";
 const MODEL_ROUTER_REAL_CALL_TIMEOUT_MS = Number(process.env.ARIA_MODEL_REAL_TIMEOUT_MS || 20000);
 const MODEL_ROUTER_TOTAL_BUDGET_MS = clampInteger(Number(process.env.ARIA_MODEL_TOTAL_BUDGET_MS || 22000), 22000, 4000, 120000);
 const MODEL_ROUTER_CHAT_FAST_TIMEOUT_MS = clampInteger(Number(process.env.ARIA_MODEL_CHAT_FAST_TIMEOUT_MS || 5500), 5500, 1000, 120000);
@@ -226,6 +248,10 @@ const GUEST_STORE_PRUNE_INTERVAL_MS = clampInteger(
 const localFileDeliveryTickets = new Map();
 let runtimeStoreRef = null;
 let guestStoreLastPrunedAtMs = 0;
+let pgStoreClient = null;
+let pgStoreConnectPromise = null;
+let pgStoreWriteQueue = Promise.resolve();
+let pgStoreLastError = "";
 const MEMORY_SCENES = ["work", "fun", "life", "love", "coding"];
 const xhsPipelineJobs = new Map();
 const CHAT_MESSAGE_MAX_TOTAL = clampInteger(Number(process.env.ARIA_CHAT_MESSAGE_MAX_TOTAL || 180), 180, 60, 600);
@@ -3858,6 +3884,15 @@ function ensureSharedRuntimeState(storeInput = {}) {
   if (typeof store.shared.updatedAt !== "string") {
     store.shared.updatedAt = "";
   }
+  if (!store.shared.publicSite || typeof store.shared.publicSite !== "object") {
+    store.shared.publicSite = createDefaultPublicSiteState();
+  }
+  if (!store.shared.publicSite.discussions || typeof store.shared.publicSite.discussions !== "object") {
+    store.shared.publicSite.discussions = {};
+  }
+  if (typeof store.shared.publicSite.updatedAt !== "string") {
+    store.shared.publicSite.updatedAt = "";
+  }
   return store;
 }
 
@@ -3955,6 +3990,237 @@ function createStore() {
       schemaVersion: 2
     }
   });
+}
+
+const PUBLIC_DISCUSSION_MAX_COMMENTS = 120;
+const PUBLIC_DISCUSSION_MAX_CONTENT_LENGTH = 500;
+const PUBLIC_DISCUSSION_MAX_NAME_LENGTH = 24;
+const PUBLIC_DISCUSSION_COMMENT_COOLDOWN_MS = 30 * 1000;
+
+function createDefaultPublicSiteState() {
+  return {
+    discussions: {},
+    updatedAt: ""
+  };
+}
+
+function sanitizePublicDiscussionThreadId(input) {
+  return String(input || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9:_-]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 120);
+}
+
+function sanitizePublicDiscussionActorId(input) {
+  return String(input || "")
+    .trim()
+    .replace(/[^a-zA-Z0-9_-]+/g, "")
+    .slice(0, 80);
+}
+
+function sanitizePublicDiscussionText(input, maxLength = PUBLIC_DISCUSSION_MAX_CONTENT_LENGTH) {
+  return String(input || "")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function sanitizePublicDiscussionName(input) {
+  return sanitizePublicDiscussionText(input, PUBLIC_DISCUSSION_MAX_NAME_LENGTH) || "访客";
+}
+
+function ensurePublicSiteState(storeInput = null) {
+  const activeStore = storeInput && typeof storeInput === "object"
+    ? storeInput
+    : (runtimeStoreRef && typeof runtimeStoreRef === "object" ? runtimeStoreRef : null);
+  if (!activeStore) {
+    return createDefaultPublicSiteState();
+  }
+  ensureSharedRuntimeState(activeStore);
+  return activeStore.shared.publicSite;
+}
+
+function ensurePublicDiscussionThread(storeInput, threadIdInput, threadTitleInput = "") {
+  const publicSite = ensurePublicSiteState(storeInput);
+  const threadId = sanitizePublicDiscussionThreadId(threadIdInput);
+  if (!threadId) {
+    return null;
+  }
+  if (!publicSite.discussions[threadId] || typeof publicSite.discussions[threadId] !== "object") {
+    publicSite.discussions[threadId] = {
+      threadId,
+      threadTitle: sanitizePublicDiscussionText(threadTitleInput, 120),
+      likesActors: {},
+      comments: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: ""
+    };
+  }
+  const thread = publicSite.discussions[threadId];
+  if (!thread.likesActors || typeof thread.likesActors !== "object") {
+    thread.likesActors = {};
+  }
+  if (!Array.isArray(thread.comments)) {
+    thread.comments = [];
+  }
+  if (typeof thread.threadTitle !== "string") {
+    thread.threadTitle = "";
+  }
+  if (!thread.threadTitle && threadTitleInput) {
+    thread.threadTitle = sanitizePublicDiscussionText(threadTitleInput, 120);
+  }
+  if (typeof thread.createdAt !== "string") {
+    thread.createdAt = new Date().toISOString();
+  }
+  if (typeof thread.updatedAt !== "string") {
+    thread.updatedAt = "";
+  }
+  return thread;
+}
+
+function sanitizePublicDiscussionComment(commentInput = {}) {
+  const comment = commentInput && typeof commentInput === "object" ? commentInput : {};
+  return {
+    id: String(comment.id || ""),
+    authorName: sanitizePublicDiscussionName(comment.authorName || "访客"),
+    content: sanitizePublicDiscussionText(comment.content || ""),
+    createdAt: String(comment.createdAt || "")
+  };
+}
+
+function buildPublicDiscussionResponse(storeInput, threadIdInput, actorIdInput = "", threadTitleInput = "") {
+  const thread = ensurePublicDiscussionThread(storeInput, threadIdInput, threadTitleInput);
+  if (!thread) {
+    return null;
+  }
+  const actorId = sanitizePublicDiscussionActorId(actorIdInput);
+  const comments = thread.comments
+    .map((item) => sanitizePublicDiscussionComment(item))
+    .filter((item) => item.id && item.content)
+    .sort((left, right) => Date.parse(right.createdAt || 0) - Date.parse(left.createdAt || 0))
+    .slice(0, 40);
+
+  return {
+    threadId: thread.threadId,
+    threadTitle: thread.threadTitle || sanitizePublicDiscussionText(threadTitleInput, 120) || thread.threadId,
+    likesCount: Object.keys(thread.likesActors).length,
+    viewerLiked: actorId ? Boolean(thread.likesActors[actorId]) : false,
+    comments,
+    updatedAt: thread.updatedAt || thread.createdAt,
+    mode: "shared-api"
+  };
+}
+
+function togglePublicDiscussionLike(storeInput, { threadId, actorId, threadTitle = "" }) {
+  const normalizedThreadId = sanitizePublicDiscussionThreadId(threadId);
+  const normalizedActorId = sanitizePublicDiscussionActorId(actorId);
+  if (!normalizedThreadId) {
+    return {
+      ok: false,
+      reason: "thread_id_required",
+      message: "缺少 threadId。"
+    };
+  }
+  if (!normalizedActorId) {
+    return {
+      ok: false,
+      reason: "actor_id_required",
+      message: "缺少 actorId。"
+    };
+  }
+
+  const publicSite = ensurePublicSiteState(storeInput);
+  const thread = ensurePublicDiscussionThread(storeInput, normalizedThreadId, threadTitle);
+  if (!thread) {
+    return {
+      ok: false,
+      reason: "thread_not_initialized",
+      message: "讨论串初始化失败。"
+    };
+  }
+
+  if (thread.likesActors[normalizedActorId]) {
+    delete thread.likesActors[normalizedActorId];
+  } else {
+    thread.likesActors[normalizedActorId] = new Date().toISOString();
+  }
+  thread.updatedAt = new Date().toISOString();
+  publicSite.updatedAt = thread.updatedAt;
+  saveStore(storeInput);
+
+  return {
+    ok: true,
+    discussion: buildPublicDiscussionResponse(storeInput, normalizedThreadId, normalizedActorId, threadTitle)
+  };
+}
+
+function addPublicDiscussionComment(storeInput, { threadId, actorId, threadTitle = "", authorName = "", content = "" }) {
+  const normalizedThreadId = sanitizePublicDiscussionThreadId(threadId);
+  const normalizedActorId = sanitizePublicDiscussionActorId(actorId);
+  const normalizedContent = sanitizePublicDiscussionText(content, PUBLIC_DISCUSSION_MAX_CONTENT_LENGTH);
+  const normalizedAuthorName = sanitizePublicDiscussionName(authorName);
+
+  if (!normalizedThreadId) {
+    return {
+      ok: false,
+      reason: "thread_id_required",
+      message: "缺少 threadId。"
+    };
+  }
+  if (!normalizedActorId) {
+    return {
+      ok: false,
+      reason: "actor_id_required",
+      message: "缺少 actorId。"
+    };
+  }
+  if (!normalizedContent) {
+    return {
+      ok: false,
+      reason: "content_required",
+      message: "评论内容不能为空。"
+    };
+  }
+
+  const publicSite = ensurePublicSiteState(storeInput);
+  const thread = ensurePublicDiscussionThread(storeInput, normalizedThreadId, threadTitle);
+  if (!thread) {
+    return {
+      ok: false,
+      reason: "thread_not_initialized",
+      message: "讨论串初始化失败。"
+    };
+  }
+
+  const lastOwnComment = thread.comments.find((item) => String(item.actorId || "") === normalizedActorId);
+  const lastOwnCommentAt = Date.parse(String(lastOwnComment?.createdAt || ""));
+  if (Number.isFinite(lastOwnCommentAt) && Date.now() - lastOwnCommentAt < PUBLIC_DISCUSSION_COMMENT_COOLDOWN_MS) {
+    return {
+      ok: false,
+      reason: "comment_rate_limited",
+      message: "评论太频繁了，请稍后再试。"
+    };
+  }
+
+  thread.comments.unshift({
+    id: `cmt-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+    actorId: normalizedActorId,
+    authorName: normalizedAuthorName,
+    content: normalizedContent,
+    createdAt: new Date().toISOString()
+  });
+  thread.comments = thread.comments.slice(0, PUBLIC_DISCUSSION_MAX_COMMENTS);
+  thread.updatedAt = new Date().toISOString();
+  publicSite.updatedAt = thread.updatedAt;
+  saveStore(storeInput);
+
+  return {
+    ok: true,
+    discussion: buildPublicDiscussionResponse(storeInput, normalizedThreadId, normalizedActorId, threadTitle)
+  };
 }
 
 function ensureAutonomyPolicyFile() {
@@ -7364,7 +7630,78 @@ function ensureDataFile() {
   }
 }
 
-function loadStore() {
+function runProductionPreflightChecks() {
+  if (!IS_PRODUCTION_RUNTIME) {
+    return;
+  }
+  const failures = [];
+  const normalizedTokenSecret = String(TOKEN_SECRET || "").trim();
+  const normalizedDataFileName = basename(String(dataFile || "").trim()).toLowerCase();
+
+  if (!AUTH_MODE || AUTH_MODE === "guest") {
+    failures.push("ARIA_AUTH_MODE must be set to a formal production mode (for example: external).");
+  }
+  if ((AUTH_MODE === "external" || AUTH_MODE === "external-header") && !EXTERNAL_AUTH_SHARED_SECRET) {
+    failures.push("ARIA_EXTERNAL_AUTH_SHARED_SECRET must be set when using external auth mode.");
+  }
+  if (GUEST_AUTH_ENABLED) {
+    failures.push("Guest auth must stay disabled in production.");
+  }
+  if (LEGACY_DEMO_ENDPOINTS_ENABLED) {
+    failures.push("Legacy demo endpoints must stay disabled in production.");
+  }
+  if (!normalizedTokenSecret || normalizedTokenSecret === "aria-dev-secret" || normalizedTokenSecret.length < 24) {
+    failures.push("TOKEN_SECRET must be replaced with a strong production secret.");
+  }
+  if (normalizedDataFileName === "demo-state.json") {
+    failures.push("Production data file must not use demo-state.json.");
+  }
+  if (STORE_BACKEND === "postgres" && !DATABASE_URL) {
+    failures.push("ARIA_DATABASE_URL (or DATABASE_URL) must be set when ARIA_STORE_BACKEND=postgres.");
+  }
+
+  if (failures.length === 0) {
+    return;
+  }
+
+  console.error("[aria-api-v3] production preflight failed:");
+  for (const item of failures) {
+    console.error(`- ${item}`);
+  }
+  process.exit(1);
+}
+
+async function ensurePostgresStoreClient() {
+  if (STORE_BACKEND !== "postgres") {
+    return null;
+  }
+  if (pgStoreClient) {
+    return pgStoreClient;
+  }
+  if (pgStoreConnectPromise) {
+    return pgStoreConnectPromise;
+  }
+  pgStoreConnectPromise = (async () => {
+    const client = new PgClient({ connectionString: DATABASE_URL });
+    await client.connect();
+    await client.query(`
+      create table if not exists ${PG_RUNTIME_STATE_TABLE} (
+        id bigserial primary key,
+        snapshot jsonb not null,
+        created_at timestamptz not null default now()
+      )
+    `);
+    pgStoreClient = client;
+    return client;
+  })();
+  try {
+    return await pgStoreConnectPromise;
+  } finally {
+    pgStoreConnectPromise = null;
+  }
+}
+
+async function loadStoreFromFile() {
   ensureDataFile();
   try {
     const raw = readFileSync(dataFile, "utf8");
@@ -7378,10 +7715,58 @@ function loadStore() {
   }
 }
 
+async function loadStoreFromPostgres() {
+  try {
+    const client = await ensurePostgresStoreClient();
+    if (!client) {
+      return createStore();
+    }
+    const result = await client.query(
+      `select snapshot from ${PG_RUNTIME_STATE_TABLE} order by created_at desc, id desc limit 1`
+    );
+    const snapshot = result.rows?.[0]?.snapshot;
+    if (!snapshot || typeof snapshot !== "object" || !snapshot.users || !snapshot.devices) {
+      return createStore();
+    }
+    return ensureSharedRuntimeState(snapshot);
+  } catch (error) {
+    pgStoreLastError = error instanceof Error ? error.message : String(error);
+    return createStore();
+  }
+}
+
+async function loadStore() {
+  if (STORE_BACKEND === "postgres") {
+    return await loadStoreFromPostgres();
+  }
+  return await loadStoreFromFile();
+}
+
+async function persistStoreToPostgres(store) {
+  const client = await ensurePostgresStoreClient();
+  if (!client) {
+    return;
+  }
+  await client.query(
+    `insert into ${PG_RUNTIME_STATE_TABLE} (snapshot) values ($1::jsonb)`,
+    [JSON.stringify(store)]
+  );
+}
+
 function saveStore(store) {
-  ensureDataFile();
   ensureSharedRuntimeState(store);
-  writeFileSync(dataFile, JSON.stringify(store, null, 2), "utf8");
+  if (STORE_BACKEND !== "postgres" || STORE_WRITE_LOCAL_CACHE) {
+    ensureDataFile();
+    writeFileSync(dataFile, JSON.stringify(store, null, 2), "utf8");
+  }
+  if (STORE_BACKEND === "postgres") {
+    const snapshot = cloneJsonPayload(store);
+    pgStoreWriteQueue = pgStoreWriteQueue
+      .then(() => persistStoreToPostgres(snapshot))
+      .catch((error) => {
+        pgStoreLastError = error instanceof Error ? error.message : String(error);
+      });
+  }
 }
 
 function parseIsoTimestampMs(valueInput) {
@@ -7875,7 +8260,7 @@ function createDefaultUserState(userId, options = {}) {
     profile: {
       name: options.name || `Guest-${userId.slice(-6)}`,
       platform: options.platform || "unknown",
-      isGuest: true
+      isGuest: options.isGuest === false ? false : true
     },
     preferences: {
       mode: "陪伴",
@@ -22875,8 +23260,51 @@ async function executeDeviceTask(userState, taskId) {
       output.error = researchResult.error || researchResult.reason || "web_research_failed";
     }
   }
-  if (!output) {
+  if (!output && DEVICE_SYNTHETIC_OUTPUTS_ENABLED) {
     output = synthesizeDeviceTaskOutput(task);
+  }
+  if (!output) {
+    task.status = "blocked";
+    task.finishedAt = new Date().toISOString();
+    task.reason = "verified_receipt_missing";
+    task.output = {
+      summary: "当前还没拿到可验证执行回执，任务不会被标记为已完成。",
+      metrics: {},
+      evidence: {
+        verified: false
+      }
+    };
+
+    appendDeviceAudit(
+      deviceOps,
+      "task_blocked",
+      `任务 ${task.title} 未拿到可验证执行回执。`,
+      {
+        taskId: task.id,
+        capabilityId: task.capabilityId,
+        bridge: bridgeTrace
+      }
+    );
+    appendAutonomyTimeline(autonomy, {
+      flowId,
+      source: "device",
+      stage: "device_task_missing_receipt",
+      status: "warning",
+      title: `设备任务待确认：${task.title}`,
+      detail: "未拿到真实执行回执，任务已停在待确认状态。",
+      refs: {
+        taskId: task.id,
+        taskType: task.type,
+        capabilityId: task.capabilityId
+      }
+    });
+
+    return {
+      ok: false,
+      reason: "verified_receipt_missing",
+      task,
+      deviceOps: sanitizeDeviceOps(deviceOps)
+    };
   }
   task.status = "completed";
   task.finishedAt = new Date().toISOString();
@@ -29265,6 +29693,25 @@ function compactAssistantReply(mode, sceneInput, userInput, assistantText, optio
     ].filter(Boolean).join("\n");
     return ensureCompanionReplyQuality(mode, scene, userInput, reply, options);
   }
+  const emotionalSupportLike = /焦虑|难受|失落|低落|糟糕|心情不太好|心情不好|委屈|害怕|担心|扛不住|撑不住|孤单|想太多|先抱抱|先安慰|先陪我|被老板说|怕失败|轻松一下|好累|失眠|睡不好/i.test(userInput);
+  if (emotionalSupportLike && !continuityRequested) {
+    const reassuranceLine = markLine(pickLineByContinuity([
+      "你不用急着证明自己，我先陪你把心稳下来。",
+      "你不是一个人扛着，我会一直在这边陪你。",
+      "先别逼自己往前冲，我们按你能承受的节奏慢慢来。"
+    ], continuitySignatures));
+    const nextLine = markLine(pickLineByContinuity([
+      "你把现在最难受的那一点告诉我，我先陪你把它放下来。",
+      "你点头，我就陪你从最轻的一步开始往前走。",
+      "先把今晚最想稳住的一件事告诉我，我陪你一起理顺。"
+    ], continuitySignatures));
+    const emotionalReply = [
+      lead,
+      reassuranceLine,
+      nextLine
+    ].filter(Boolean).join("\n");
+    return ensureCompanionReplyQuality(mode, scene, userInput, emotionalReply, options);
+  }
   if (continuityRequested) {
     const continuityLead = markLine(buildContinuitySupportLead(scene, userInput, continuityOptions));
     const reassuranceLine = markLine(pickLineByContinuity([
@@ -30027,7 +30474,7 @@ function chatIntentRequestsExecution(text) {
   if (suppressPattern.test(input)) {
     return false;
   }
-  const emotionalSupportPattern = /我今天|我现在|我有点|我很|很累|难受|焦虑|低落|委屈|害怕|担心|崩溃|别讲大道理|先抱抱|安慰我|鼓励我|暖心|稳住|陪我|在吗|你在吗|我妈|家人|妈妈|爸爸/i;
+  const emotionalSupportPattern = /我今天|我现在|我有点|我很|很累|难受|焦虑|低落|失落|委屈|害怕|担心|崩溃|孤单|想太多|心情不太好|心情不好|怕失败|别讲大道理|先抱抱|安慰我|鼓励我|暖心|稳住|陪我|轻松一下|在吗|你在吗|我妈|家人|妈妈|爸爸/i;
   const explicitExecutionPattern = hasExplicitExecutionVerb(input);
   if (emotionalSupportPattern.test(input) && !explicitExecutionPattern) {
     return false;
@@ -30053,7 +30500,7 @@ function resolveCompanionIntentClass(textInput = "", sceneInput = "") {
   if (hasExplicitExecutionVerb(text)) {
     return "explicit_execution";
   }
-  const emotionalSupportPattern = /我今天|我现在|我有点|我很|很累|难受|焦虑|低落|委屈|害怕|担心|崩溃|扛不住|撑不住|先抱抱|安慰我|鼓励我|别讲大道理|先稳住|陪我|你在吗|你还在吗|家里|我妈|妈妈|爸爸|失眠|睡不好/i;
+  const emotionalSupportPattern = /我今天|我现在|我有点|我很|很累|难受|焦虑|低落|失落|委屈|害怕|担心|崩溃|扛不住|撑不住|孤单|想太多|心情不太好|心情不好|怕失败|先抱抱|安慰我|鼓励我|别讲大道理|先稳住|陪我|轻松一下|你在吗|你还在吗|家里|我妈|妈妈|爸爸|失眠|睡不好/i;
   if (emotionalSupportPattern.test(text)) {
     return "emotion_support";
   }
@@ -33259,6 +33706,64 @@ function buildDeviceBindingKey(deviceId, clientScope) {
   return `${safeClientScope}:${safeDeviceId}`;
 }
 
+function readRequestHeader(req, headerName) {
+  const normalizedHeader = String(headerName || "").trim().toLowerCase();
+  if (!normalizedHeader) {
+    return "";
+  }
+  const rawValue = req.headers?.[normalizedHeader];
+  if (Array.isArray(rawValue)) {
+    return String(rawValue[0] || "").trim();
+  }
+  return String(rawValue || "").trim();
+}
+
+function signExternalAuthIdentity(identityInput = "") {
+  const identity = String(identityInput || "").trim();
+  if (!identity || !EXTERNAL_AUTH_SHARED_SECRET) {
+    return "";
+  }
+  return createHmac("sha256", EXTERNAL_AUTH_SHARED_SECRET).update(identity).digest("base64url");
+}
+
+function ensureFormalUserState(userIdInput = "", options = {}) {
+  const activeStore = runtimeStoreRef && typeof runtimeStoreRef === "object" ? runtimeStoreRef : null;
+  const userId = String(userIdInput || "").trim();
+  if (!activeStore || !userId) {
+    return null;
+  }
+  let changed = false;
+  if (!activeStore.users[userId]) {
+    activeStore.users[userId] = createDefaultUserState(userId, {
+      platform: options.platform,
+      name: options.name,
+      isGuest: false
+    });
+    changed = true;
+  }
+  const userState = activeStore.users[userId];
+  if (!userState.profile || typeof userState.profile !== "object") {
+    userState.profile = {};
+  }
+  if (options.name && userState.profile.name !== options.name) {
+    userState.profile.name = options.name;
+    changed = true;
+  }
+  if (options.platform && userState.profile.platform !== options.platform) {
+    userState.profile.platform = options.platform;
+    changed = true;
+  }
+  if (userState.profile.isGuest !== false) {
+    userState.profile.isGuest = false;
+    changed = true;
+  }
+  if (changed) {
+    userState.updatedAt = new Date().toISOString();
+    saveStore(activeStore);
+  }
+  return userState;
+}
+
 function issueToken(userId, profile, clientScope = "legacy") {
   const now = Math.floor(Date.now() / 1000);
   const payload = {
@@ -33308,7 +33813,48 @@ function extractTokenFromRequest(req) {
   return authHeader.slice("Bearer ".length);
 }
 
+function requireExternalAuth(req) {
+  const userId = readRequestHeader(req, EXTERNAL_AUTH_USER_ID_HEADER);
+  const userName = readRequestHeader(req, EXTERNAL_AUTH_USER_NAME_HEADER);
+  const sessionId = readRequestHeader(req, EXTERNAL_AUTH_SESSION_ID_HEADER);
+  const platform = readRequestHeader(req, EXTERNAL_AUTH_PLATFORM_HEADER) || "desktop";
+  const signature = readRequestHeader(req, EXTERNAL_AUTH_SIGNATURE_HEADER);
+
+  if (!userId) {
+    return { ok: false, error: `Missing external auth user id header: ${EXTERNAL_AUTH_USER_ID_HEADER}` };
+  }
+
+  if (EXTERNAL_AUTH_SHARED_SECRET) {
+    const signedIdentity = [userId, sessionId, userName].map((item) => String(item || "").trim()).join("|");
+    const expectedSignature = signExternalAuthIdentity(signedIdentity);
+    if (!signature || signature !== expectedSignature) {
+      return { ok: false, error: "External auth signature mismatch" };
+    }
+  }
+
+  ensureFormalUserState(userId, {
+    name: userName || `User-${userId.slice(-6)}`,
+    platform
+  });
+
+  return {
+    ok: true,
+    userId,
+    payload: {
+      sub: userId,
+      name: userName || `User-${userId.slice(-6)}`,
+      guest: false,
+      sid: sessionId,
+      platform,
+      authMode: "external_header"
+    }
+  };
+}
+
 function requireAuth(req) {
+  if (AUTH_MODE === "external" || AUTH_MODE === "external-header") {
+    return requireExternalAuth(req);
+  }
   const token = extractTokenFromRequest(req);
   const result = verifyToken(token);
   if (!result.valid) {
@@ -33358,7 +33904,7 @@ function toLegacyResponse(state) {
   return { state: sanitizeState(state) };
 }
 
-const store = ensureSharedRuntimeState(loadStore());
+const store = ensureSharedRuntimeState(await loadStore());
 runtimeStoreRef = store;
 const startupGuestPrune = maybePruneStaleGuestUsers(store, {
   force: true
@@ -34517,8 +35063,10 @@ const server = createServer(async (req, res) => {
         service: "aria-api-v3",
         now: new Date().toISOString(),
         health: "/health",
-        auth: "/v1/auth/guest",
-        hint: "Use POST /v1/auth/guest first, then call /v1/* endpoints with Bearer token."
+        auth: GUEST_AUTH_ENABLED ? "/v1/auth/guest" : "",
+        hint: GUEST_AUTH_ENABLED
+          ? "Use POST /v1/auth/guest first, then call /v1/* endpoints with Bearer token."
+          : "Guest auth is disabled in production. Use the formal auth gateway."
       });
       return;
     }
@@ -34527,7 +35075,7 @@ const server = createServer(async (req, res) => {
       json(res, 200, {
         ok: true,
         requiresAuth: true,
-        authEndpoint: "/v1/auth/guest",
+        authEndpoint: GUEST_AUTH_ENABLED ? "/v1/auth/guest" : "",
         keyEndpoints: [
           "/v1/state",
           "/v1/message",
@@ -34548,12 +35096,24 @@ const server = createServer(async (req, res) => {
         dataFile,
         schemaFile,
         bridgeBase: BRIDGE_BASE,
+        storage: {
+          backend: STORE_BACKEND,
+          databaseUrlConfigured: Boolean(DATABASE_URL),
+          postgresError: pgStoreLastError
+        },
         config: runtimeSystemConfig
       });
       return;
     }
 
     if (req.method === "POST" && pathname === "/v1/auth/guest") {
+      if (!GUEST_AUTH_ENABLED) {
+        json(res, 403, {
+          error: "guest_auth_disabled",
+          message: "Guest auth is disabled in production. Please use the formal auth gateway."
+        });
+        return;
+      }
       const body = await parseBody(req);
       const deviceId = String(body.deviceId || "").trim() || `device-${randomUUID()}`;
       const platform = String(body.platform || "unknown");
@@ -34754,6 +35314,59 @@ const server = createServer(async (req, res) => {
           }
         });
       }
+      return;
+    }
+
+    if (req.method === "GET" && pathname === "/v1/public/site/discussion") {
+      const threadId = String(requestUrl.searchParams.get("threadId") || "").trim();
+      const actorId = String(requestUrl.searchParams.get("actorId") || "").trim();
+      const threadTitle = String(requestUrl.searchParams.get("threadTitle") || "").trim();
+      if (!threadId) {
+        json(res, 400, {
+          ok: false,
+          reason: "thread_id_required",
+          message: "缺少 threadId。"
+        });
+        return;
+      }
+      const discussion = buildPublicDiscussionResponse(store, threadId, actorId, threadTitle);
+      json(res, 200, {
+        ok: true,
+        discussion
+      });
+      return;
+    }
+
+    if (req.method === "POST" && pathname === "/v1/public/site/discussion/like") {
+      const body = await parseBody(req);
+      const result = togglePublicDiscussionLike(store, {
+        threadId: body.threadId,
+        actorId: body.actorId,
+        threadTitle: body.threadTitle
+      });
+      if (!result.ok) {
+        json(res, 400, result);
+        return;
+      }
+      json(res, 200, result);
+      return;
+    }
+
+    if (req.method === "POST" && pathname === "/v1/public/site/discussion/comment") {
+      const body = await parseBody(req);
+      const result = addPublicDiscussionComment(store, {
+        threadId: body.threadId,
+        actorId: body.actorId,
+        threadTitle: body.threadTitle,
+        authorName: body.authorName,
+        content: body.content
+      });
+      if (!result.ok) {
+        const status = result.reason === "comment_rate_limited" ? 429 : 400;
+        json(res, status, result);
+        return;
+      }
+      json(res, 200, result);
       return;
     }
 
@@ -38102,6 +38715,13 @@ const server = createServer(async (req, res) => {
     }
 
     if (pathname.startsWith("/v1/demo/")) {
+      if (!LEGACY_DEMO_ENDPOINTS_ENABLED) {
+        json(res, 404, {
+          error: "demo_endpoints_disabled",
+          message: "Legacy demo endpoints are disabled in production."
+        });
+        return;
+      }
       if (req.method === "GET" && pathname === "/v1/demo/state") {
         const userId = requestUrl.searchParams.get("userId") || "demo-user";
         const userState = getUserState(store, userId);
@@ -38382,6 +39002,8 @@ const server = createServer(async (req, res) => {
     });
   }
 });
+
+runProductionPreflightChecks();
 
 server.listen(PORT, HOST, () => {
   console.log(`[aria-api-v3] listening on http://${HOST}:${PORT}`);

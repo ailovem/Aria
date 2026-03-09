@@ -41,6 +41,9 @@ Data persistence:
 
 - `GET /health`
 - `GET /v1/public/drug/label?search=<query>&limit=5`（公开，无需鉴权，代理 OpenFDA，官网药品查查使用）
+- `GET /v1/public/site/discussion?threadId=<id>&actorId=<optional>&threadTitle=<optional>`（公开，无需鉴权，读取官网页面评论/点赞）
+- `POST /v1/public/site/discussion/like`（公开，无需鉴权，切换点赞）
+- `POST /v1/public/site/discussion/comment`（公开，无需鉴权，提交评论）
 - `POST /v1/auth/guest`
 - `GET /v1/state`
 - `GET /v1/scene/config`
