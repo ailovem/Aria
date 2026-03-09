@@ -1,12 +1,12 @@
 {
   "meta": {
-    "generatedAt": "2026-03-09T19:42:29.619Z",
-    "generatedAtLabel": "2026/03/10 03:42",
+    "generatedAt": "2026-03-09T20:39:44.383Z",
+    "generatedAtLabel": "2026/03/10 04:39",
     "timezone": "Asia/Shanghai",
     "mode": "live",
     "totalSources": 12,
     "successfulSources": 12,
-    "translatedCount": 28,
+    "translatedCount": 27,
     "sourceCatalog": [
       {
         "id": "openai-news",
@@ -109,8 +109,8 @@
   },
   "summary": {
     "title": "今天最值得关注的方向：产品更新更密集",
-    "overview": "截至 2026/03/10 03:42，这里共整理出 30 条值得关注的动态，其中融资 9 条、产品/应用 21 条、高优先级 1 条，今日新增 1 条，国内动态 2 条。",
-    "insight": "融资更集中在 投融资、安全、医疗健康；产品更新更集中在 模型能力、Agent、企业应用；国内值得重点留意的是 模型能力、Agent、编码智能。",
+    "overview": "截至 2026/03/10 04:39，这里共整理出 30 条值得关注的动态，其中融资 9 条、产品/应用 21 条、高优先级 1 条，今日新增 1 条，国内动态 3 条。",
+    "insight": "融资更集中在 投融资、企业应用、安全；产品更新更集中在 模型能力、Agent、企业应用；国内值得重点留意的是 模型能力、Agent、编码智能。",
     "recommendations": [
       "今天新消息不算多，适合顺手回看近一两周持续上新的团队。",
       "本周可以重点盯住“投融资 + 模型能力”这条组合，看哪些团队既拿到钱、又持续推新。",
@@ -124,14 +124,14 @@
       "highCount": 1,
       "todayCount": 1,
       "officialCount": 21,
-      "chinaCount": 2,
-      "chinaFundingCount": 0,
+      "chinaCount": 3,
+      "chinaFundingCount": 1,
       "chinaProductCount": 2
     },
     "fundingThemes": [
       "投融资",
-      "安全",
-      "医疗健康"
+      "企业应用",
+      "安全"
     ],
     "productThemes": [
       "模型能力",
@@ -146,7 +146,7 @@
   },
   "items": [
     {
-      "id": "ifanr-aigc-88",
+      "id": "ifanr-aigc-87",
       "title": "蚂蚁集团开源 Ring-2.5-1T：首个混合线性架构万亿参数思考模型",
       "titleOriginal": "蚂蚁集团开源 Ring-2.5-1T：首个混合线性架构万亿参数思考模型",
       "link": "https://www.ifanr.com/digest/1655195",
@@ -594,7 +594,7 @@
       "translated": true
     },
     {
-      "id": "ifanr-aigc-89",
+      "id": "ifanr-aigc-88",
       "title": "蚂蚁集团开源全模态大模型Ming-Flash-Omni 2.0，性能对标 Gemini 2.5 Pro",
       "titleOriginal": "蚂蚁集团开源全模态大模型Ming-Flash-Omni 2.0，性能对标 Gemini 2.5 Pro",
       "link": "https://www.ifanr.com/digest/1655192",
@@ -645,35 +645,6 @@
       "language": "en",
       "publishedAt": "2026-02-09T11:00:00.000Z",
       "publishedAtLabel": "2026/02/09 19:00",
-      "isToday": false,
-      "translated": true
-    },
-    {
-      "id": "crunchbase-seed-87",
-      "title": "本周最大的 10 轮融资：人工智能和无人机交付的重要一周",
-      "titleOriginal": "The Week’s 10 Biggest Funding Rounds: A Big Week For AI And Drone Delivery",
-      "link": "https://news.crunchbase.com/venture/biggest-funding-rounds-ai-drones-healthcare/",
-      "description": "风险投资者对人工智能的渴望尚未熄灭。这是本周美国大型融资轮次的结果，这些融资轮次主要是人工智能领域的纯粹公司和专注于该技术的公司。",
-      "descriptionOriginal": "Venture investors' thirst for AI isn’t close to quenched yet. That’s the takeaway from this week’s lineup of large U.S. funding rounds, which was mostly a mix of AI pure-plays and companies with a heavy focus on the technology.",
-      "author": "Joanna Glasner",
-      "source": "Crunchbase Seed Funding",
-      "sourceLabel": "Crunchbase Seed Funding",
-      "sourceUrl": "https://news.crunchbase.com/tag/seed-funding/feed/",
-      "publisherType": "media",
-      "category": "funding",
-      "importance": "watch",
-      "importanceScore": 46,
-      "reason": "安全",
-      "tags": [
-        "安全",
-        "医疗健康",
-        "算力芯片"
-      ],
-      "region": "global",
-      "regionLabel": "全球",
-      "language": "en",
-      "publishedAt": "2026-01-23T20:12:36.000Z",
-      "publishedAtLabel": "2026/01/24 04:12",
       "isToday": false,
       "translated": true
     },
@@ -986,6 +957,34 @@
       "publishedAtLabel": "2026/03/05 08:00",
       "isToday": false,
       "translated": true
+    },
+    {
+      "id": "leiphone-ai-89",
+      "title": "擎羽科技完成天使轮融资：宇树天使投资方领投，押注仿生柔性机器人",
+      "titleOriginal": "擎羽科技完成天使轮融资：宇树天使投资方领投，押注仿生柔性机器人",
+      "link": "https://www.leiphone.com/category/ai/1uKAuRYu562APkJt.html",
+      "description": "新生代柔性机器人企业获资本加持，技术落地再提速",
+      "descriptionOriginal": "新生代柔性机器人企业获资本加持，技术落地再提速",
+      "author": "雷峰网",
+      "source": "Leiphone AI",
+      "sourceLabel": "雷峰网",
+      "sourceUrl": "https://www.leiphone.com/category/ai",
+      "publisherType": "media",
+      "category": "funding",
+      "importance": "watch",
+      "importanceScore": 43,
+      "reason": "国内动态 · 企业应用",
+      "tags": [
+        "企业应用",
+        "投融资"
+      ],
+      "region": "china",
+      "regionLabel": "中国",
+      "language": "zh",
+      "publishedAt": "2026-03-04T08:24:00.000Z",
+      "publishedAtLabel": "2026/03/04 16:24",
+      "isToday": false,
+      "translated": false
     }
   ]
 }

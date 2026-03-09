@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import './DownloadHub.css';
 
+const MACOS_UNBLOCK_COMMAND = 'xattr -dr com.apple.quarantine /Applications/Aria.app';
+
 const DEFAULT_RELEASE_INFO = {
   version: import.meta.env.VITE_ARIA_RELEASE_VERSION || 'v0.1.10',
   publishedAt: import.meta.env.VITE_ARIA_RELEASE_DATE || '2026-03-10',
@@ -85,6 +87,7 @@ const formatClientLabel = (clientInfo) => {
 const DownloadHub = () => {
   const [releaseInfo, setReleaseInfo] = useState(DEFAULT_RELEASE_INFO);
   const [clientInfo, setClientInfo] = useState(() => detectClientInfoSync());
+  const [copyState, setCopyState] = useState('idle');
 
   useEffect(() => {
     let active = true;
@@ -260,9 +263,10 @@ const DownloadHub = () => {
         title: '未备案阶段可正常下载（macOS）',
         steps: [
           '当前安装包托管在 GitHub Releases，未备案阶段也可正常下载安装。',
-          '如果提示“Aria 已损坏，无法打开”：先把 App 拖到“应用程序”，再在终端执行：xattr -dr com.apple.quarantine /Applications/Aria.app',
+          '如果提示“Aria 已损坏，无法打开”：先把 App 拖到“应用程序”，再在终端执行下方命令。',
           '执行后右键 Aria.app 选择“打开”一次，后续可正常双击启动。'
-        ]
+        ],
+        showCopyCommand: true
       };
     }
     if (clientInfo.os === 'windows') {
@@ -281,9 +285,34 @@ const DownloadHub = () => {
         '当前安装包托管在 GitHub Releases，未备案阶段也可正常下载安装。',
         'macOS 若提示“已损坏/无法打开”，按下载区下方指引处理一次即可。',
         'Windows 若出现 SmartScreen 提示，点击“更多信息” -> “仍要运行”。'
-      ]
+      ],
+      showCopyCommand: false
     };
   }, [clientInfo]);
+
+  const copyMacCommand = async () => {
+    const text = MACOS_UNBLOCK_COMMAND;
+    try {
+      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = text;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+      setCopyState('success');
+      setTimeout(() => setCopyState('idle'), 2200);
+    } catch {
+      setCopyState('error');
+      setTimeout(() => setCopyState('idle'), 2200);
+    }
+  };
 
   return (
     <section id="download" className="section download-section">
@@ -315,6 +344,14 @@ const DownloadHub = () => {
                 <li key={step}>{step}</li>
               ))}
             </ul>
+            {installNotice.showCopyCommand ? (
+              <div className="download-command">
+                <code>{MACOS_UNBLOCK_COMMAND}</code>
+                <button type="button" className="download-copy-btn" onClick={copyMacCommand}>
+                  {copyState === 'success' ? '已复制' : copyState === 'error' ? '复制失败，请手动复制' : '复制命令'}
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
 

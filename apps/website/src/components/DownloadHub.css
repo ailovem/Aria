@@ -72,6 +72,40 @@
     margin-top: 0.25rem;
 }
 
+.download-command {
+    margin-top: 0.65rem;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex-wrap: wrap;
+}
+
+.download-command code {
+    font-size: 0.82rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    color: var(--text-primary);
+    word-break: break-all;
+}
+
+.download-copy-btn {
+    border: 1px solid rgba(255, 255, 255, 0.28);
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    padding: 0.38rem 0.62rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.download-copy-btn:hover {
+    border-color: rgba(255, 255, 255, 0.45);
+    background: rgba(255, 255, 255, 0.12);
+}
+
 .download-card {
     padding: 2rem;
     display: flex;
