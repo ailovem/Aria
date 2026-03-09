@@ -1,12 +1,12 @@
 {
   "meta": {
-    "generatedAt": "2026-03-09T09:40:06.111Z",
-    "generatedAtLabel": "2026/03/09 17:40",
+    "generatedAt": "2026-03-09T19:42:29.619Z",
+    "generatedAtLabel": "2026/03/10 03:42",
     "timezone": "Asia/Shanghai",
     "mode": "live",
     "totalSources": 12,
     "successfulSources": 12,
-    "translatedCount": 27,
+    "translatedCount": 28,
     "sourceCatalog": [
       {
         "id": "openai-news",
@@ -109,8 +109,8 @@
   },
   "summary": {
     "title": "今天最值得关注的方向：产品更新更密集",
-    "overview": "截至 2026/03/09 17:40，这里共整理出 30 条值得关注的动态，其中融资 8 条、产品/应用 22 条、高优先级 1 条，今日新增 0 条，国内动态 3 条。",
-    "insight": "融资更集中在 投融资、医疗健康、安全；产品更新更集中在 模型能力、Agent、编码智能；国内值得重点留意的是 模型能力、Agent、编码智能。",
+    "overview": "截至 2026/03/10 03:42，这里共整理出 30 条值得关注的动态，其中融资 9 条、产品/应用 21 条、高优先级 1 条，今日新增 1 条，国内动态 2 条。",
+    "insight": "融资更集中在 投融资、安全、医疗健康；产品更新更集中在 模型能力、Agent、企业应用；国内值得重点留意的是 模型能力、Agent、编码智能。",
     "recommendations": [
       "今天新消息不算多，适合顺手回看近一两周持续上新的团队。",
       "本周可以重点盯住“投融资 + 模型能力”这条组合，看哪些团队既拿到钱、又持续推新。",
@@ -119,24 +119,24 @@
     ],
     "stats": {
       "totalCount": 30,
-      "fundingCount": 8,
-      "productCount": 22,
+      "fundingCount": 9,
+      "productCount": 21,
       "highCount": 1,
-      "todayCount": 0,
-      "officialCount": 22,
-      "chinaCount": 3,
-      "chinaFundingCount": 1,
+      "todayCount": 1,
+      "officialCount": 21,
+      "chinaCount": 2,
+      "chinaFundingCount": 0,
       "chinaProductCount": 2
     },
     "fundingThemes": [
       "投融资",
-      "医疗健康",
-      "安全"
+      "安全",
+      "医疗健康"
     ],
     "productThemes": [
       "模型能力",
       "Agent",
-      "编码智能"
+      "企业应用"
     ],
     "chinaThemes": [
       "模型能力",
@@ -146,7 +146,7 @@
   },
   "items": [
     {
-      "id": "ifanr-aigc-86",
+      "id": "ifanr-aigc-88",
       "title": "蚂蚁集团开源 Ring-2.5-1T：首个混合线性架构万亿参数思考模型",
       "titleOriginal": "蚂蚁集团开源 Ring-2.5-1T：首个混合线性架构万亿参数思考模型",
       "link": "https://www.ifanr.com/digest/1655195",
@@ -175,34 +175,62 @@
       "translated": false
     },
     {
-      "id": "techcrunch-ai-81",
-      "title": "City Detect 利用人工智能帮助城市保持安全和清洁，筹集了 1300 万美元的 A 轮融资",
-      "titleOriginal": "City Detect, which uses AI to help cities stay safe and clean, raises $13M Series A",
-      "link": "https://techcrunch.com/2026/03/06/city-detect-uses-ai-to-help-cities-stay-safe-and-clean/",
-      "description": "City Detect 是一家帮助地方政府防止城市衰退的公司，迄今为止已在至少 17 个城市开展业务，其中包括达拉斯和迈阿密。",
-      "descriptionOriginal": "City Detect, a company that helps local governments prevent urban decay, is in at least 17 cities so far, including Dallas and Miami.",
-      "author": "Dominic-Madori Davis",
+      "id": "techcrunch-ai-82",
+      "title": "Sandberg、Clegg 加入 Nscale 董事会，这家“Stargate挪威”初创公司估值达到 14.6B 美元",
+      "titleOriginal": "Sandberg, Clegg join Nscale board as this ‘Stargate Norway’ startup hits $14.6B valuation",
+      "link": "https://techcrunch.com/2026/03/09/sandberg-clegg-join-nscale-board-as-this-stargate-norway-startup-hits-14-6b-valuation/",
+      "description": "Nvidia 支持的英国人工智能基础设施初创公司 Nscale 又筹集了 20 亿美元巨额资金。",
+      "descriptionOriginal": "Nvidia-backed British AI infrastructure startup Nscale has raised another megaround of $2 billion.",
+      "author": "Anna Heim",
       "source": "TechCrunch AI",
       "sourceLabel": "TechCrunch AI 频道",
       "sourceUrl": "https://techcrunch.com/category/artificial-intelligence/feed/",
       "publisherType": "media",
       "category": "funding",
       "importance": "medium",
-      "importanceScore": 52,
-      "reason": "披露融资金额 · 投融资",
+      "importanceScore": 53,
+      "reason": "披露融资金额 · 近 24 小时 · 企业应用",
       "tags": [
-        "投融资"
+        "企业应用"
       ],
       "region": "global",
       "regionLabel": "全球",
       "language": "en",
-      "publishedAt": "2026-03-06T14:00:00.000Z",
-      "publishedAtLabel": "2026/03/06 22:00",
+      "publishedAt": "2026-03-09T15:09:35.000Z",
+      "publishedAtLabel": "2026/03/09 23:09",
       "isToday": false,
       "translated": true
     },
     {
-      "id": "openai-news-3",
+      "id": "openai-news-1",
+      "title": "OpenAI 收购 Promptfoo",
+      "titleOriginal": "OpenAI to acquire Promptfoo",
+      "link": "https://openai.com/index/openai-to-acquire-promptfoo",
+      "description": "OpenAI 正在收购 Promptfoo，这是一个人工智能安全平台，可帮助企业在开发过程中识别和修复人工智能系统中的漏洞。",
+      "descriptionOriginal": "OpenAI is acquiring Promptfoo, an AI security platform that helps enterprises identify and remediate vulnerabilities in AI systems during development.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "medium",
+      "importanceScore": 52,
+      "reason": "官方发布 · 近 24 小时 · 企业应用",
+      "tags": [
+        "企业应用",
+        "安全"
+      ],
+      "region": "global",
+      "regionLabel": "全球",
+      "language": "en",
+      "publishedAt": "2026-03-09T10:00:00.000Z",
+      "publishedAtLabel": "2026/03/09 18:00",
+      "isToday": false,
+      "translated": true
+    },
+    {
+      "id": "openai-news-4",
       "title": "Balyasny Asset Management 如何构建用于投资的人工智能研究引擎",
       "titleOriginal": "How Balyasny Asset Management built an AI research engine for investing",
       "link": "https://openai.com/index/balyasny-asset-management",
@@ -231,7 +259,7 @@
       "translated": true
     },
     {
-      "id": "openai-news-19",
+      "id": "openai-news-18",
       "title": "为所有人扩展人工智能",
       "titleOriginal": "Scaling AI for everyone",
       "link": "https://openai.com/index/scaling-ai-for-everyone",
@@ -258,7 +286,7 @@
       "translated": true
     },
     {
-      "id": "openai-news-47",
+      "id": "openai-news-48",
       "title": "欧洲、中东和非洲青年与福祉补助金",
       "titleOriginal": "EMEA Youth & Wellbeing Grant",
       "link": "https://openai.com/index/emea-youth-and-wellbeing-grant",
@@ -285,36 +313,36 @@
       "translated": true
     },
     {
-      "id": "openai-news-2",
-      "title": "Codex 安全性：现在处于研究预览阶段",
-      "titleOriginal": "Codex Security: now in research preview",
-      "link": "https://openai.com/index/codex-security-now-in-research-preview",
-      "description": "Codex Security 是一款 AI 应用程序安全代理，可分析项目上下文，以更高的置信度和更少的噪音来检测、验证和修补复杂的漏洞。",
-      "descriptionOriginal": "Codex Security is an AI application security agent that analyzes project context to detect, validate, and patch complex vulnerabilities with higher confidence and less noise.",
-      "author": "",
-      "source": "OpenAI News",
-      "sourceLabel": "OpenAI 官方资讯",
-      "sourceUrl": "https://openai.com/news/rss.xml",
-      "publisherType": "official",
-      "category": "product",
+      "id": "techcrunch-ai-81",
+      "title": "OpenAI 收购 Promptfoo 以确保其 AI 代理的安全",
+      "titleOriginal": "OpenAI acquires Promptfoo to secure its AI agents",
+      "link": "https://techcrunch.com/2026/03/09/openai-acquires-promptfoo-to-secure-its-ai-agents/",
+      "description": "这笔交易凸显了前沿实验室如何争先恐后地证明他们的技术可以安全地用于关键业务运营。",
+      "descriptionOriginal": "This deal underscores how frontier labs are scrambling to prove their technology can be used safely in critical business operations.",
+      "author": "Tim Fernholz",
+      "source": "TechCrunch AI",
+      "sourceLabel": "TechCrunch AI 频道",
+      "sourceUrl": "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "publisherType": "media",
+      "category": "funding",
       "importance": "medium",
       "importanceScore": 49,
-      "reason": "官方发布 · Agent",
+      "reason": "近 24 小时 · Agent",
       "tags": [
         "Agent",
-        "编码智能",
+        "企业应用",
         "安全"
       ],
       "region": "global",
       "regionLabel": "全球",
       "language": "en",
-      "publishedAt": "2026-03-06T10:00:00.000Z",
-      "publishedAtLabel": "2026/03/06 18:00",
-      "isToday": false,
+      "publishedAt": "2026-03-09T17:49:04.000Z",
+      "publishedAtLabel": "2026/03/10 01:49",
+      "isToday": true,
       "translated": true
     },
     {
-      "id": "openai-news-17",
+      "id": "openai-news-19",
       "title": "OpenAI 与亚马逊宣布战略合作伙伴关系",
       "titleOriginal": "OpenAI and Amazon announce strategic partnership",
       "link": "https://openai.com/index/amazon-partnership",
@@ -343,7 +371,7 @@
       "translated": true
     },
     {
-      "id": "openai-news-41",
+      "id": "openai-news-42",
       "title": "Snowflake 与 OpenAI 合作，为企业数据带来前沿智能",
       "titleOriginal": "Snowflake and OpenAI partner to bring frontier intelligence to enterprise data",
       "link": "https://openai.com/index/snowflake-partnership",
@@ -371,35 +399,34 @@
       "translated": true
     },
     {
-      "id": "openai-news-1",
-      "title": "Descript 如何实现大规模多语言视频配音",
-      "titleOriginal": "How Descript enables multilingual video dubbing at scale",
-      "link": "https://openai.com/index/descript",
-      "description": "Descript 使用 OpenAI 模型来扩展多语言视频配音，优化含义和时间的翻译，使配音的语音在不同语言中听起来都很自然。",
-      "descriptionOriginal": "Descript uses OpenAI models to scale multilingual video dubbing, optimizing translations for both meaning and timing so dubbed speech sounds natural across languages.",
-      "author": "",
-      "source": "OpenAI News",
-      "sourceLabel": "OpenAI 官方资讯",
-      "sourceUrl": "https://openai.com/news/rss.xml",
-      "publisherType": "official",
-      "category": "product",
-      "importance": "watch",
-      "importanceScore": 47,
-      "reason": "官方发布 · 多模态与视频",
+      "id": "techcrunch-ai-84",
+      "title": "City Detect 利用人工智能帮助城市保持安全和清洁，筹集了 1300 万美元的 A 轮融资",
+      "titleOriginal": "City Detect, which uses AI to help cities stay safe and clean, raises $13M Series A",
+      "link": "https://techcrunch.com/2026/03/06/city-detect-uses-ai-to-help-cities-stay-safe-and-clean/",
+      "description": "City Detect 是一家帮助地方政府防止城市衰退的公司，迄今为止已在至少 17 个城市开展业务，其中包括达拉斯和迈阿密。",
+      "descriptionOriginal": "City Detect, a company that helps local governments prevent urban decay, is in at least 17 cities so far, including Dallas and Miami.",
+      "author": "Dominic-Madori Davis",
+      "source": "TechCrunch AI",
+      "sourceLabel": "TechCrunch AI 频道",
+      "sourceUrl": "https://techcrunch.com/category/artificial-intelligence/feed/",
+      "publisherType": "media",
+      "category": "funding",
+      "importance": "medium",
+      "importanceScore": 48,
+      "reason": "披露融资金额 · 投融资",
       "tags": [
-        "多模态与视频",
-        "模型能力"
+        "投融资"
       ],
       "region": "global",
       "regionLabel": "全球",
       "language": "en",
-      "publishedAt": "2026-03-06T10:00:00.000Z",
-      "publishedAtLabel": "2026/03/06 18:00",
+      "publishedAt": "2026-03-06T14:00:00.000Z",
+      "publishedAtLabel": "2026/03/06 22:00",
       "isToday": false,
       "translated": true
     },
     {
-      "id": "openai-news-26",
+      "id": "openai-news-27",
       "title": "推进人工智能对齐的独立研究",
       "titleOriginal": "Advancing independent research on AI alignment",
       "link": "https://openai.com/index/advancing-independent-research-ai-alignment",
@@ -426,7 +453,7 @@
       "translated": true
     },
     {
-      "id": "openai-news-50",
+      "id": "openai-news-52",
       "title": "通过人工智能支持的个性化建议为税收捐赠提供动力",
       "titleOriginal": "Powering tax donations with AI powered personalized recommendations",
       "link": "https://openai.com/index/trustbank",
@@ -455,7 +482,7 @@
       "translated": true
     },
     {
-      "id": "techcrunch-ai-80",
+      "id": "techcrunch-ai-83",
       "title": "谷歌刚刚向桑达尔·皮查伊支付了 6.92 亿美元的薪酬",
       "titleOriginal": "Google just gave Sundar Pichai a $692M pay package",
       "link": "https://techcrunch.com/2026/03/07/google-just-gave-sundar-pichai-a-692m-pay-package/",
@@ -482,7 +509,7 @@
       "translated": true
     },
     {
-      "id": "crunchbase-seed-83",
+      "id": "crunchbase-seed-85",
       "title": "生物安全和人工智能的交叉点看到种子阶段的高峰",
       "titleOriginal": "Intersection Of Biosecurity And AI Sees Seed-Stage Spike",
       "link": "https://news.crunchbase.com/venture/biosecurity-ai-seed-funding-valthos-openai/",
@@ -511,7 +538,7 @@
       "translated": true
     },
     {
-      "id": "crunchbase-seed-84",
+      "id": "crunchbase-seed-86",
       "title": "2026 年 IPO 仍将持续，但 SaaS 并未上市",
       "titleOriginal": "IPOs Are Holding Up In 2026, But SaaS Debuts Aren’t Happening",
       "link": "https://news.crunchbase.com/public/ipos-up-saas-debuts-down-early-2026/",
@@ -539,7 +566,7 @@
       "translated": true
     },
     {
-      "id": "openai-news-24",
+      "id": "openai-news-25",
       "title": "OpenAI 宣布前沿联盟合作伙伴",
       "titleOriginal": "OpenAI announces Frontier Alliance Partners",
       "link": "https://openai.com/index/frontier-alliance-partners",
@@ -567,7 +594,7 @@
       "translated": true
     },
     {
-      "id": "ifanr-aigc-87",
+      "id": "ifanr-aigc-89",
       "title": "蚂蚁集团开源全模态大模型Ming-Flash-Omni 2.0，性能对标 Gemini 2.5 Pro",
       "titleOriginal": "蚂蚁集团开源全模态大模型Ming-Flash-Omni 2.0，性能对标 Gemini 2.5 Pro",
       "link": "https://www.ifanr.com/digest/1655192",
@@ -595,7 +622,7 @@
       "translated": false
     },
     {
-      "id": "openai-news-33",
+      "id": "openai-news-34",
       "title": "将 ChatGPT 引入 GenAI.mil",
       "titleOriginal": "Bringing ChatGPT to GenAI.mil",
       "link": "https://openai.com/index/bringing-chatgpt-to-genaimil",
@@ -622,7 +649,7 @@
       "translated": true
     },
     {
-      "id": "crunchbase-seed-85",
+      "id": "crunchbase-seed-87",
       "title": "本周最大的 10 轮融资：人工智能和无人机交付的重要一周",
       "titleOriginal": "The Week’s 10 Biggest Funding Rounds: A Big Week For AI And Drone Delivery",
       "link": "https://news.crunchbase.com/venture/biggest-funding-rounds-ai-drones-healthcare/",
@@ -651,29 +678,31 @@
       "translated": true
     },
     {
-      "id": "google-ai-blog-54",
-      "title": "我们的开源人工智能模型 SpeciesNet 如何帮助促进野生动物保护",
-      "titleOriginal": "How our open-source AI model SpeciesNet is helping to promote wildlife conservation",
-      "link": "https://blog.google/company-news/outreach-and-initiatives/sustainability/speciesnet-open-source-ai-wildlife/",
-      "description": "<img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/specieshero_v2.max-600x600.format-webp.webp\">SpeciesNet 概述，我们的开源 AI 模型正在帮助世界各地的人们保护野生动物。",
-      "descriptionOriginal": "<img src=\"https://storage.googleapis.com/gweb-uniblog-publish-prod/images/specieshero_v2.max-600x600.format-webp.webp\">An overview of SpeciesNet, our open-source AI model that is helping people around the world protect and conserve wildlife.",
+      "id": "openai-news-3",
+      "title": "Codex 安全性：现在处于研究预览阶段",
+      "titleOriginal": "Codex Security: now in research preview",
+      "link": "https://openai.com/index/codex-security-now-in-research-preview",
+      "description": "Codex Security 是一款 AI 应用程序安全代理，可分析项目上下文，以更高的置信度和更少的噪音来检测、验证和修补复杂的漏洞。",
+      "descriptionOriginal": "Codex Security is an AI application security agent that analyzes project context to detect, validate, and patch complex vulnerabilities with higher confidence and less noise.",
       "author": "",
-      "source": "Google AI Blog",
-      "sourceLabel": "Google AI 官方博客",
-      "sourceUrl": "https://blog.google/technology/ai/rss/",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
       "publisherType": "official",
       "category": "product",
       "importance": "watch",
       "importanceScore": 45,
-      "reason": "官方发布 · 模型能力",
+      "reason": "官方发布 · Agent",
       "tags": [
-        "模型能力"
+        "Agent",
+        "编码智能",
+        "安全"
       ],
       "region": "global",
       "regionLabel": "全球",
       "language": "en",
-      "publishedAt": "2026-03-06T18:00:00.000Z",
-      "publishedAtLabel": "2026/03/07 02:00",
+      "publishedAt": "2026-03-06T10:00:00.000Z",
+      "publishedAtLabel": "2026/03/06 18:00",
       "isToday": false,
       "translated": true
     },
@@ -707,7 +736,7 @@
       "translated": true
     },
     {
-      "id": "openai-news-5",
+      "id": "openai-news-7",
       "title": "推理模型很难控制自己的思维链，这很好",
       "titleOriginal": "Reasoning models struggle to control their chains of thought, and that’s good",
       "link": "https://openai.com/index/reasoning-models-chain-of-thought-controllability",
@@ -734,7 +763,7 @@
       "translated": true
     },
     {
-      "id": "openai-news-31",
+      "id": "openai-news-32",
       "title": "GPT-5.3-Codex-Spark 简介",
       "titleOriginal": "Introducing GPT-5.3-Codex-Spark",
       "link": "https://openai.com/index/introducing-gpt-5-3-codex-spark",
@@ -762,7 +791,7 @@
       "translated": true
     },
     {
-      "id": "openai-news-38",
+      "id": "openai-news-40",
       "title": "GPT-5.3-Codex 系统卡",
       "titleOriginal": "GPT-5.3-Codex System Card",
       "link": "https://openai.com/index/gpt-5-3-codex-system-card",
@@ -787,35 +816,6 @@
       "language": "en",
       "publishedAt": "2026-02-05T00:00:00.000Z",
       "publishedAtLabel": "2026/02/05 08:00",
-      "isToday": false,
-      "translated": true
-    },
-    {
-      "id": "openai-news-53",
-      "title": "展开 Codex 代理循环",
-      "titleOriginal": "Unrolling the Codex agent loop",
-      "link": "https://openai.com/index/unrolling-the-codex-agent-loop",
-      "description": "从技术上深入探讨 Codex 代理循环，解释 Codex CLI 如何使用响应 API 编排模型、工具、提示和性能。",
-      "descriptionOriginal": "A technical deep dive into the Codex agent loop, explaining how Codex CLI orchestrates models, tools, prompts, and performance using the Responses API.",
-      "author": "",
-      "source": "OpenAI News",
-      "sourceLabel": "OpenAI 官方资讯",
-      "sourceUrl": "https://openai.com/news/rss.xml",
-      "publisherType": "official",
-      "category": "product",
-      "importance": "watch",
-      "importanceScore": 45,
-      "reason": "官方发布 · Agent",
-      "tags": [
-        "Agent",
-        "编码智能",
-        "模型能力"
-      ],
-      "region": "global",
-      "regionLabel": "全球",
-      "language": "en",
-      "publishedAt": "2026-01-23T12:00:00.000Z",
-      "publishedAtLabel": "2026/01/23 20:00",
       "isToday": false,
       "translated": true
     },
@@ -848,7 +848,7 @@
       "translated": true
     },
     {
-      "id": "openai-news-18",
+      "id": "openai-news-20",
       "title": "为 Amazon Bedrock 中的代理引入有状态运行时环境",
       "titleOriginal": "Introducing the Stateful Runtime Environment for Agents in Amazon Bedrock",
       "link": "https://openai.com/index/introducing-the-stateful-runtime-environment-for-agents-in-amazon-bedrock",
@@ -872,6 +872,34 @@
       "language": "en",
       "publishedAt": "2026-02-27T05:30:00.000Z",
       "publishedAtLabel": "2026/02/27 13:30",
+      "isToday": false,
+      "translated": true
+    },
+    {
+      "id": "openai-news-2",
+      "title": "Descript 如何实现大规模多语言视频配音",
+      "titleOriginal": "How Descript enables multilingual video dubbing at scale",
+      "link": "https://openai.com/index/descript",
+      "description": "Descript 使用 OpenAI 模型来扩展多语言视频配音，优化含义和时间的翻译，使配音的语音在不同语言中听起来都很自然。",
+      "descriptionOriginal": "Descript uses OpenAI models to scale multilingual video dubbing, optimizing translations for both meaning and timing so dubbed speech sounds natural across languages.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
+      "importance": "watch",
+      "importanceScore": 43,
+      "reason": "官方发布 · 多模态与视频",
+      "tags": [
+        "多模态与视频",
+        "模型能力"
+      ],
+      "region": "global",
+      "regionLabel": "全球",
+      "language": "en",
+      "publishedAt": "2026-03-06T10:00:00.000Z",
+      "publishedAtLabel": "2026/03/06 18:00",
       "isToday": false,
       "translated": true
     },
@@ -906,33 +934,6 @@
     },
     {
       "id": "openai-news-9",
-      "title": "推出 ChatGPT for Excel 和新的财务数据集成",
-      "titleOriginal": "Introducing ChatGPT for Excel and new financial data integrations",
-      "link": "https://openai.com/index/chatgpt-for-excel",
-      "description": "OpenAI 推出了由 GPT-5.4 提供支持的 ChatGPT for Excel 和新的金融应用程序集成，以加速受监管环境中的建模、研究和分析。",
-      "descriptionOriginal": "OpenAI introduces ChatGPT for Excel and new financial app integrations, powered by GPT-5.4 to accelerate modeling, research, and analysis in regulated environments.",
-      "author": "",
-      "source": "OpenAI News",
-      "sourceLabel": "OpenAI 官方资讯",
-      "sourceUrl": "https://openai.com/news/rss.xml",
-      "publisherType": "official",
-      "category": "product",
-      "importance": "watch",
-      "importanceScore": 43,
-      "reason": "官方发布 · 模型能力",
-      "tags": [
-        "模型能力"
-      ],
-      "region": "global",
-      "regionLabel": "全球",
-      "language": "en",
-      "publishedAt": "2026-03-05T00:00:00.000Z",
-      "publishedAtLabel": "2026/03/05 08:00",
-      "isToday": false,
-      "translated": true
-    },
-    {
-      "id": "openai-news-10",
       "title": "推动业务重塑的五种人工智能价值模型",
       "titleOriginal": "The five AI value models driving business reinvention",
       "link": "https://openai.com/index/the-five-ai-value-models-driving-business-reinvention",
@@ -960,32 +961,31 @@
       "translated": true
     },
     {
-      "id": "leiphone-ai-88",
-      "title": "擎羽科技完成天使轮融资：宇树天使投资方领投，押注仿生柔性机器人",
-      "titleOriginal": "擎羽科技完成天使轮融资：宇树天使投资方领投，押注仿生柔性机器人",
-      "link": "https://www.leiphone.com/category/ai/1uKAuRYu562APkJt.html",
-      "description": "新生代柔性机器人企业获资本加持，技术落地再提速",
-      "descriptionOriginal": "新生代柔性机器人企业获资本加持，技术落地再提速",
-      "author": "雷峰网",
-      "source": "Leiphone AI",
-      "sourceLabel": "雷峰网",
-      "sourceUrl": "https://www.leiphone.com/category/ai",
-      "publisherType": "media",
-      "category": "funding",
+      "id": "openai-news-11",
+      "title": "推出 ChatGPT for Excel 和新的财务数据集成",
+      "titleOriginal": "Introducing ChatGPT for Excel and new financial data integrations",
+      "link": "https://openai.com/index/chatgpt-for-excel",
+      "description": "OpenAI 推出了由 GPT-5.4 提供支持的 ChatGPT for Excel 和新的金融应用程序集成，以加速受监管环境中的建模、研究和分析。",
+      "descriptionOriginal": "OpenAI introduces ChatGPT for Excel and new financial app integrations, powered by GPT-5.4 to accelerate modeling, research, and analysis in regulated environments.",
+      "author": "",
+      "source": "OpenAI News",
+      "sourceLabel": "OpenAI 官方资讯",
+      "sourceUrl": "https://openai.com/news/rss.xml",
+      "publisherType": "official",
+      "category": "product",
       "importance": "watch",
       "importanceScore": 43,
-      "reason": "国内动态 · 企业应用",
+      "reason": "官方发布 · 模型能力",
       "tags": [
-        "企业应用",
-        "投融资"
+        "模型能力"
       ],
-      "region": "china",
-      "regionLabel": "中国",
-      "language": "zh",
-      "publishedAt": "2026-03-04T08:24:00.000Z",
-      "publishedAtLabel": "2026/03/04 16:24",
+      "region": "global",
+      "regionLabel": "全球",
+      "language": "en",
+      "publishedAt": "2026-03-05T00:00:00.000Z",
+      "publishedAtLabel": "2026/03/05 08:00",
       "isToday": false,
-      "translated": false
+      "translated": true
     }
   ]
 }

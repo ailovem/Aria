@@ -3,8 +3,8 @@ import './DownloadHub.css';
 
 const DEFAULT_RELEASE_INFO = {
   version: import.meta.env.VITE_ARIA_RELEASE_VERSION || 'v0.1.10',
-  publishedAt: import.meta.env.VITE_ARIA_RELEASE_DATE || '2026-03-08',
-  changelogUrl: import.meta.env.VITE_ARIA_CHANGELOG_URL || 'https://github.com/ailovem/Aria/releases/tag/v0.1.10',
+  publishedAt: import.meta.env.VITE_ARIA_RELEASE_DATE || '2026-03-10',
+  changelogUrl: import.meta.env.VITE_ARIA_CHANGELOG_URL || 'https://ailovem.com/changelog.html',
   downloads: {
     macos: {
       files: '.dmg（Apple Silicon / Intel）',
@@ -84,7 +84,7 @@ const formatClientLabel = (clientInfo) => {
 
 const DownloadHub = () => {
   const [releaseInfo, setReleaseInfo] = useState(DEFAULT_RELEASE_INFO);
-  const [clientInfo, setClientInfo] = useState({ os: 'unknown', arch: 'unknown' });
+  const [clientInfo, setClientInfo] = useState(() => detectClientInfoSync());
 
   useEffect(() => {
     let active = true;
@@ -113,7 +113,6 @@ const DownloadHub = () => {
 
   useEffect(() => {
     const detected = detectClientInfoSync();
-    setClientInfo(detected);
 
     if (
       typeof navigator !== 'undefined' &&

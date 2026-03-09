@@ -1,8 +1,8 @@
 {
   "version": "v0.1.10",
-  "publishedAt": "2026-03-08",
+  "publishedAt": "2026-03-10",
   "channel": "stable",
-  "changelogUrl": "https://github.com/ailovem/Aria/releases/tag/v0.1.10",
+  "changelogUrl": "https://ailovem.com/changelog.html",
   "downloads": {
     "macos": {
       "files": ".dmg（Apple Silicon / Intel）",
