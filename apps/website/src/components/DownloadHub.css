@@ -43,6 +43,35 @@
     font-size: 0.86rem;
 }
 
+.download-alert {
+    margin: 0.8rem auto 0;
+    max-width: 820px;
+    text-align: left;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.download-alert-title {
+    margin: 0;
+    color: var(--text-primary);
+    font-weight: 700;
+    font-size: 0.94rem;
+}
+
+.download-alert-list {
+    margin: 0.5rem 0 0;
+    padding-left: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.86rem;
+    line-height: 1.55;
+}
+
+.download-alert-list li + li {
+    margin-top: 0.25rem;
+}
+
 .download-card {
     padding: 2rem;
     display: flex;
@@ -113,5 +142,10 @@
     .smart-download-button {
         width: 100%;
         min-width: 0;
+    }
+
+    .download-alert {
+        margin-top: 0.7rem;
+        padding: 0.75rem 0.85rem;
     }
 }

@@ -254,6 +254,37 @@ const DownloadHub = () => {
     }
   ]), [releaseInfo, clientInfo]);
 
+  const installNotice = useMemo(() => {
+    if (clientInfo.os === 'macos') {
+      return {
+        title: '未备案阶段可正常下载（macOS）',
+        steps: [
+          '当前安装包托管在 GitHub Releases，未备案阶段也可正常下载安装。',
+          '如果提示“Aria 已损坏，无法打开”：先把 App 拖到“应用程序”，再在终端执行：xattr -dr com.apple.quarantine /Applications/Aria.app',
+          '执行后右键 Aria.app 选择“打开”一次，后续可正常双击启动。'
+        ]
+      };
+    }
+    if (clientInfo.os === 'windows') {
+      return {
+        title: '未备案阶段可正常下载（Windows）',
+        steps: [
+          '当前安装包托管在 GitHub Releases，未备案阶段也可正常下载安装。',
+          '如果出现 SmartScreen “Windows 已保护你的电脑”：点击“更多信息” -> “仍要运行”。',
+          '安装完成后可正常启动，不影响功能使用。'
+        ]
+      };
+    }
+    return {
+      title: '未备案阶段可正常下载使用',
+      steps: [
+        '当前安装包托管在 GitHub Releases，未备案阶段也可正常下载安装。',
+        'macOS 若提示“已损坏/无法打开”，按下载区下方指引处理一次即可。',
+        'Windows 若出现 SmartScreen 提示，点击“更多信息” -> “仍要运行”。'
+      ]
+    };
+  }, [clientInfo]);
+
   return (
     <section id="download" className="section download-section">
       <div className="container">
@@ -277,6 +308,14 @@ const DownloadHub = () => {
             ) : null}
             <p className="smart-download-note">{smartDownload.note}</p>
           </div>
+          <div className="download-alert">
+            <p className="download-alert-title">{installNotice.title}</p>
+            <ul className="download-alert-list">
+              {installNotice.steps.map((step) => (
+                <li key={step}>{step}</li>
+              ))}
+            </ul>
+          </div>
         </div>
 
         <div className="download-grid reveal reveal-delay-2">
@@ -299,7 +338,7 @@ const DownloadHub = () => {
         </div>
 
         <div className="download-notes reveal reveal-delay-3">
-          <p>发布建议：官网同时提供“最新稳定版 + 变更日志 + 历史版本 + 校验值”。</p>
+          <p>当前下载源：GitHub Releases（海外）。备案完成后会补充中国内地加速下载入口。</p>
           <p>内测/灰度建议：先发布 Canary 通道，稳定后再推正式版。</p>
           <p>
             更新记录：
