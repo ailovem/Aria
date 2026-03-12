@@ -48,12 +48,20 @@ npm run sync:ai-conan
 如需接入共享评论/点赞 API，可在构建时注入：
 
 - `VITE_ARIA_SITE_API_BASE`
+- `VITE_ARIA_SITE_USE_RELATIVE_API`
 
 示例：
 
 ```bash
 VITE_ARIA_SITE_API_BASE="https://api.example.com" npm run build
 ```
+
+如需让 `鹿鸣健康 -> 药品查询与健康指南` 以正式版能力上线，建议至少满足下面其一：
+
+- 构建时注入 `VITE_ARIA_SITE_API_BASE="https://你的公开 API 域名"`
+- 通过同域反向代理提供 `/v1/public/drug/*`，并注入 `VITE_ARIA_SITE_USE_RELATIVE_API="true"`
+
+如果两个变量都不配，页面会退回到基础公开检索模式：能展示常见药中文速览与官方入口，但完整官方标签、图片和知识聚合能力不会完整开启。
 
 ## GitHub Pages + `ailovem.com` 上线
 
@@ -68,6 +76,11 @@ VITE_ARIA_SITE_API_BASE="https://api.example.com" npm run build
 2. 进入仓库 `Settings -> Pages`，选择 `GitHub Actions`
 3. 在域名 DNS 配置 `ailovem.com` 到 GitHub Pages
 4. 等待 workflow 完成后访问 `https://ailovem.com`
+
+若要让药品查询板块在 GitHub Pages 上直接进入正式版，请在仓库 `Settings -> Secrets and variables -> Actions -> Variables` 中配置：
+
+- `ARIA_SITE_API_BASE=https://你的公开 API 域名`
+- 如你走同域反代，可改为配置 `ARIA_SITE_USE_RELATIVE_API=true`
 
 DNS 建议（GitHub Pages 官方常用）：
 

@@ -1,10 +1,15 @@
 import React, { useMemo, useState } from 'react';
 import './LumingHealthEntry.css';
+import {
+    CHRONIC_GUIDES,
+    COMMON_DRUG_QUICK_QUERIES,
+    DRUG_REFERENCE_LIBRARY,
+    FREE_OFFICIAL_SOURCES,
+    MEDICAL_VISIT_CHECKLIST
+} from './lumingHealthData';
 
-const DRUG_AI_ENDPOINT = (import.meta.env.VITE_DRUG_AI_ENDPOINT || '').trim();
-const DRUG_AI_MODEL = (import.meta.env.VITE_DRUG_AI_MODEL || 'deepseek-v3').trim();
-// OpenFDA 不支持 CORS，需经代理。配置 VITE_DRUG_FDA_PROXY 指向 Aria API（如 http://localhost:8787），否则使用公共 CORS 代理
 const DRUG_FDA_PROXY = (import.meta.env.VITE_DRUG_FDA_PROXY || '').trim();
+const SAME_ORIGIN_SITE_API_ENABLED = String(import.meta.env.VITE_ARIA_SITE_USE_RELATIVE_API || '').trim().toLowerCase() === 'true';
 
 const LUMING_ENTRIES = [
     {
@@ -159,215 +164,671 @@ const LUMING_ENTRIES = [
     },
     {
         id: 'drug-check',
-        name: '药品查查',
+        name: '药品查询与健康指南',
         tag: '入口 06',
-        summary: '基于公开药品标签数据提供查询入口，支持药品名检索、用途摘要和公开来源跳转。',
+        summary: '围绕常用药品说明、慢病管理重点和复诊准备建议，提供清晰、可继续行动的查询入口。',
         features: [
-            '查询输入框：支持英文商品名或通用名检索。',
-            '公开数据聚合：显示品牌名、通用名、厂家与用途摘要。',
-            'AI 封装预留：支持配置 DeepSeek-V3 封装接口做二次解读。'
+            '药品信息查询：支持常见中文名称、品牌名和英文通用名检索。',
+            '用药参考：整合 FDA、RxNorm、MedlinePlus、DailyMed 等公开官方信息。',
+            '健康指南：围绕慢病管理与复诊准备提供简洁建议。'
         ],
         links: [
             { label: 'OpenFDA Drug Label API', url: 'https://open.fda.gov/apis/drug/label/' },
-            { label: 'FDA openfda（GitHub）', url: 'https://github.com/FDA/openfda' },
-            { label: 'DeepSeek-V3（GitHub）', url: 'https://github.com/deepseek-ai/DeepSeek-V3' },
-            { label: 'DailyMed 查询', url: 'https://dailymed.nlm.nih.gov/dailymed/search.cfm' }
+            { label: 'DailyMed Web Services', url: 'https://dailymed.nlm.nih.gov/dailymed/app-support-web-services.cfm' },
+            { label: 'RxNorm / RxNav API', url: 'https://lhncbc.nlm.nih.gov/RxNav/APIs/' },
+            { label: 'MedlinePlus Connect', url: 'https://medlineplus.gov/connect/overview.html' }
         ],
-        disclaimer: '药品查查用于公开信息检索与科普，不构成用药医嘱。'
+        disclaimer: '药品查询和健康指南仅用于公开信息参考，不替代医生、药师的个体化诊疗与用药建议。'
     }
 ];
 
-const formatSnippet = (value) => String(value || '').replace(/\s+/g, ' ').trim();
+const formatSnippet = (value, limit = 180) => String(value || '').replace(/\s+/g, ' ').trim().slice(0, limit);
 
-// OpenFDA 仅支持英文搜索，常用中文药品名映射到英文通用名
-const DRUG_ZH_TO_EN = {
-    阿司匹林: 'aspirin',
-    布洛芬: 'ibuprofen',
-    对乙酰氨基酚: 'acetaminophen',
-    扑热息痛: 'acetaminophen',
-    泰诺: 'acetaminophen',
+const normalizeLookupValue = (value) => String(value || '')
+    .toLowerCase()
+    .replace(/\s+/g, '')
+    .replace(/[^a-z0-9\u4e00-\u9fa5]/g, '');
+
+const DRUG_ALIAS_TO_API_TERM = {
     维生素c: 'ascorbic acid',
     维生素C: 'ascorbic acid',
     维他命c: 'ascorbic acid',
-    阿莫西林: 'amoxicillin',
     头孢: 'cephalexin',
     头孢氨苄: 'cephalexin',
     甲硝唑: 'metronidazole',
-    奥美拉唑: 'omeprazole',
     雷贝拉唑: 'rabeprazole',
     埃索美拉唑: 'esomeprazole',
-    二甲双胍: 'metformin',
     阿卡波糖: 'acarbose',
     格列美脲: 'glimepiride',
     瑞格列奈: 'repaglinide',
     辛伐他汀: 'simvastatin',
-    阿托伐他汀: 'atorvastatin',
     硝苯地平: 'nifedipine',
-    氨氯地平: 'amlodipine',
-    氯沙坦: 'losartan',
-    缬沙坦: 'valsartan',
     氯雷他定: 'loratadine',
     西替利嗪: 'cetirizine',
     地氯雷他定: 'desloratadine',
-    孟鲁司特: 'montelukast',
+    孟鲁司特: 'montelukast'
 };
 
-const normalizeDrugResults = (results) => {
-    if (!Array.isArray(results)) return [];
-    return results.slice(0, 5).map((item, index) => {
+const ROUTE_LABELS_ZH = {
+    ORAL: '口服',
+    TOPICAL: '外用',
+    INTRAVENOUS: '静脉注射',
+    INJECTION: '注射',
+    INHALATION: '吸入',
+    NASAL: '鼻用',
+    OPHTHALMIC: '眼用',
+    OTIC: '耳用',
+    RECTAL: '直肠用',
+    TRANSDERMAL: '透皮',
+    SUBCUTANEOUS: '皮下注射'
+};
+
+const TERM_TYPE_LABELS_ZH = {
+    IN: '通用名',
+    BN: '品牌名',
+    SCD: '标准临床药品',
+    SBD: '标准品牌药品',
+    GPCK: '通用药品包装',
+    BPCK: '品牌药品包装'
+};
+
+const DRUG_API_MODE_COPY = {
+    remote: {
+        badge: '正式版药学接口已接通',
+        description: '当前页面会优先查询 Aria 公共药学 API，再聚合 OpenFDA、RxNorm、DailyMed 和 MedlinePlus 的公开信息。'
+    },
+    sameOrigin: {
+        badge: '同域药学接口已接通',
+        description: '当前站点已通过同域接口提供完整药品查询能力，适合联调、预发布和正式部署。'
+    },
+    fallback: {
+        badge: '当前为基础公开检索模式',
+        description: '站点尚未接入 Aria 公共药学 API。常见药可先查看中文速览与官方入口，完整官方标签与图片建议在正式环境接入 API 后使用。'
+    }
+};
+
+const buildDailyMedLink = (keyword) => `https://dailymed.nlm.nih.gov/dailymed/search.cfm?query=${encodeURIComponent(formatSnippet(keyword) || 'aspirin')}`;
+
+const buildReferenceAliasIndex = () => {
+    const aliasToApiTerm = { ...DRUG_ALIAS_TO_API_TERM };
+    const aliasRows = [];
+
+    DRUG_REFERENCE_LIBRARY.forEach((entry) => {
+        const aliases = [entry.canonicalName, entry.englishName, ...(entry.aliases || [])];
+        aliases.forEach((alias) => {
+            const normalizedAlias = normalizeLookupValue(alias);
+            if (!normalizedAlias) {
+                return;
+            }
+            aliasRows.push({
+                normalizedAlias,
+                entry
+            });
+            aliasToApiTerm[alias] = entry.apiSearchTerms?.[0] || entry.englishName || '';
+            aliasToApiTerm[normalizedAlias] = entry.apiSearchTerms?.[0] || entry.englishName || '';
+        });
+    });
+
+    return {
+        aliasRows,
+        aliasToApiTerm
+    };
+};
+
+const { aliasRows: DRUG_REFERENCE_ALIASES, aliasToApiTerm: DRUG_ALIAS_SEARCH_MAP } = buildReferenceAliasIndex();
+
+const resolveDrugApiContext = () => {
+    const explicitBase = String(import.meta.env.VITE_ARIA_SITE_API_BASE || '').trim();
+    if (explicitBase) {
+        return {
+            mode: 'remote',
+            base: explicitBase.replace(/\/$/, '')
+        };
+    }
+
+    if (DRUG_FDA_PROXY) {
+        return {
+            mode: 'remote',
+            base: DRUG_FDA_PROXY.replace(/\/$/, '')
+        };
+    }
+
+    if (typeof window === 'undefined') {
+        return {
+            mode: 'fallback',
+            base: ''
+        };
+    }
+
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+        return {
+            mode: 'sameOrigin',
+            base: ''
+        };
+    }
+
+    if (SAME_ORIGIN_SITE_API_ENABLED) {
+        return {
+            mode: 'sameOrigin',
+            base: ''
+        };
+    }
+
+    return {
+        mode: 'fallback',
+        base: ''
+    };
+};
+
+const buildPublicApiUrl = (path, apiContext) => {
+    if (!apiContext || apiContext.mode === 'fallback') {
+        return '';
+    }
+    if (apiContext.mode === 'sameOrigin') {
+        return path;
+    }
+    return `${apiContext.base}${path}`;
+};
+
+const resolveDrugReference = (...values) => {
+    const candidates = values
+        .flat()
+        .map((item) => normalizeLookupValue(item))
+        .filter(Boolean);
+
+    if (!candidates.length) {
+        return null;
+    }
+
+    let bestEntry = null;
+    let bestScore = 0;
+
+    DRUG_REFERENCE_ALIASES.forEach(({ normalizedAlias, entry }) => {
+        candidates.forEach((candidate) => {
+            let score = 0;
+            if (normalizedAlias === candidate) score = 140;
+            else if (normalizedAlias.startsWith(candidate)) score = 110;
+            else if (candidate.startsWith(normalizedAlias)) score = 102;
+            else if (normalizedAlias.includes(candidate)) score = 88;
+            else if (candidate.includes(normalizedAlias)) score = 80;
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestEntry = entry;
+            }
+        });
+    });
+
+    return bestScore >= 80 ? bestEntry : null;
+};
+
+const translateRouteLabel = (value) => {
+    const route = String(value || '').trim();
+    if (!route) {
+        return '未提供';
+    }
+    const parts = route.split(/[/,]/).map((item) => item.trim()).filter(Boolean);
+    const translated = parts.map((item) => ROUTE_LABELS_ZH[item.toUpperCase()] || item);
+    return translated.join(' / ');
+};
+
+const translateTermTypeLabel = (value) => TERM_TYPE_LABELS_ZH[String(value || '').trim().toUpperCase()] || String(value || '未提供');
+
+const buildDrugSearchExpressions = (keyword) => {
+    const safeKeyword = keyword.replace(/"/g, '\\"').trim();
+    const firstToken = safeKeyword.split(/\s+/).filter(Boolean)[0] || safeKeyword;
+    const wildcardToken = firstToken.replace(/[^a-zA-Z0-9.-]/g, '');
+    const expressions = [
+        `openfda.generic_name:"${safeKeyword}"`,
+        `openfda.brand_name:"${safeKeyword}"`,
+        `openfda.substance_name:"${safeKeyword}"`
+    ];
+
+    if (firstToken && firstToken !== safeKeyword) {
+        expressions.push(
+            `openfda.generic_name:"${firstToken}"`,
+            `openfda.brand_name:"${firstToken}"`,
+            `openfda.substance_name:"${firstToken}"`
+        );
+    }
+
+    expressions.push([
+        `openfda.brand_name:"${safeKeyword}"`,
+        `openfda.generic_name:"${safeKeyword}"`,
+        `openfda.substance_name:"${safeKeyword}"`
+    ].join(' OR '));
+
+    if (wildcardToken) {
+        expressions.push(
+            `openfda.generic_name:${wildcardToken}`,
+            `openfda.brand_name:${wildcardToken}`,
+            `openfda.substance_name:${wildcardToken}`,
+            `openfda.generic_name:${wildcardToken}*`,
+            `openfda.brand_name:${wildcardToken}*`,
+            `openfda.substance_name:${wildcardToken}*`
+        );
+    }
+
+    return [...new Set(expressions.filter(Boolean))];
+};
+
+const buildDrugSearchEndpoint = (expression, apiContext) => {
+    const apiUrl = buildPublicApiUrl(
+        `/v1/public/drug/label?search=${encodeURIComponent(expression)}&limit=12`,
+        apiContext
+    );
+
+    if (apiUrl) {
+        return apiUrl;
+    }
+
+    return `https://api.allorigins.win/raw?url=${encodeURIComponent(`https://api.fda.gov/drug/label.json?search=${encodeURIComponent(expression)}&limit=12`)}`;
+};
+
+const parseDrugPayload = async (response) => {
+    const rawText = await response.text();
+    try {
+        return JSON.parse(rawText);
+    } catch {
+        throw new Error('药品信息加载失败，请稍后重试。');
+    }
+};
+
+const resolveDrugSearchErrorMessage = (message, statusCode) => {
+    const content = String(message || '').trim();
+    if (/No matches found/i.test(content)) {
+        return '暂未找到完全匹配的公开药品信息。';
+    }
+    if (/aborted due to timeout/i.test(content) || /\btimeout\b/i.test(content)) {
+        return '上游官方药品接口响应超时';
+    }
+    if (/failed to fetch/i.test(content) || /network/i.test(content)) {
+        return '当前药品接口暂时不可达';
+    }
+    if (/search not supported/i.test(content) || /invalid.*search/i.test(content)) {
+        return '当前关键词识别不稳定，请尝试更完整的药品名称。';
+    }
+    if (content) {
+        return content;
+    }
+    if (statusCode) {
+        return `药品信息查询失败（HTTP ${statusCode}）`;
+    }
+    return '药品信息查询失败，请稍后重试。';
+};
+
+const buildRetryKeywords = (keyword, knowledge, drugReference) => {
+    const values = [];
+    const seen = new Set();
+    const push = (value) => {
+        const formatted = formatSnippet(value, 120);
+        const key = normalizeLookupValue(formatted);
+        if (!formatted || !key || seen.has(key)) {
+            return;
+        }
+        seen.add(key);
+        values.push(formatted);
+    };
+
+    push(keyword);
+    push(knowledge?.matchedName);
+    if (Array.isArray(drugReference?.apiSearchTerms)) {
+        drugReference.apiSearchTerms.slice(0, 3).forEach(push);
+    }
+    if (Array.isArray(drugReference?.aliases)) {
+        drugReference.aliases.slice(0, 4).forEach(push);
+    }
+    if (Array.isArray(knowledge?.commonBrands)) {
+        knowledge.commonBrands.slice(0, 3).forEach(push);
+    }
+
+    return values;
+};
+
+const resolveGuideMatches = (values) => {
+    const normalizedValues = values.map((value) => normalizeLookupValue(value)).filter(Boolean);
+    if (!normalizedValues.length) {
+        return [];
+    }
+
+    return CHRONIC_GUIDES.filter((guide) => guide.keywords.some((keyword) => {
+        const normalizedKeyword = normalizeLookupValue(keyword);
+        return normalizedValues.some((value) => value.includes(normalizedKeyword) || normalizedKeyword.includes(value));
+    })).map((guide) => guide.id);
+};
+
+const normalizeDrugResults = (results, keyword) => {
+    if (!Array.isArray(results)) {
+        return [];
+    }
+
+    const query = normalizeLookupValue(keyword);
+    const scoreResult = (item) => {
+        const rawBrand = String(item.brand || '').toLowerCase();
+        const rawGeneric = String(item.generic || '').toLowerCase();
+        const brand = normalizeLookupValue(item.brand);
+        const generic = normalizeLookupValue(item.generic);
+        const ingredient = normalizeLookupValue(item.activeIngredient);
+        let score = 0;
+
+        if (generic === query || brand === query) score += 120;
+        if (generic.startsWith(query)) score += 100;
+        if (brand.startsWith(query)) score += 90;
+        if (ingredient.startsWith(query)) score += 80;
+        if (generic.includes(query)) score += 60;
+        if (brand.includes(query)) score += 50;
+        if (ingredient.includes(query)) score += 40;
+        if (/ and |\//.test(rawGeneric) || / and |\//.test(rawBrand)) score -= 18;
+        if (/hydrochloride|calcium|sodium/.test(rawGeneric)) score += 8;
+        return score;
+    };
+
+    return results.map((item, index) => {
         const openfda = item.openfda || {};
         const brand = openfda.brand_name?.[0] || `结果 ${index + 1}`;
         const generic = openfda.generic_name?.[0] || '未提供';
         const manufacturer = openfda.manufacturer_name?.[0] || '未提供';
-        const usageRaw = item.indications_and_usage?.[0] || item.purpose?.[0] || item.description?.[0] || '未提供用途说明';
+        const purpose = formatSnippet(item.purpose?.[0] || item.indications_and_usage?.[0] || '未提供用途说明', 180);
+        const usage = formatSnippet(item.indications_and_usage?.[0] || item.description?.[0] || item.dosage_and_administration?.[0], 180);
+        const activeIngredient = formatSnippet(item.active_ingredient?.[0] || openfda.substance_name?.join(' / '), 160);
+        const warning = formatSnippet(item.warnings?.[0] || item.do_not_use?.[0] || item.stop_use?.[0], 160);
+        const route = translateRouteLabel(openfda.route?.[0] || '未提供');
+        const dailyMedKeyword = generic !== '未提供' ? generic : brand;
+
         return {
+            id: `${brand}-${generic}-${index}`,
             brand,
             generic,
             manufacturer,
-            usage: formatSnippet(usageRaw).slice(0, 180)
+            purpose,
+            usage,
+            activeIngredient,
+            warning,
+            route,
+            splSetId: openfda.spl_set_id?.[0] || '',
+            dailyMedLink: buildDailyMedLink(dailyMedKeyword)
         };
-    });
+    }).sort((left, right) => scoreResult(right) - scoreResult(left)).slice(0, 5);
 };
 
-const resolveApiError = async (response) => {
-    try {
-        const payload = await response.json();
-        return payload?.error?.message || `查询失败（HTTP ${response.status}）`;
-    } catch {
-        return `查询失败（HTTP ${response.status}）`;
+const requestDrugKnowledge = async (keyword, apiContext) => {
+    const apiUrl = buildPublicApiUrl(`/v1/public/drug/knowledge?name=${encodeURIComponent(keyword)}`, apiContext);
+    if (!apiUrl) {
+        return null;
     }
+    try {
+        const response = await fetch(apiUrl, {
+            cache: 'no-store'
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload?.ok) {
+            return null;
+        }
+        return payload.knowledge || null;
+    } catch {
+        return null;
+    }
+};
+
+const requestDrugMedia = async (setId, apiContext) => {
+    const apiUrl = buildPublicApiUrl(`/v1/public/drug/media?setid=${encodeURIComponent(setId)}`, apiContext);
+    if (!apiUrl || !setId) {
+        return [];
+    }
+    try {
+        const response = await fetch(apiUrl, {
+            cache: 'no-store'
+        });
+        const payload = await response.json();
+        if (!response.ok || !payload?.ok || !Array.isArray(payload.media)) {
+            return [];
+        }
+        return payload.media;
+    } catch {
+        return [];
+    }
+};
+
+const buildDrugOfficialLinks = (keyword, drugReference, drugKnowledge) => {
+    const searchSeed = formatSnippet(
+        drugReference?.englishName
+        || drugReference?.apiSearchTerms?.[0]
+        || drugKnowledge?.matchedName
+        || keyword,
+        120
+    ) || 'aspirin';
+
+    const links = [
+        {
+            label: '查看 DailyMed 官方说明',
+            url: buildDailyMedLink(searchSeed)
+        },
+        {
+            label: '了解 OpenFDA 官方标签字段',
+            url: `https://open.fda.gov/apis/drug/label/searchable-fields/`
+        }
+    ];
+
+    if (drugKnowledge?.patientEducation?.url) {
+        links.unshift({
+            label: '打开 MedlinePlus 患者教育',
+            url: drugKnowledge.patientEducation.url
+        });
+    }
+
+    return links;
 };
 
 const LumingHealthEntry = () => {
     const [activeEntryId, setActiveEntryId] = useState(LUMING_ENTRIES[0].id);
     const [activePromptIndex, setActivePromptIndex] = useState(0);
+    const [activeGuideId, setActiveGuideId] = useState(CHRONIC_GUIDES[0].id);
+    const [matchedGuideIds, setMatchedGuideIds] = useState([]);
     const [drugKeyword, setDrugKeyword] = useState('');
     const [drugLoading, setDrugLoading] = useState(false);
     const [drugError, setDrugError] = useState('');
+    const [drugNotice, setDrugNotice] = useState('');
     const [drugResults, setDrugResults] = useState([]);
-    const [drugInsight, setDrugInsight] = useState('');
-    const [drugInsightLoading, setDrugInsightLoading] = useState(false);
-    const [drugInsightError, setDrugInsightError] = useState('');
+    const [drugKnowledgeLoading, setDrugKnowledgeLoading] = useState(false);
+    const [drugKnowledgeError, setDrugKnowledgeError] = useState('');
+    const [drugKnowledge, setDrugKnowledge] = useState(null);
+    const [drugMediaMap, setDrugMediaMap] = useState({});
+    const [drugReference, setDrugReference] = useState(null);
+
+    const apiContext = useMemo(() => resolveDrugApiContext(), []);
+    const apiModeCopy = DRUG_API_MODE_COPY[apiContext.mode] || DRUG_API_MODE_COPY.fallback;
 
     const activeEntry = useMemo(
         () => LUMING_ENTRIES.find((item) => item.id === activeEntryId) || LUMING_ENTRIES[0],
         [activeEntryId]
     );
-
     const activePrompt = activeEntry.demoPrompts?.[activePromptIndex];
+    const activeGuide = useMemo(
+        () => CHRONIC_GUIDES.find((item) => item.id === activeGuideId) || CHRONIC_GUIDES[0],
+        [activeGuideId]
+    );
+    const matchedGuideNames = useMemo(
+        () => matchedGuideIds
+            .map((guideId) => CHRONIC_GUIDES.find((guide) => guide.id === guideId)?.name)
+            .filter(Boolean)
+            .join('、'),
+        [matchedGuideIds]
+    );
+    const drugOfficialLinks = useMemo(
+        () => buildDrugOfficialLinks(drugKeyword, drugReference, drugKnowledge),
+        [drugKeyword, drugReference, drugKnowledge]
+    );
+
+    const resetDrugWorkspace = () => {
+        setDrugError('');
+        setDrugNotice('');
+        setDrugResults([]);
+        setMatchedGuideIds([]);
+        setDrugKnowledge(null);
+        setDrugKnowledgeError('');
+        setDrugKnowledgeLoading(false);
+        setDrugMediaMap({});
+        setDrugReference(null);
+    };
 
     const handleSelectEntry = (entryId) => {
         setActiveEntryId(entryId);
         setActivePromptIndex(0);
-        setDrugError('');
-        setDrugResults([]);
-        setDrugInsight('');
-        setDrugInsightError('');
+        resetDrugWorkspace();
     };
 
-    const handleDrugSearch = async (event) => {
-        event.preventDefault();
-        let keyword = formatSnippet(drugKeyword);
+    const searchDrug = async (rawKeyword) => {
+        let keyword = formatSnippet(rawKeyword);
         if (!keyword) {
-            setDrugError('请输入药品名（支持中文或英文），例如 阿司匹林 / aspirin。');
+            setDrugError('请输入药品名称，例如阿司匹林、氨氯地平或 aspirin。');
+            setDrugNotice('');
             setDrugResults([]);
+            setDrugKnowledge(null);
+            setDrugKnowledgeError('');
+            setDrugMediaMap({});
+            setDrugReference(null);
             return;
         }
-        // OpenFDA 不支持中文，将常用中文药品名映射到英文
-        const keyNorm = keyword.replace(/\s+/g, '');
-        const mapped = DRUG_ZH_TO_EN[keyword] || DRUG_ZH_TO_EN[keyNorm] || DRUG_ZH_TO_EN[keyword.toLowerCase?.()] || DRUG_ZH_TO_EN[keyNorm.toLowerCase?.()];
-        if (mapped) keyword = mapped;
+
+        const normalizedKeyword = keyword.replace(/\s+/g, '');
+        const nextDrugReference = resolveDrugReference(keyword, normalizedKeyword);
+        const mappedKeyword = DRUG_ALIAS_SEARCH_MAP[keyword]
+            || DRUG_ALIAS_SEARCH_MAP[normalizedKeyword]
+            || DRUG_ALIAS_SEARCH_MAP[keyword.toLowerCase?.()]
+            || DRUG_ALIAS_SEARCH_MAP[normalizedKeyword.toLowerCase?.()]
+            || nextDrugReference?.apiSearchTerms?.[0];
+
+        if (mappedKeyword) {
+            keyword = mappedKeyword;
+        }
+
+        setDrugReference(nextDrugReference);
+
+        const keywordKnowledge = await requestDrugKnowledge(keyword, apiContext);
+        const retryKeywords = buildRetryKeywords(keyword, keywordKnowledge, nextDrugReference);
+        const keywordMatches = resolveGuideMatches([rawKeyword, ...retryKeywords]);
+        setMatchedGuideIds(keywordMatches);
+        if (nextDrugReference?.guideIds?.[0]) {
+            setActiveGuideId(nextDrugReference.guideIds[0]);
+        } else if (keywordMatches[0]) {
+            setActiveGuideId(keywordMatches[0]);
+        }
 
         setDrugLoading(true);
         setDrugError('');
-        setDrugInsight('');
-        setDrugInsightError('');
+        setDrugNotice(nextDrugReference
+            ? '已匹配到中文用药速览，会同时补充公开官方标签与患者教育资料。'
+            : apiContext.mode === 'fallback'
+                ? '当前站点未接入 Aria 公共药学 API，将优先展示基础公开检索结果。'
+                : '');
         setDrugResults([]);
+        setDrugKnowledge(null);
+        setDrugKnowledgeError('');
+        setDrugKnowledgeLoading(false);
+        setDrugMediaMap({});
 
         try {
-            const query = encodeURIComponent(`openfda.brand_name:"${keyword}"+openfda.generic_name:"${keyword}"`);
-            const fdaUrl = `https://api.fda.gov/drug/label.json?search=${query}&limit=5`;
-            let response;
-            if (DRUG_FDA_PROXY) {
-                response = await fetch(
-                    `${DRUG_FDA_PROXY.replace(/\/$/, '')}/v1/public/drug/label?search=${encodeURIComponent(`openfda.brand_name:"${keyword}"+openfda.generic_name:"${keyword}"`)}&limit=5`
-                );
-            } else {
-                response = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(fdaUrl)}`);
-            }
-            const rawText = await response.text();
-            let payload;
-            try {
-                payload = JSON.parse(rawText);
-            } catch {
-                throw new Error('药品数据解析失败，请稍后重试。');
-            }
-            if (payload?.error?.message) {
-                const msg = payload.error.message;
-                if (/search not supported/i.test(msg) || /invalid.*search/i.test(msg)) {
-                    throw new Error('当前关键词暂不支持，请尝试英文名如 aspirin（阿司匹林）、ibuprofen（布洛芬）。');
+            let nextResults = [];
+            let lastMessage = '';
+
+            for (const searchKeyword of retryKeywords) {
+                const expressions = buildDrugSearchExpressions(searchKeyword);
+                for (const expression of expressions) {
+                    const response = await fetch(buildDrugSearchEndpoint(expression, apiContext));
+                    const payload = await parseDrugPayload(response);
+                    const message = payload?.error?.message || '';
+
+                    if (message) {
+                        lastMessage = resolveDrugSearchErrorMessage(message, response.status);
+                        if (/No matches found/i.test(message) || /search not supported/i.test(message) || /invalid.*search/i.test(message)) {
+                            continue;
+                        }
+                        throw new Error(lastMessage);
+                    }
+
+                    if (apiContext.mode !== 'fallback' && !response.ok) {
+                        throw new Error(resolveDrugSearchErrorMessage(payload?.error?.message, response.status));
+                    }
+
+                    nextResults = normalizeDrugResults(payload?.results, searchKeyword);
+                    if (nextResults.length) {
+                        break;
+                    }
                 }
-                throw new Error(msg);
+                if (nextResults.length) {
+                    break;
+                }
             }
-            if (DRUG_FDA_PROXY && !response.ok) {
-                throw new Error(payload?.error?.message || `查询失败（HTTP ${response.status}）`);
-            }
-            const nextResults = normalizeDrugResults(payload?.results);
+
             if (!nextResults.length) {
-                setDrugError('未查到公开标签数据，可尝试英文通用名或换一个关键词。');
+                if (nextDrugReference) {
+                    setDrugNotice(lastMessage
+                        ? `${lastMessage}，已先展示中文用药速览与官方入口。`
+                        : '当前未返回完整官方标签，已先展示中文用药速览与官方入口。');
+                } else {
+                    setDrugError(lastMessage || '暂未找到匹配的公开药品信息，请尝试通用名、品牌名或更完整的英文名。');
+                }
+                if (keywordKnowledge) {
+                    setDrugKnowledge(keywordKnowledge);
+                }
                 return;
             }
+
+            const resultMatches = resolveGuideMatches([
+                rawKeyword,
+                keyword,
+                ...nextResults.map((item) => item.brand),
+                ...nextResults.map((item) => item.generic),
+                ...nextResults.map((item) => item.activeIngredient)
+            ]);
+            setMatchedGuideIds(resultMatches);
+            if (nextDrugReference?.guideIds?.[0]) {
+                setActiveGuideId(nextDrugReference.guideIds[0]);
+            } else if (resultMatches[0]) {
+                setActiveGuideId(resultMatches[0]);
+            }
+
             setDrugResults(nextResults);
+            setDrugKnowledgeLoading(true);
+
+            const [knowledgePayload, mediaPairs] = await Promise.all([
+                keywordKnowledge?.rxcui
+                    ? Promise.resolve(keywordKnowledge)
+                    : requestDrugKnowledge(nextResults[0]?.generic !== '未提供' ? nextResults[0].generic : keyword, apiContext),
+                Promise.all(nextResults.map(async (item) => {
+                    const media = await requestDrugMedia(item.splSetId, apiContext);
+                    return [item.id, media?.[0]?.url || ''];
+                }))
+            ]);
+
+            setDrugKnowledge(knowledgePayload || null);
+            setDrugMediaMap(Object.fromEntries(mediaPairs.filter(([, url]) => url)));
+            setDrugKnowledgeLoading(false);
         } catch (error) {
-            setDrugError(error?.message || '药品查询失败，请稍后重试。');
+            setDrugKnowledgeLoading(false);
+            const localizedErrorMessage = resolveDrugSearchErrorMessage(error?.message, 0);
+            if (nextDrugReference) {
+                setDrugError('');
+                setDrugNotice(`${localizedErrorMessage || '云端官方标签暂时不可用'}，已先展示中文用药速览与官方入口。`);
+            } else {
+                setDrugError(localizedErrorMessage || '药品信息查询失败，请稍后重试。');
+            }
         } finally {
             setDrugLoading(false);
         }
     };
 
-    const handleDrugInsight = async () => {
-        setDrugInsight('');
-        setDrugInsightError('');
-
-        if (!drugResults.length) {
-            setDrugInsightError('请先完成药品查询，再生成 AI 解读。');
-            return;
-        }
-
-        if (!DRUG_AI_ENDPOINT) {
-            setDrugInsightError('未配置 VITE_DRUG_AI_ENDPOINT，当前仅启用公开数据检索模式。');
-            return;
-        }
-
-        setDrugInsightLoading(true);
-        try {
-            const response = await fetch(DRUG_AI_ENDPOINT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    model: DRUG_AI_MODEL,
-                    keyword: formatSnippet(drugKeyword),
-                    items: drugResults
-                })
-            });
-            if (!response.ok) {
-                throw new Error(await resolveApiError(response));
-            }
-            const payload = await response.json();
-            const summary = formatSnippet(payload?.summary || payload?.result || payload?.content);
-            if (!summary) {
-                setDrugInsightError('AI 接口已返回，但没有可展示的解读内容。');
-                return;
-            }
-            setDrugInsight(summary);
-        } catch (error) {
-            setDrugInsightError(error?.message || 'AI 解读失败，请检查接口配置。');
-        } finally {
-            setDrugInsightLoading(false);
-        }
+    const handleDrugSearch = async (event) => {
+        event.preventDefault();
+        await searchDrug(drugKeyword);
     };
 
-    const dailyMedLink = `https://dailymed.nlm.nih.gov/dailymed/search.cfm?query=${encodeURIComponent(formatSnippet(drugKeyword) || 'aspirin')}`;
+    const handleQuickQuery = async (keyword) => {
+        setActiveEntryId('drug-check');
+        setDrugKeyword(keyword);
+        await searchDrug(keyword);
+    };
 
     return (
         <section id="luming-health" className="section luming-entry-section">
@@ -448,43 +909,314 @@ const LumingHealthEntry = () => {
                         </div>
 
                         {activeEntry.id === 'drug-check' ? (
-                            <div className="luming-demo-box">
-                                <h4>药品查查体验</h4>
-                                <form className="luming-drug-form" onSubmit={handleDrugSearch}>
-                                    <input
-                                        type="text"
-                                        value={drugKeyword}
-                                        onChange={(event) => setDrugKeyword(event.target.value)}
-                                        placeholder="输入药品名，如 阿司匹林 或 aspirin"
-                                    />
-                                    <button type="submit" disabled={drugLoading}>
-                                        {drugLoading ? '查询中...' : '立即查询'}
-                                    </button>
-                                </form>
-
-                                <div className="luming-drug-actions">
-                                    <button type="button" onClick={handleDrugInsight} disabled={drugInsightLoading || drugLoading}>
-                                        {drugInsightLoading ? 'AI 解析中...' : 'AI 解读（DeepSeek 配置位）'}
-                                    </button>
-                                    <a href={dailyMedLink} target="_blank" rel="noreferrer">去 DailyMed 深查</a>
+                            <div className="luming-demo-box luming-health-workspace">
+                                <div className="luming-workspace-head">
+                                    <div>
+                                        <h4>药品查询与健康指南</h4>
+                                        <p className="luming-workspace-copy">
+                                            查询常用药品说明，查看慢病管理重点与复诊准备建议，让药品信息更容易理解，也更方便继续行动。
+                                        </p>
+                                    </div>
                                 </div>
 
-                                {drugError ? <p className="luming-drug-error">{drugError}</p> : null}
-                                {drugInsightError ? <p className="luming-drug-error">{drugInsightError}</p> : null}
-                                {drugInsight ? <p className="luming-ai-result">{drugInsight}</p> : null}
+                                <div className="luming-service-status">
+                                    <span className={`luming-service-badge is-${apiContext.mode}`}>{apiModeCopy.badge}</span>
+                                    <p>{apiModeCopy.description}</p>
+                                </div>
+
+                                <div className="luming-search-shell">
+                                    <label className="luming-search-label" htmlFor="luming-drug-search">药品名称</label>
+                                    <p className="luming-search-subcopy">支持中文名称、品牌名和英文通用名，例如阿托伐他汀、立普妥、atorvastatin。正式版建议接入 Aria 公共药学 API。</p>
+                                    <form className="luming-drug-form" onSubmit={handleDrugSearch}>
+                                        <input
+                                            id="luming-drug-search"
+                                            type="text"
+                                            value={drugKeyword}
+                                            onChange={(event) => setDrugKeyword(event.target.value)}
+                                            placeholder="输入药品名称，例如二甲双胍 / 格华止 / metformin"
+                                            aria-label="药品检索输入框"
+                                        />
+                                        <button type="submit" disabled={drugLoading}>
+                                            {drugLoading ? '查询中...' : '查询药品'}
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <div className="luming-search-presets">
+                                    <span className="luming-search-presets-label">常搜药品</span>
+                                    <div className="luming-chip-row">
+                                        {COMMON_DRUG_QUICK_QUERIES.map((item) => (
+                                            <button
+                                                key={item}
+                                                type="button"
+                                                className="luming-chip"
+                                                onClick={() => void handleQuickQuery(item)}
+                                            >
+                                                {item}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="luming-drug-actions">
+                                    {drugOfficialLinks.map((link) => (
+                                        <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label}</a>
+                                    ))}
+                                </div>
+
+                                {matchedGuideNames ? (
+                                    <p className="luming-drug-match" role="status">
+                                        相关健康指南：{matchedGuideNames}
+                                    </p>
+                                ) : null}
+
+                                {drugNotice ? (
+                                    <div className="luming-search-state is-notice" role="status">
+                                        <p className="luming-search-feedback">{drugNotice}</p>
+                                    </div>
+                                ) : null}
+
+                                {drugError ? (
+                                    <div className="luming-search-state is-error" role="alert">
+                                        <p className="luming-drug-error">{drugError}</p>
+                                        <p className="luming-search-tip">可尝试：通用名、品牌名或英文名，例如阿托伐他汀 / 立普妥 / atorvastatin。</p>
+                                    </div>
+                                ) : null}
+
+                                {drugReference ? (
+                                    <div className="luming-reference-shell">
+                                        <div className="luming-guide-head">
+                                            <h4>中文用药速览</h4>
+                                            <p>这部分面向普通用户和家属阅读，帮助先把药品的大方向看明白；具体剂量、适应症和疗程仍以医生/药师建议为准。</p>
+                                        </div>
+                                        <div className="luming-reference-grid">
+                                            <section className="luming-reference-card">
+                                                <p className="luming-reference-kicker">{drugReference.category}</p>
+                                                <h5>{drugReference.canonicalName}</h5>
+                                                <p className="luming-reference-subtitle">{drugReference.englishName}</p>
+                                                <p className="luming-reference-summary">{drugReference.summary}</p>
+                                            </section>
+                                            <section className="luming-reference-card">
+                                                <h5>常见适用场景</h5>
+                                                <ul className="luming-knowledge-list">
+                                                    {drugReference.commonUses.map((item) => (
+                                                        <li key={item}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </section>
+                                            <section className="luming-reference-card">
+                                                <h5>日常关注点</h5>
+                                                <ul className="luming-knowledge-list">
+                                                    {drugReference.dailyFocus.map((item) => (
+                                                        <li key={item}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </section>
+                                            <section className="luming-reference-card">
+                                                <h5>复诊时可以问</h5>
+                                                <ul className="luming-knowledge-list">
+                                                    {drugReference.askDoctor.map((item) => (
+                                                        <li key={item}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </section>
+                                        </div>
+                                    </div>
+                                ) : null}
 
                                 {drugResults.length ? (
-                                    <ul className="luming-drug-results">
-                                        {drugResults.map((item) => (
-                                            <li key={`${item.brand}-${item.generic}`}>
-                                                <p><strong>品牌名：</strong>{item.brand}</p>
-                                                <p><strong>通用名：</strong>{item.generic}</p>
-                                                <p><strong>生产方：</strong>{item.manufacturer}</p>
-                                                <p><strong>用途摘要：</strong>{item.usage || '未提供'}</p>
-                                            </li>
+                                    <div className="luming-results-shell">
+                                        <div className="luming-results-head">
+                                            <h4>查询结果</h4>
+                                            <p>已找到 {drugResults.length} 条相关药品信息。</p>
+                                        </div>
+                                        <ul className="luming-drug-results">
+                                            {drugResults.map((item) => (
+                                                <li key={item.id}>
+                                                    <div className="luming-drug-result-layout">
+                                                        <div className="luming-drug-result-media">
+                                                            {drugMediaMap[item.id] ? (
+                                                                <img className="luming-drug-image" src={drugMediaMap[item.id]} alt={`${item.brand} 官方图片`} />
+                                                            ) : (
+                                                                <div className="luming-drug-placeholder">暂无官方图片</div>
+                                                            )}
+                                                        </div>
+                                                        <div className="luming-drug-result-main">
+                                                            <div className="luming-drug-result-head">
+                                                                <strong>{item.brand}</strong>
+                                                                <span>{item.route}</span>
+                                                            </div>
+                                                            <p><strong>通用名：</strong>{item.generic}</p>
+                                                            <p><strong>生产方：</strong>{item.manufacturer}</p>
+                                                            <p><strong>主要用途（官方英文标签）：</strong>{item.purpose || '未提供'}</p>
+                                                            {item.usage ? <p><strong>官方标签摘要（英文）：</strong>{item.usage}</p> : null}
+                                                            {item.activeIngredient ? <p><strong>活性成分：</strong>{item.activeIngredient}</p> : null}
+                                                            {item.warning ? <p><strong>用药关注（官方英文标签）：</strong>{item.warning}</p> : null}
+                                                            <div className="luming-drug-result-links">
+                                                                <a href={item.dailyMedLink} target="_blank" rel="noreferrer">查看说明全文</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                ) : null}
+
+                                {drugKnowledgeLoading ? <p className="luming-knowledge-note">正在整理公开药学参考信息...</p> : null}
+                                {drugKnowledgeError ? <p className="luming-knowledge-note">{drugKnowledgeError}</p> : null}
+
+                                {drugKnowledge ? (
+                                    <div className="luming-knowledge-shell">
+                                        <div className="luming-guide-head">
+                                            <h4>公开官方药学信息</h4>
+                                            <p>这部分保留官方数据库的原始术语和英文资料入口，适合在中文速览基础上继续深查。</p>
+                                        </div>
+                                        <div className="luming-knowledge-grid">
+                                            <section className="luming-knowledge-card">
+                                                <h5>标准药学概览</h5>
+                                                <ul className="luming-knowledge-list">
+                                                    <li><strong>标准名称：</strong>{drugKnowledge.matchedName || '未提供'}</li>
+                                                    <li><strong>术语类型：</strong>{translateTermTypeLabel(drugKnowledge.termType)}</li>
+                                                    <li><strong>常见品牌：</strong>{drugKnowledge.commonBrands?.length ? drugKnowledge.commonBrands.join('、') : '未提供'}</li>
+                                                    <li><strong>常见剂型：</strong>{drugKnowledge.doseForms?.length ? drugKnowledge.doseForms.join('、') : '未提供'}</li>
+                                                </ul>
+                                            </section>
+                                            <section className="luming-knowledge-card">
+                                                <h5>官方结构化字段</h5>
+                                                <ul className="luming-knowledge-list">
+                                                    <li><strong>RxCUI：</strong>{drugKnowledge.rxcui || '未提供'}</li>
+                                                    <li><strong>ATC 编码：</strong>{drugKnowledge.atcCodes?.length ? drugKnowledge.atcCodes.join('、') : '未提供'}</li>
+                                                    <li><strong>may_treat：</strong>{drugKnowledge.mayTreat?.length ? drugKnowledge.mayTreat.join('、') : '未提供'}</li>
+                                                </ul>
+                                            </section>
+                                            {drugKnowledge.patientEducation ? (
+                                                <section className="luming-knowledge-card is-wide">
+                                                    <h5>官方患者教育资料</h5>
+                                                    <p className="luming-knowledge-summary">
+                                                        {drugKnowledge.patientEducation.summary
+                                                            ? `以下为 MedlinePlus 英文患者教育摘要：${drugKnowledge.patientEducation.summary}`
+                                                            : '已匹配到官方患者教育页面，可点击查看完整内容。'}
+                                                    </p>
+                                                    <div className="luming-drug-result-links">
+                                                        <a href={drugKnowledge.patientEducation.url} target="_blank" rel="noreferrer">
+                                                            打开 {drugKnowledge.patientEducation.title || 'MedlinePlus'} 官方页
+                                                        </a>
+                                                    </div>
+                                                </section>
+                                            ) : null}
+                                        </div>
+                                        <p className="luming-knowledge-source">{drugKnowledge.sourceNote || '信息来源：FDA、RxNorm、MedlinePlus、DailyMed 等公开官方数据。'}</p>
+                                    </div>
+                                ) : null}
+
+                                <div className="luming-guide-shell">
+                                    <div className="luming-guide-head">
+                                        <h4>慢病健康管理指南</h4>
+                                        <p>
+                                            从用户和家属视角梳理“日常重点、复诊要问、风险信号”，帮助把健康管理这件事做得更清楚。
+                                        </p>
+                                    </div>
+
+                                    <div className="luming-guide-tabs" role="tablist" aria-label="慢病健康管理指南">
+                                        {CHRONIC_GUIDES.map((guide) => (
+                                            <button
+                                                key={guide.id}
+                                                type="button"
+                                                className={`luming-guide-tab ${guide.id === activeGuide.id ? 'is-active' : ''} ${matchedGuideIds.includes(guide.id) ? 'is-suggested' : ''}`}
+                                                aria-pressed={guide.id === activeGuide.id}
+                                                onClick={() => setActiveGuideId(guide.id)}
+                                            >
+                                                {guide.name}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="luming-guide-panel">
+                                        <p className="luming-guide-kicker">{activeGuide.tag}</p>
+                                        <h5>{activeGuide.name}</h5>
+                                        <p className="luming-guide-summary">{activeGuide.summary}</p>
+
+                                        <div className="luming-guide-grid">
+                                            <section className="luming-guide-block">
+                                                <h6>日常重点</h6>
+                                                <ul>
+                                                    {activeGuide.focus.map((item) => (
+                                                        <li key={item}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </section>
+
+                                            <section className="luming-guide-block">
+                                                <h6>复诊时可问</h6>
+                                                <ul>
+                                                    {activeGuide.askDoctor.map((item) => (
+                                                        <li key={item}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </section>
+
+                                            <section className="luming-guide-block">
+                                                <h6>尽快就医信号</h6>
+                                                <ul>
+                                                    {activeGuide.redFlags.map((item) => (
+                                                        <li key={item}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </section>
+                                        </div>
+
+                                        <div className="luming-guide-keywords">
+                                            <span>相关药品关键词</span>
+                                            <div className="luming-chip-row">
+                                                {activeGuide.keywords.slice(0, 4).map((keyword) => (
+                                                    <button
+                                                        key={keyword}
+                                                        type="button"
+                                                        className="luming-chip is-soft"
+                                                        onClick={() => void handleQuickQuery(keyword)}
+                                                    >
+                                                        {keyword}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="luming-links">
+                                            {activeGuide.learnMore.map((link) => (
+                                                <a key={link.url} href={link.url} target="_blank" rel="noreferrer">
+                                                    {link.label}
+                                                </a>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="luming-checklist-shell">
+                                    <h4>复诊 / 购药前准备清单</h4>
+                                    <ul className="luming-checklist">
+                                        {MEDICAL_VISIT_CHECKLIST.map((item) => (
+                                            <li key={item}>{item}</li>
                                         ))}
                                     </ul>
-                                ) : null}
+                                </div>
+
+                                <div className="luming-source-shell">
+                                    <h4>信息来源</h4>
+                                    <div className="luming-source-grid">
+                                        {FREE_OFFICIAL_SOURCES.map((source) => (
+                                            <a
+                                                key={source.url}
+                                                href={source.url}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                className="luming-source-card"
+                                            >
+                                                {source.label}
+                                            </a>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                         ) : (
                             <div className="luming-demo-box">

@@ -40,6 +40,8 @@ jobs:
         working-directory: apps/website
         env:
           VITE_ARIA_CHANGELOG_URL: "https://ailovem.com/changelog.html"
+          VITE_ARIA_SITE_API_BASE: ${{ vars.ARIA_SITE_API_BASE }}
+          VITE_ARIA_SITE_USE_RELATIVE_API: ${{ vars.ARIA_SITE_USE_RELATIVE_API }}
         run: npm run build
 
       - name: Upload Pages artifact
