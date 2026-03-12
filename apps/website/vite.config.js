@@ -25,6 +25,7 @@ export default defineConfig(({ mode }) => {
         input: {
           main: resolve(__dirname, 'index.html'),
           aiConan: resolve(__dirname, 'ai-conan.html'),
+          drugCheck: resolve(__dirname, 'drug-check.html'),
         },
       },
     },

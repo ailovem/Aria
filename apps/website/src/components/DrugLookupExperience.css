@@ -1,0 +1,582 @@
+.drug-lookup-shell {
+    display: grid;
+    gap: 1.2rem;
+    color: #16324f;
+}
+
+.drug-lookup-search-card,
+.drug-lookup-section,
+.drug-lookup-summary,
+.drug-lookup-state {
+    border-radius: 28px;
+    border: 1px solid rgba(18, 84, 113, 0.1);
+    background: rgba(255, 255, 255, 0.88);
+    box-shadow: 0 20px 55px rgba(15, 23, 42, 0.08);
+}
+
+.drug-lookup-search-card,
+.drug-lookup-section {
+    padding: 1.5rem;
+}
+
+.drug-lookup-intro {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.drug-lookup-intro-copy {
+    max-width: 660px;
+}
+
+.drug-lookup-description {
+    max-width: 620px;
+    color: #52667a;
+    font-size: 1rem;
+    line-height: 1.75;
+}
+
+.drug-lookup-badge-row,
+.drug-lookup-chip-row,
+.drug-lookup-link-row,
+.drug-lookup-guide-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+}
+
+.drug-lookup-badge {
+    min-height: 40px;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    padding: 0 1rem;
+    background: rgba(8, 145, 178, 0.09);
+    border: 1px solid rgba(8, 145, 178, 0.14);
+    color: #0f766e;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.drug-lookup-form {
+    margin-top: 1.25rem;
+    display: grid;
+    gap: 0.65rem;
+}
+
+.drug-lookup-label,
+.drug-lookup-quick-label {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: #1d4f68;
+}
+
+.drug-lookup-input-row {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.drug-lookup-input {
+    flex: 1 1 320px;
+    min-height: 54px;
+    border-radius: 18px;
+    border: 1px solid rgba(18, 84, 113, 0.16);
+    background: #f9fdff;
+    color: #102a43;
+    padding: 0 1rem;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.drug-lookup-input::placeholder {
+    color: #7c8ea0;
+}
+
+.drug-lookup-input:focus {
+    outline: none;
+    border-color: rgba(8, 145, 178, 0.45);
+    box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.14);
+    background: #ffffff;
+}
+
+.drug-lookup-submit,
+.drug-lookup-clear,
+.drug-lookup-chip,
+.drug-lookup-guide-tab,
+.drug-lookup-link {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.drug-lookup-submit,
+.drug-lookup-clear {
+    min-height: 54px;
+    border-radius: 18px;
+    padding: 0 1.2rem;
+    font-size: 0.96rem;
+    font-weight: 700;
+    border: 0;
+}
+
+.drug-lookup-submit {
+    background: linear-gradient(135deg, #0891b2 0%, #059669 100%);
+    color: #f8fdff;
+    box-shadow: 0 14px 28px rgba(8, 145, 178, 0.18);
+}
+
+.drug-lookup-submit:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 18px 34px rgba(8, 145, 178, 0.22);
+}
+
+.drug-lookup-submit:disabled {
+    opacity: 0.68;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.drug-lookup-clear {
+    background: #eef6fa;
+    color: #31546d;
+    border: 1px solid rgba(18, 84, 113, 0.12);
+}
+
+.drug-lookup-clear:hover {
+    transform: translateY(-1px);
+    background: #e5f0f7;
+}
+
+.drug-lookup-helper {
+    color: #66788a;
+    font-size: 0.92rem;
+    line-height: 1.6;
+}
+
+.drug-lookup-quick-row {
+    margin-top: 1.15rem;
+    display: grid;
+    gap: 0.65rem;
+}
+
+.drug-lookup-chip {
+    min-height: 40px;
+    border-radius: 999px;
+    border: 1px solid rgba(8, 145, 178, 0.16);
+    background: rgba(8, 145, 178, 0.08);
+    color: #155e75;
+    padding: 0 0.95rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+}
+
+.drug-lookup-chip:hover,
+.drug-lookup-guide-tab:hover,
+.drug-lookup-link:hover {
+    transform: translateY(-1px);
+}
+
+.drug-lookup-chip:hover {
+    border-color: rgba(8, 145, 178, 0.3);
+    background: rgba(8, 145, 178, 0.14);
+}
+
+.drug-lookup-chip.is-soft {
+    background: #f4f8fb;
+    border-color: rgba(18, 84, 113, 0.12);
+    color: #34546b;
+}
+
+.drug-lookup-help-grid,
+.drug-lookup-reference-grid,
+.drug-lookup-guide-grid {
+    display: grid;
+    gap: 0.85rem;
+}
+
+.drug-lookup-help-grid {
+    margin-top: 1.3rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.drug-lookup-help-card,
+.drug-lookup-card,
+.drug-lookup-result-card {
+    border-radius: 22px;
+    border: 1px solid rgba(18, 84, 113, 0.1);
+    background: #fdfefe;
+}
+
+.drug-lookup-help-card {
+    padding: 1rem;
+}
+
+.drug-lookup-help-card h3,
+.drug-lookup-card h4,
+.drug-lookup-result-head strong {
+    color: #102a43;
+}
+
+.drug-lookup-help-card h3 {
+    font-size: 1rem;
+    margin-bottom: 0.7rem;
+}
+
+.drug-lookup-help-card ul,
+.drug-lookup-bullets,
+.drug-lookup-checklist {
+    list-style: none;
+    display: grid;
+    gap: 0.62rem;
+}
+
+.drug-lookup-help-card li,
+.drug-lookup-bullets li,
+.drug-lookup-checklist li {
+    position: relative;
+    padding-left: 0.95rem;
+    color: #5e7184;
+    line-height: 1.65;
+}
+
+.drug-lookup-help-card li::before,
+.drug-lookup-bullets li::before,
+.drug-lookup-checklist li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.62rem;
+    width: 0.38rem;
+    height: 0.38rem;
+    border-radius: 999px;
+    background: #10b981;
+}
+
+.drug-lookup-summary,
+.drug-lookup-state {
+    padding: 1rem 1.15rem;
+}
+
+.drug-lookup-summary p,
+.drug-lookup-state p,
+.drug-lookup-state span {
+    color: #4a6276;
+    line-height: 1.65;
+}
+
+.drug-lookup-summary strong {
+    color: #102a43;
+}
+
+.drug-lookup-suggestion-row {
+    margin-top: 0.8rem;
+    display: grid;
+    gap: 0.65rem;
+}
+
+.drug-lookup-suggestion-row span {
+    color: #1d4f68;
+    font-size: 0.86rem;
+    font-weight: 700;
+}
+
+.drug-lookup-state {
+    display: grid;
+    gap: 0.25rem;
+}
+
+.drug-lookup-state.state-loading {
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 0.85rem;
+    align-items: start;
+    border-color: rgba(8, 145, 178, 0.16);
+    background: rgba(236, 254, 255, 0.94);
+}
+
+.drug-lookup-state.state-notice {
+    border-color: rgba(8, 145, 178, 0.14);
+    background: rgba(240, 249, 255, 0.94);
+}
+
+.drug-lookup-state.state-error {
+    border-color: rgba(248, 113, 113, 0.18);
+    background: rgba(254, 242, 242, 0.96);
+}
+
+.drug-lookup-state.state-error p,
+.drug-lookup-state.state-error span {
+    color: #9f1239;
+}
+
+.drug-lookup-loading-dot {
+    width: 16px;
+    height: 16px;
+    margin-top: 0.2rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #22d3ee, #10b981);
+    animation: drugLookupPulse 1.6s ease-in-out infinite;
+}
+
+.drug-lookup-section-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.95rem;
+    align-items: flex-start;
+}
+
+.drug-lookup-section-head h3 {
+    font-size: 1.25rem;
+    color: #102a43;
+}
+
+.drug-lookup-section-head p,
+.drug-lookup-card-summary,
+.drug-lookup-loading-note {
+    margin-top: 0.35rem;
+    color: #5e7184;
+    line-height: 1.7;
+}
+
+.drug-lookup-reference-grid {
+    margin-top: 1rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.drug-lookup-card {
+    padding: 1.05rem;
+}
+
+.drug-lookup-card.is-primary {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, rgba(236, 254, 255, 0.96), rgba(236, 253, 245, 0.96));
+}
+
+.drug-lookup-card-kicker {
+    color: #0f766e;
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.drug-lookup-card h4 {
+    margin-top: 0.45rem;
+    font-size: 1.08rem;
+}
+
+.drug-lookup-card-subtitle {
+    margin-top: 0.25rem;
+    color: #0f766e;
+    font-size: 0.92rem;
+}
+
+.drug-lookup-link-row {
+    align-items: center;
+}
+
+.drug-lookup-link {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    padding: 0 1rem;
+    border: 1px solid rgba(8, 145, 178, 0.16);
+    background: rgba(8, 145, 178, 0.08);
+    color: #155e75;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.drug-lookup-link:hover {
+    border-color: rgba(8, 145, 178, 0.28);
+    background: rgba(8, 145, 178, 0.12);
+}
+
+.drug-lookup-link.is-inline {
+    width: fit-content;
+    margin-top: 0.8rem;
+}
+
+.drug-lookup-education-card {
+    margin-top: 1rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: center;
+}
+
+.drug-lookup-results {
+    list-style: none;
+    display: grid;
+    gap: 0.85rem;
+    margin-top: 1rem;
+}
+
+.drug-lookup-result-card {
+    padding: 1rem;
+    display: grid;
+    gap: 0.95rem;
+}
+
+.drug-lookup-result-card.has-media {
+    grid-template-columns: 120px minmax(0, 1fr);
+    align-items: start;
+}
+
+.drug-lookup-result-media {
+    width: 120px;
+    height: 120px;
+    overflow: hidden;
+    border-radius: 18px;
+    border: 1px solid rgba(18, 84, 113, 0.1);
+    background: #f3f8fb;
+}
+
+.drug-lookup-result-media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.drug-lookup-result-body {
+    min-width: 0;
+}
+
+.drug-lookup-result-head {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.drug-lookup-result-head strong {
+    font-size: 1rem;
+}
+
+.drug-lookup-result-head span {
+    color: #0f766e;
+    font-size: 0.9rem;
+}
+
+.drug-lookup-result-copy {
+    display: grid;
+    gap: 0.55rem;
+    margin-top: 0.7rem;
+}
+
+.drug-lookup-result-copy p {
+    color: #5e7184;
+    line-height: 1.65;
+}
+
+.drug-lookup-result-copy p span {
+    display: block;
+    margin-bottom: 0.1rem;
+    color: #1d4f68;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.drug-lookup-guide-tabs {
+    margin-top: 1rem;
+}
+
+.drug-lookup-guide-tab {
+    min-height: 40px;
+    border-radius: 999px;
+    padding: 0 0.95rem;
+    border: 1px solid rgba(18, 84, 113, 0.12);
+    background: #f4f8fb;
+    color: #486174;
+    font-weight: 700;
+}
+
+.drug-lookup-guide-tab.is-active {
+    border-color: transparent;
+    background: linear-gradient(135deg, #0891b2 0%, #059669 100%);
+    color: #f8fdff;
+}
+
+.drug-lookup-guide-card {
+    margin-top: 1rem;
+}
+
+.drug-lookup-guide-grid {
+    margin-top: 0.9rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.drug-lookup-checklist {
+    margin-top: 0.9rem;
+}
+
+.drug-lookup-disclaimer {
+    color: #66788a;
+    font-size: 0.88rem;
+    line-height: 1.7;
+    text-align: center;
+    padding: 0 0.5rem 0.2rem;
+}
+
+@media (max-width: 1024px) {
+    .drug-lookup-help-grid,
+    .drug-lookup-reference-grid,
+    .drug-lookup-guide-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .drug-lookup-result-card.has-media {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .drug-lookup-search-card,
+    .drug-lookup-section,
+    .drug-lookup-summary,
+    .drug-lookup-state {
+        border-radius: 24px;
+    }
+
+    .drug-lookup-search-card,
+    .drug-lookup-section {
+        padding: 1.15rem;
+    }
+
+    .drug-lookup-input-row {
+        flex-direction: column;
+    }
+
+    .drug-lookup-submit,
+    .drug-lookup-clear {
+        width: 100%;
+    }
+
+    .drug-lookup-state.state-loading {
+        grid-template-columns: 1fr;
+    }
+
+    .drug-lookup-result-media {
+        width: 100%;
+        height: 190px;
+    }
+}
+
+@keyframes drugLookupPulse {
+    0% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.3);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(34, 211, 238, 0);
+    }
+    100% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
+    }
+}
