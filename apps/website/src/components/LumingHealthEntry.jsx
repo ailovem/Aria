@@ -247,6 +247,21 @@ const DRUG_API_MODE_COPY = {
     }
 };
 
+const HUMAN_SEARCH_GUIDE_CARDS = [
+    {
+        title: '怎么搜最容易找到',
+        points: ['直接输入药盒上的中文名', '也可以输入商品名或英文名', '不确定全名时，先搜常用叫法也可以']
+    },
+    {
+        title: '你会看到什么',
+        points: ['先给中文用药速览', '再补公开官方标签和患者教育入口', '同步推荐相关慢病管理指南']
+    },
+    {
+        title: '如果一时没查到',
+        points: ['先看中文速览和官方入口', '换通用名、品牌名或英文名再试一次', '重要用药问题优先问医生或药师']
+    }
+];
+
 const buildDailyMedLink = (keyword) => `https://dailymed.nlm.nih.gov/dailymed/search.cfm?query=${encodeURIComponent(formatSnippet(keyword) || 'aspirin')}`;
 
 const buildReferenceAliasIndex = () => {
@@ -635,6 +650,8 @@ const LumingHealthEntry = () => {
     const [drugKnowledge, setDrugKnowledge] = useState(null);
     const [drugMediaMap, setDrugMediaMap] = useState({});
     const [drugReference, setDrugReference] = useState(null);
+    const [hasDrugSearchAttempted, setHasDrugSearchAttempted] = useState(false);
+    const [drugSearchContext, setDrugSearchContext] = useState(null);
 
     const apiContext = useMemo(() => resolveDrugApiContext(), []);
     const apiModeCopy = DRUG_API_MODE_COPY[apiContext.mode] || DRUG_API_MODE_COPY.fallback;
@@ -659,6 +676,27 @@ const LumingHealthEntry = () => {
         () => buildDrugOfficialLinks(drugKeyword, drugReference, drugKnowledge),
         [drugKeyword, drugReference, drugKnowledge]
     );
+    const drugAliasSuggestions = useMemo(() => {
+        const current = normalizeLookupValue(drugKeyword);
+        return (drugReference?.aliases || [])
+            .filter((item) => normalizeLookupValue(item) !== current)
+            .slice(0, 4);
+    }, [drugReference, drugKeyword]);
+    const drugSearchSummary = useMemo(() => {
+        if (!drugSearchContext) {
+            return null;
+        }
+        return {
+            inputKeyword: drugSearchContext.inputKeyword,
+            interpretedKeyword: drugReference?.canonicalName || drugKnowledge?.matchedName || drugSearchContext.inputKeyword,
+            apiKeyword: drugSearchContext.apiKeyword || drugReference?.apiSearchTerms?.[0] || '',
+            hint: drugReference
+                ? '已按更接近日常说法的中文资料卡 + 官方公开数据库双线整理'
+                : apiContext.mode === 'fallback'
+                    ? '当前以基础公开检索模式为主，建议优先查看中文速览与官方入口'
+                    : '当前优先查询 Aria 公共药学 API，再补官方公开标签'
+        };
+    }, [apiContext.mode, drugKnowledge, drugReference, drugSearchContext]);
 
     const resetDrugWorkspace = () => {
         setDrugError('');
@@ -670,6 +708,8 @@ const LumingHealthEntry = () => {
         setDrugKnowledgeLoading(false);
         setDrugMediaMap({});
         setDrugReference(null);
+        setHasDrugSearchAttempted(false);
+        setDrugSearchContext(null);
     };
 
     const handleSelectEntry = (entryId) => {
@@ -703,7 +743,12 @@ const LumingHealthEntry = () => {
             keyword = mappedKeyword;
         }
 
+        setHasDrugSearchAttempted(true);
         setDrugReference(nextDrugReference);
+        setDrugSearchContext({
+            inputKeyword: formatSnippet(rawKeyword, 60),
+            apiKeyword: keyword
+        });
 
         const keywordKnowledge = await requestDrugKnowledge(keyword, apiContext);
         const retryKeywords = buildRetryKeywords(keyword, keywordKnowledge, nextDrugReference);
@@ -939,6 +984,18 @@ const LumingHealthEntry = () => {
                                         <button type="submit" disabled={drugLoading}>
                                             {drugLoading ? '查询中...' : '查询药品'}
                                         </button>
+                                        {drugKeyword ? (
+                                            <button
+                                                type="button"
+                                                className="luming-clear-btn"
+                                                onClick={() => {
+                                                    setDrugKeyword('');
+                                                    resetDrugWorkspace();
+                                                }}
+                                            >
+                                                清空
+                                            </button>
+                                        ) : null}
                                     </form>
                                 </div>
 
@@ -958,16 +1015,77 @@ const LumingHealthEntry = () => {
                                     </div>
                                 </div>
 
+                                {!hasDrugSearchAttempted ? (
+                                    <div className="luming-empty-shell">
+                                        {HUMAN_SEARCH_GUIDE_CARDS.map((card) => (
+                                            <section key={card.title} className="luming-empty-card">
+                                                <h5>{card.title}</h5>
+                                                <ul className="luming-knowledge-list">
+                                                    {card.points.map((item) => (
+                                                        <li key={item}>{item}</li>
+                                                    ))}
+                                                </ul>
+                                            </section>
+                                        ))}
+                                    </div>
+                                ) : null}
+
+                                {drugSearchSummary ? (
+                                    <div className="luming-search-summary">
+                                        <div className="luming-search-summary-card">
+                                            <span>你输入的是</span>
+                                            <strong>{drugSearchSummary.inputKeyword || '未提供'}</strong>
+                                        </div>
+                                        <div className="luming-search-summary-card">
+                                            <span>系统识别为</span>
+                                            <strong>{drugSearchSummary.interpretedKeyword || '未识别'}</strong>
+                                        </div>
+                                        <div className="luming-search-summary-card">
+                                            <span>公开库检索词</span>
+                                            <strong>{drugSearchSummary.apiKeyword || '未启用'}</strong>
+                                        </div>
+                                        <p className="luming-search-summary-note">{drugSearchSummary.hint}</p>
+                                    </div>
+                                ) : null}
+
                                 <div className="luming-drug-actions">
                                     {drugOfficialLinks.map((link) => (
                                         <a key={link.url} href={link.url} target="_blank" rel="noreferrer">{link.label}</a>
                                     ))}
                                 </div>
 
+                                {drugAliasSuggestions.length ? (
+                                    <div className="luming-search-presets">
+                                        <span className="luming-search-presets-label">也可以试试这些叫法</span>
+                                        <div className="luming-chip-row">
+                                            {drugAliasSuggestions.map((item) => (
+                                                <button
+                                                    key={item}
+                                                    type="button"
+                                                    className="luming-chip is-soft"
+                                                    onClick={() => void handleQuickQuery(item)}
+                                                >
+                                                    {item}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ) : null}
+
                                 {matchedGuideNames ? (
                                     <p className="luming-drug-match" role="status">
                                         相关健康指南：{matchedGuideNames}
                                     </p>
+                                ) : null}
+
+                                {drugLoading ? (
+                                    <div className="luming-loading-shell" role="status">
+                                        <div className="luming-loading-dot" />
+                                        <div>
+                                            <strong>正在整理药品信息</strong>
+                                            <p>先连公开药品库，再补中文速览、官方标签和慢病管理建议，请稍等几秒。</p>
+                                        </div>
+                                    </div>
                                 ) : null}
 
                                 {drugNotice ? (

@@ -335,6 +335,24 @@
     gap: 0.55rem;
 }
 
+.luming-empty-shell {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.luming-empty-card {
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.95rem;
+}
+
+.luming-empty-card h5 {
+    margin-bottom: 0.6rem;
+    font-size: 0.98rem;
+}
+
 .luming-search-presets-label {
     font-size: 0.84rem;
     color: #bae6fd;
@@ -439,6 +457,50 @@
     cursor: not-allowed;
 }
 
+.luming-drug-form .luming-clear-btn {
+    min-height: 46px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.04);
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 0 1rem;
+    cursor: pointer;
+}
+
+.luming-search-summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.luming-search-summary-card {
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    padding: 0.85rem 0.95rem;
+    display: grid;
+    gap: 0.32rem;
+}
+
+.luming-search-summary-card span {
+    color: #bae6fd;
+    font-size: 0.8rem;
+}
+
+.luming-search-summary-card strong {
+    color: #f8fafc;
+    font-size: 0.98rem;
+    line-height: 1.4;
+}
+
+.luming-search-summary-note {
+    grid-column: 1 / -1;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    font-size: 0.92rem;
+}
+
 .luming-drug-actions {
     display: flex;
     gap: 0.55rem;
@@ -473,6 +535,38 @@
     padding-left: 0.75rem;
     color: #cffafe;
     line-height: 1.55;
+}
+
+.luming-loading-shell {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 0.85rem;
+    align-items: start;
+    border-radius: 14px;
+    padding: 0.9rem 1rem;
+    background: rgba(8, 145, 178, 0.12);
+    border: 1px solid rgba(34, 211, 238, 0.18);
+}
+
+.luming-loading-shell strong {
+    color: #ecfeff;
+    font-size: 0.96rem;
+}
+
+.luming-loading-shell p {
+    margin-top: 0.3rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.luming-loading-dot {
+    width: 16px;
+    height: 16px;
+    margin-top: 0.18rem;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #22d3ee, #34d399);
+    box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.35);
+    animation: lumingPulse 1.6s ease-in-out infinite;
 }
 
 .luming-drug-error {
@@ -860,6 +954,8 @@
 @media (max-width: 1024px) {
     .luming-intro-grid,
     .luming-hub-grid,
+    .luming-empty-shell,
+    .luming-search-summary,
     .luming-guide-grid,
     .luming-reference-grid,
     .luming-knowledge-grid,
@@ -891,6 +987,10 @@
         width: 100%;
     }
 
+    .luming-loading-shell {
+        grid-template-columns: 1fr;
+    }
+
     .luming-drug-result-media {
         width: 100%;
     }
@@ -899,5 +999,20 @@
     .luming-drug-placeholder {
         min-height: 180px;
         height: 180px;
+    }
+}
+
+@keyframes lumingPulse {
+    0% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.35);
+    }
+    70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 10px rgba(34, 211, 238, 0);
+    }
+    100% {
+        transform: scale(0.9);
+        box-shadow: 0 0 0 0 rgba(34, 211, 238, 0);
     }
 }
